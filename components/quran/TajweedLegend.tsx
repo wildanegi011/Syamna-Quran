@@ -85,24 +85,30 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
             const target = e.target as HTMLElement;
             // Use closest to ensure we catch interactions even if they land on child elements
             const ruleElement = target.closest('[data-rule]');
-            const ruleCode = ruleElement?.getAttribute('data-rule');
             
-            if (ruleCode) {
-                const rule = TAJWEED_RULES.find(r => r.codes.includes(ruleCode));
-                if (rule) {
-                    const rect = ruleElement.getBoundingClientRect();
-                    // Position tooltip above the interacted word
-                    setTooltip({
-                        rule,
-                        x: rect.left + rect.width / 2,
-                        y: rect.top + window.scrollY - 10
-                    });
-                    
-                    if (e.type === 'click') {
-                        e.stopPropagation();
+            if (ruleElement) {
+                const ruleCode = ruleElement.getAttribute('data-rule');
+                if (ruleCode) {
+                    const rule = TAJWEED_RULES.find(r => r.codes.includes(ruleCode));
+                    if (rule) {
+                        const rect = ruleElement.getBoundingClientRect();
+                        // Position tooltip above the interacted word
+                        setTooltip({
+                            rule,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top + window.scrollY - 10
+                        });
+                        
+                        if (e.type === 'click') {
+                            e.stopPropagation();
+                        }
+                        return; // Exit early if we found a rule
                     }
                 }
-            } else if (e.type !== 'mouseover') {
+            }
+            
+            // If we're not over a rule element and it's not a mouseover, close tooltip
+            if (e.type !== 'mouseover') {
                 closeTooltip();
             }
         };

@@ -56,7 +56,7 @@ function DoaSkeleton() {
                         <div className="flex items-center gap-6 md:gap-8 flex-1">
                             {/* ID Box Skeleton */}
                             <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1.25rem] md:rounded-[1.5rem] bg-surface-container-highest/50" />
-                            
+
                             <div className="flex flex-col gap-3 flex-1">
                                 {/* Group Pill Skeleton */}
                                 <div className="h-5 w-24 rounded-md bg-primary/10" />
@@ -152,7 +152,6 @@ export default function DoaPage() {
                 items={groups}
                 activeItem={activeGroup}
                 onSelect={setActiveGroup}
-                label="Filter"
             />
 
             <ModuleGrid
