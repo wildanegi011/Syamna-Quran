@@ -1,0 +1,47 @@
+[
+    {
+        "id": 1,
+        "title": "Al-Quran",
+        "description": "Baca kitab suci lengkap.",
+        "icon": "Moon",
+        "href": "/quran",
+        "color": "bg-emerald-500",
+        "display_order": 1
+    },
+    {
+        "id": 2,
+        "title": "Hadits",
+        "description": "Hadits pilihan terpercaya.",
+        "icon": "BookText",
+        "href": "/hadits",
+        "color": "bg-violet-500",
+        "display_order": 2
+    },
+    {
+        "id": 3,
+        "title": "Kumpulan Doa",
+        "description": "Doa sehari hari",
+        "icon": "HandHelping",
+        "href": "/doa",
+        "color": "bg-blue-500",
+        "display_order": 3
+    },
+    {
+        "id": 4,
+        "title": "Asmaul Husna",
+        "description": "99 Nama Allah",
+        "icon": "Sparkles",
+        "href": "/asmaul-husna",
+        "color": "bg-amber-500",
+        "display_order": 4
+    },
+    {
+        "id": 5,
+        "title": "Jadwal Sholat",
+        "description": "Jadwal Sholat",
+        "icon": "Clock",
+        "href": "/jadwal-sholat",
+        "color": "bg-rose-500",
+        "display_order": 5
+    }
+]

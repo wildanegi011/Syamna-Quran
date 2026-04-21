@@ -1,0 +1,145 @@
+"use client";
+
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useDoaDetail } from "@/hooks/use-doa";
+import { Copy, Loader2, BookOpen, Quote, Info, Hash, Languages, X, Compass, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+interface DoaDetailModalProps {
+    doaId: number | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}
+
+export function DoaDetailModal({ doaId, open, onOpenChange }: DoaDetailModalProps) {
+    const { data: doa, isLoading } = useDoaDetail(doaId || 0, open && !!doaId);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent
+                className="max-w-4xl w-[95vw] max-h-[90vh] p-0 bg-surface-container-lowest/95 backdrop-blur-3xl border-white/5 overflow-hidden flex flex-col rounded-[2.5rem] md:rounded-[3.5rem] shadow-3xl scrollbar-hide"
+            >
+                <AnimatePresence mode="wait">
+                    {isLoading ? (
+                        <div className="p-12 flex flex-col items-center justify-center space-y-4 flex-1">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+                            <p className="text-[10px] font-headline font-black uppercase tracking-widest text-on-surface/30">Memuat Doa...</p>
+                            <DialogHeader>
+                                <DialogTitle className="sr-only">Memuat...</DialogTitle>
+                            </DialogHeader>
+                        </div>
+                    ) : doa ? (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="flex-1 flex flex-col min-h-0 overflow-hidden"
+                        >
+                            {/* Sticky Modal Header / Banner Style */}
+                            <div className="relative p-6 md:p-10 pb-4 md:pb-6 border-b border-white/[0.03] overflow-hidden shrink-0 bg-surface-container-lowest/40 backdrop-blur-md z-20">
+                                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                                    <Compass className="w-48 h-48 rotate-12 text-primary" />
+                                </div>
+                                
+                                <div className="relative z-10 space-y-4">
+                                    <div className="flex flex-wrap gap-3">
+                                        <span className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-headline font-black uppercase tracking-widest text-primary">
+                                            <BookOpen className="w-3.5 h-3.5" />
+                                            {doa.grup}
+                                        </span>
+                                        <span className="px-4 py-1.5 rounded-full text-[10px] font-headline font-black uppercase tracking-widest bg-white/[0.03] text-on-surface/40 border border-white/[0.05]">
+                                            ID: {doa.id}
+                                        </span>
+                                    </div>
+                                    <DialogTitle className="text-2xl md:text-3xl font-headline font-black text-on-surface tracking-tight leading-tight">
+                                        {doa.nama}
+                                    </DialogTitle>
+                                </div>
+                            </div>
+
+                            {/* Scrollable Main Content Area */}
+                            <div className="overflow-y-auto p-6 md:p-10 space-y-10 scrollbar-hide flex-1">
+                                {/* Arab Section */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-4 text-primary/40">
+                                        <Quote className="w-6 h-6 rotate-180" />
+                                        <span className="text-[10px] font-headline font-black uppercase tracking-[0.3em]">Naskah Arab</span>
+                                    </div>
+                                    <div className="bg-surface-container-high/40 p-6 md:p-8 rounded-[2.5rem] border border-white/[0.02]">
+                                        <p className="text-3xl md:text-4xl font-arabic text-right leading-[1.8] text-on-surface" dir="rtl">
+                                            {doa.ar}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Translation Section */}
+                                <div className="space-y-8 pt-6 border-t border-white/[0.03]">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4 text-primary/40">
+                                            <Languages className="w-5 h-5" />
+                                            <span className="text-[10px] font-headline font-black uppercase tracking-widest">Transliterasi</span>
+                                        </div>
+                                        <p className="text-lg italic text-on-surface/80 leading-relaxed font-body pl-2 border-l-2 border-primary/20">
+                                            {doa.tr}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4 text-primary/40">
+                                            <Info className="w-5 h-5 text-on-surface/30" />
+                                            <span className="text-[10px] font-headline font-black uppercase tracking-[0.3em]">Terjemahan</span>
+                                        </div>
+                                        <p className="text-xl text-on-surface leading-relaxed font-medium">
+                                            {doa.idn}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* About / Source */}
+                                {doa.tentang && (
+                                    <div className="space-y-6 pt-6 border-t border-white/[0.03]">
+                                        <div className="flex items-center gap-4 text-primary/40">
+                                            <Hash className="w-5 h-5" />
+                                            <span className="text-[10px] font-headline font-black uppercase tracking-[0.3em]">Referensi</span>
+                                        </div>
+                                        <div className="bg-primary/[0.02] p-8 rounded-[2rem] border border-primary/5">
+                                            <p className="text-base text-on-surface/60 leading-relaxed font-body whitespace-pre-line decoration-primary/20">
+                                                {doa.tentang}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Tags */}
+                                {doa.tag && doa.tag.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 pt-2">
+                                        {doa.tag.map((t) => (
+                                            <span key={t} className="px-4 py-2 rounded-full bg-white/[0.02] border border-white/[0.05] text-[9px] font-headline font-black uppercase tracking-widest text-on-surface/20">
+                                                #{t}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Decorative footer standard */}
+                                <div className="pt-8 border-t border-white/[0.03] flex justify-center">
+                                    <p className="text-[10px] font-headline font-black uppercase tracking-[0.4em] text-on-surface/20">
+                                        Sumber: {doa.tentang ? "Hisnul Muslim" : "Equuran.id"}
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <div className="p-20 text-center flex-1">
+                            <DialogTitle className="sr-only">Gagal Memuat</DialogTitle>
+                            <p className="text-on-surface/40">Gagal memuat Detail Doa.</p>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </DialogContent>
+        </Dialog>
+    );
+}
