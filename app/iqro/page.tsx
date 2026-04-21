@@ -74,8 +74,8 @@ export default function IqroSelectionPage() {
                                     transition={{ delay: (idx * 0.05) + 0.2 }}
                                     className={cn(
                                         "group relative flex flex-col p-6 h-[170px] transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-[1.25rem] cursor-pointer",
-                                        level.is_disabled 
-                                            ? "opacity-40 grayscale border-white/[0.05]" 
+                                        level.is_disabled
+                                            ? "opacity-40 grayscale border-white/[0.05]"
                                             : "border-white/[0.05] hover:border-white/10 hover:shadow-[0_15px_35px_-12px_rgba(0,0,0,0.3)] hover:-translate-y-1"
                                     )}
                                     onClick={() => !level.is_disabled && router.push(`/iqro/${level.level_number}`)}
@@ -89,7 +89,7 @@ export default function IqroSelectionPage() {
                                                     !level.is_disabled && "group-hover:rotate-6 group-hover:scale-110",
                                                     level.is_disabled ? "bg-white/10 text-white/20" : level.color
                                                 )}
-                                                style={{ color: level.is_disabled ? undefined : 'white' }}
+                                                    style={{ color: level.is_disabled ? undefined : 'white' }}
                                                 >
                                                     {level.is_disabled ? <Lock className="w-5 h-5 opacity-30" /> : level.level_number}
                                                 </div>
@@ -107,7 +107,7 @@ export default function IqroSelectionPage() {
                                                     <p className="text-white/40 text-xs italic truncate mt-0.5">{level.description}</p>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className={cn(
                                                 "w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/20 transition-all duration-300",
                                                 !level.is_disabled && "group-hover:bg-primary group-hover:text-black group-hover:scale-110"

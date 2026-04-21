@@ -75,7 +75,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
             items: [
                 { icon: Home, label: 'Beranda', href: '/' },
                 { icon: BookOpen, label: 'Baca Quran', href: '/quran' },
-                { icon: History, label: 'Terakhir Dibaca', href: '/quran/history' },
+                // { icon: History, label: 'Terakhir Dibaca', href: '/quran/history' },
             ]
         },
         {

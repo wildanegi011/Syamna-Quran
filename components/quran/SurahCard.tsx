@@ -61,12 +61,12 @@ export function SurahCard({ surah, index }: SurahCardProps) {
     const handlePlayClick = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (isCurrentlyPlaying && currentAyah) {
             togglePlay();
             return;
         }
-        
+
         setIsLoading(true);
         try {
             await playSurah(surah.nomor);

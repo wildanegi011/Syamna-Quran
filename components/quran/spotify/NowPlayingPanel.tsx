@@ -116,8 +116,8 @@ const AyahItem = React.memo(({
                     {/* Play/Pause Icon (Visible on Hover or if Active) */}
                     <div className={cn(
                         "absolute inset-0 flex items-center justify-center transition-all duration-300",
-                        isActive 
-                            ? "opacity-100 scale-100" 
+                        isActive
+                            ? "opacity-100 scale-100"
                             : "opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100"
                     )}>
                         {isActive && isPlaying ? (

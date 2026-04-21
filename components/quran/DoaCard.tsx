@@ -53,8 +53,8 @@ export function DoaCard({ doa, index, onDetail }: DoaCardProps) {
                         "w-12 h-12 md:w-16 md:h-16 rounded-[1.25rem] md:rounded-[1.5rem] bg-surface-container-highest flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-white/5",
                         "group-hover:bg-primary group-hover:rotate-6 group-hover:border-primary/50"
                     )}>
-                        <GroupIcon 
-                            className={cn("w-6 h-6 md:w-8 md:h-8 transition-colors duration-700", color, "group-hover:text-primary-foreground")} 
+                        <GroupIcon
+                            className={cn("w-6 h-6 md:w-8 md:h-8 transition-colors duration-700", color, "group-hover:text-primary-foreground")}
                             strokeWidth={1.5}
                         />
                         {/* Decorative background for the box */}

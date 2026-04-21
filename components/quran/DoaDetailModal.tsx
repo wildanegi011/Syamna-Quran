@@ -44,7 +44,7 @@ export function DoaDetailModal({ doaId, open, onOpenChange }: DoaDetailModalProp
                                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                                     <Compass className="w-48 h-48 rotate-12 text-primary" />
                                 </div>
-                                
+
                                 <div className="relative z-10 space-y-4">
                                     <div className="flex flex-wrap gap-3">
                                         <span className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-headline font-black uppercase tracking-widest text-primary">

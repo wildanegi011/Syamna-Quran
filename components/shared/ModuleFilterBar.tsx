@@ -36,7 +36,7 @@ export function ModuleFilterBar({
                                 const value = typeof item === 'string' ? item : item.value;
                                 const count = typeof item === 'string' ? undefined : item.count;
                                 const isActive = activeItem === value;
-                                
+
                                 return (
                                     <button
                                         key={value || index}

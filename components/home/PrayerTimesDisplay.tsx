@@ -47,9 +47,9 @@ export function PrayerTimesDisplay() {
             >
                 {/* Solid Background */}
                 <div className="absolute inset-0 bg-[#111827]/90 rounded-3xl border border-white/5" />
-                
+
                 <div className="relative p-6 flex flex-col gap-6">
-                    
+
                     {/* Unified Header: City & Countdown */}
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/5 pb-4">
                         <div className="flex items-center gap-4">
@@ -80,12 +80,12 @@ export function PrayerTimesDisplay() {
                         {prayerTimes.map((prayer) => {
                             const isNext = nextPrayer?.name === prayer.name;
                             return (
-                                <div 
+                                <div
                                     key={prayer.name}
                                     className={cn(
                                         "flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300",
-                                        isNext 
-                                            ? "bg-[#00df9a] shadow-[0_15px_30px_rgba(0,223,154,0.15)] scale-105 z-10" 
+                                        isNext
+                                            ? "bg-[#00df9a] shadow-[0_15px_30px_rgba(0,223,154,0.15)] scale-105 z-10"
                                             : "bg-white/[0.03] text-white/40 border border-white/5"
                                     )}
                                 >

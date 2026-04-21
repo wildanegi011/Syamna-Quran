@@ -85,7 +85,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
             const target = e.target as HTMLElement;
             // Use closest to ensure we catch interactions even if they land on child elements
             const ruleElement = target.closest('[data-rule]');
-            
+
             if (ruleElement) {
                 const ruleCode = ruleElement.getAttribute('data-rule');
                 if (ruleCode) {
@@ -98,7 +98,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                             x: rect.left + rect.width / 2,
                             y: rect.top + window.scrollY - 10
                         });
-                        
+
                         if (e.type === 'click') {
                             e.stopPropagation();
                         }
@@ -106,7 +106,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                     }
                 }
             }
-            
+
             // If we're not over a rule element and it's not a mouseover, close tooltip
             if (e.type !== 'mouseover') {
                 closeTooltip();
@@ -114,7 +114,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
         };
 
         const handleScroll = () => closeTooltip();
-        
+
         document.addEventListener('click', handleTajweedAction);
         document.addEventListener('mouseover', handleTajweedAction);
         document.addEventListener('mouseout', (e) => {
@@ -124,7 +124,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
             }
         });
         window.addEventListener('scroll', handleScroll);
-        
+
         return () => {
             document.removeEventListener('click', handleTajweedAction);
             document.removeEventListener('mouseover', handleTajweedAction);
@@ -136,8 +136,8 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
     return (
         <>
             <Sheet open={isOpen} onOpenChange={onOpenChange}>
-                <SheetContent 
-                    side="right" 
+                <SheetContent
+                    side="right"
                     className="w-full sm:max-w-md bg-background/80 backdrop-blur-3xl border-l border-white/5 p-0 flex flex-col shadow-2xl z-[60]"
                 >
                     <SheetHeader className="p-8 pb-4">
@@ -158,11 +158,11 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                     <div className="flex-1 overflow-y-auto px-8 py-4 custom-scrollbar">
                         <div className="grid gap-4">
                             {TAJWEED_RULES.map((rule) => (
-                                <div 
+                                <div
                                     key={rule.codes[0]}
                                     className="group flex items-start gap-5 p-5 rounded-[2rem] bg-white/[0.03] border border-white/[0.05] hover:bg-primary/[0.05] hover:border-primary/20 transition-all duration-500"
                                 >
-                                    <div 
+                                    <div
                                         className="w-12 h-12 rounded-2xl shrink-0 flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
                                         style={{ backgroundColor: rule.color }}
                                     >
@@ -199,8 +199,8 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         className="fixed z-[100] px-4 py-2 rounded-xl shadow-2xl pointer-events-none flex flex-col items-center"
-                        style={{ 
-                            left: tooltip.x, 
+                        style={{
+                            left: tooltip.x,
                             top: tooltip.y,
                             translateX: '-50%',
                             translateY: '-100%',
@@ -213,10 +213,10 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                         <span className="text-xs font-body font-black text-white whitespace-nowrap">
                             {tooltip.rule.description.split('.')[0]}
                         </span>
-                        
+
                         {/* Tooltip Arrow */}
-                        <div 
-                            className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent" 
+                        <div
+                            className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent"
                             style={{ borderTopColor: tooltip.rule.color }}
                         />
                     </motion.div>

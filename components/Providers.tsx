@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { SearchProvider } from "@/contexts/SearchContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function Providers({ children }: { children: ReactNode }) {
     const [queryClient] = useState(
@@ -21,11 +22,13 @@ export default function Providers({ children }: { children: ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <SearchProvider>
-                <AudioProvider>
-                    {children}
-                </AudioProvider>
-            </SearchProvider>
+            <AuthProvider>
+                <SearchProvider>
+                    <AudioProvider>
+                        {children}
+                    </AudioProvider>
+                </SearchProvider>
+            </AuthProvider>
         </QueryClientProvider>
     );
 }

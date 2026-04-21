@@ -6,6 +6,10 @@ import { cn } from '@/lib/utils';
 import { useParams, usePathname } from 'next/navigation';
 import { useSearch } from '@/contexts/SearchContext';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut, User, Moon, Sun, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useTheme } from 'next-themes';
 
 interface TopNavBarProps {
     isReadingMode?: boolean;
@@ -17,7 +21,15 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed }: TopNavBarP
     const pathname = usePathname();
     const params = useParams();
     const { searchQuery, setSearchQuery } = useSearch();
+    const { user, signInWithGoogle, signOut, loading } = useAuth();
+    const { theme, setTheme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = React.useState(false);
     const searchRef = React.useRef<HTMLInputElement>(null);
+
+    // Avoid hydration mismatch
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Focus search on Cmd+K
     React.useEffect(() => {
@@ -73,44 +85,68 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed }: TopNavBarP
                 <div className="flex items-center gap-4">
                     {/* Theme & Notification Toggle */}
                     <div className="flex items-center gap-3">
-                        <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/5 hover:bg-white/10 transition-all text-on-surface/60 hover:text-white">
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                            </svg>
+                        <button 
+                            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/5 hover:bg-white/10 transition-all text-on-surface/60 hover:text-white"
+                            title="Toggle Theme"
+                        >
+                            {mounted && resolvedTheme === 'dark' ? (
+                                <Sun className="w-4 h-4" />
+                            ) : (
+                                <Moon className="w-4 h-4" />
+                            )}
                         </button>
 
                         <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/5 hover:bg-white/10 transition-all text-on-surface/60 hover:text-white relative">
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                            </svg>
+                            <Bell className="w-4 h-4" />
                             {/* Notification Badge */}
                             <span className="absolute top-1 right-1 w-4 h-4 bg-[#EF4444] rounded-full border-2 border-[#121212] flex items-center justify-center text-[9px] font-bold text-white">9</span>
                         </button>
                     </div>
 
                     {/* User Profile */}
-                    <button className="flex items-center gap-3 pl-1 pr-2 py-1 transition-all group">
-                        <div className="relative w-10 h-10 rounded-full overflow-hidden border border-white/10 bg-surface-container-highest flex items-center justify-center">
-                            <span className="text-xs font-black text-on-surface/40 absolute">UA</span>
-                            <Image 
-                                src="/avatars/user_umar.png" 
-                                alt="Umar Al-Faruq" 
-                                fill 
-                                className="object-cover relative z-10"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                            />
+                    {loading ? (
+                        <div className="w-32 h-10 rounded-full bg-white/5 animate-pulse" />
+                    ) : user ? (
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3 pl-1 pr-3 py-1 transition-all rounded-full bg-white/5 border border-white/10 group">
+                                <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 bg-surface-container-highest flex items-center justify-center">
+                                    {user.user_metadata.avatar_url ? (
+                                        <Image
+                                            src={user.user_metadata.avatar_url}
+                                            alt={user.user_metadata.full_name || "User"}
+                                            fill
+                                            className="object-cover relative z-10"
+                                        />
+                                    ) : (
+                                        <User className="w-4 h-4 text-white/40" />
+                                    )}
+                                </div>
+                                <div className="flex flex-col items-start text-left">
+                                    <span className="text-xs font-bold text-white transition-colors group-hover:text-primary leading-tight">
+                                        {user.user_metadata.full_name?.split(' ')[0]}
+                                    </span>
+                                    <span className="text-[8px] font-bold text-[#8FA9F4] uppercase tracking-wide">ACTIVE USER</span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={signOut}
+                                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 transition-all"
+                                title="Keluar"
+                            >
+                                <LogOut className="w-4 h-4" />
+                            </button>
                         </div>
-                        <div className="flex flex-col items-start text-left">
-                            <span className="text-sm font-bold text-white transition-colors group-hover:text-primary">Umar Al-Faruq</span>
-                            <span className="text-[10px] font-bold text-[#8FA9F4] uppercase tracking-wide">JAMA'AH AKTIF</span>
-                        </div>
-                        <svg className="w-4 h-4 text-on-surface/40 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
+                    ) : (
+                        <Button
+                            onClick={signInWithGoogle}
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full bg-primary/10 border-primary/20 hover:bg-primary/20 text-primary font-bold px-5"
+                        >
+                            Masuk
+                        </Button>
+                    )}
                 </div>
             </div>
         </nav>

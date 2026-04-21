@@ -23,7 +23,7 @@ export function AsmaulHusnaCard({ item, index }: AsmaulHusnaCardProps) {
         { color: "#E56B6B", glow: "rgba(229, 107, 107, 0.15)" }, // Red
         { color: "#9B6BE5", glow: "rgba(155, 107, 229, 0.15)" }, // Purple
     ];
-    
+
     const theme = themes[index % themes.length];
 
     return (
@@ -83,7 +83,7 @@ export function AsmaulHusnaCard({ item, index }: AsmaulHusnaCardProps) {
                         <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-white/5 border border-white/5">
                             <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Asmaul Husna</span>
                         </div>
-                        
+
                         <div className="text-[10px] font-bold text-primary/0 group-hover:text-primary/60 transition-all duration-500 uppercase tracking-widest">
                             {item.latin}
                         </div>

@@ -112,7 +112,7 @@ export function JuzCard({ juz, index }: JuzCardProps) {
                 ) || detail.ayat[0];
 
                 await playAyah(startAyah, initialSurah!, detail.ayat, juz.id);
-                
+
                 setRightPanelOpen(true);
             }
         } catch (err) {
@@ -197,7 +197,7 @@ export function JuzCard({ juz, index }: JuzCardProps) {
                                         isCurrentJuzActive ? "text-primary" : "text-white group-hover:text-primary"
                                     )}
                                 >
-                                     Juz {juz.id}
+                                    Juz {juz.id}
                                 </h3>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <p className="text-[10px] font-medium text-white/50 italic whitespace-nowrap">

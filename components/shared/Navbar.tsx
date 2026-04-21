@@ -3,10 +3,13 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
+import { LogOut, User } from "lucide-react";
 
 export function Navbar() {
+  const { user, signInWithGoogle, signOut, loading } = useAuth();
+
   return (
     <motion.nav
       initial={{ opacity: 0, y: -20 }}
@@ -28,9 +31,45 @@ export function Navbar() {
       <div className="flex items-center gap-8">
         <Link href="#fitur" className="text-sm font-medium text-white/60 hover:text-white transition-colors">Fitur</Link>
         <Link href="#tentang" className="text-sm font-medium text-white/60 hover:text-white transition-colors">Tentang</Link>
-        <Button variant="outline" className="rounded-xl bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold h-10 px-6">
-          Masuk
-        </Button>
+        
+        {loading ? (
+          <div className="w-24 h-10 rounded-xl bg-white/5 animate-pulse" />
+        ) : user ? (
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+              <div className="relative w-6 h-6 rounded-full overflow-hidden">
+                {user.user_metadata.avatar_url ? (
+                  <Image
+                    src={user.user_metadata.avatar_url}
+                    alt={user.user_metadata.full_name || "User"}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#00df9a]/20 flex items-center justify-center">
+                    <User className="w-3 h-3 text-[#00df9a]" />
+                  </div>
+                )}
+              </div>
+              <span className="text-sm font-medium text-white">{user.user_metadata.full_name?.split(' ')[0]}</span>
+            </div>
+            <button 
+              onClick={signOut}
+              className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-red-500/10 hover:border-red-500/50 text-white/60 hover:text-red-500 transition-all"
+              title="Keluar"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <Button 
+            onClick={signInWithGoogle}
+            variant="outline" 
+            className="rounded-xl bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold h-10 px-6"
+          >
+            Masuk
+          </Button>
+        )}
       </div>
     </motion.nav>
   );
