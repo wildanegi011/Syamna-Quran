@@ -60,7 +60,11 @@ export function ReciterSelect() {
                             placeholder="Cari Qori..."
                             className="h-10 border-none focus:ring-0 text-on-surface placeholder:text-muted-foreground/50 bg-transparent"
                         />
-                        <CommandList className="max-h-[350px] overflow-y-auto custom-scrollbar p-1">
+                        <CommandList 
+                            className="max-h-[350px] overflow-y-auto custom-scrollbar p-1"
+                            data-vaul-no-drag
+                            onPointerDown={(e) => e.stopPropagation()}
+                        >
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-6">
                                     <Loader2 className="w-5 h-5 animate-spin text-primary" />

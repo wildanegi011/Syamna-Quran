@@ -17,48 +17,108 @@ import {
 import { useAudioState, useAudioProgress } from '@/contexts/AudioContext';
 
 export function PlayerBar() {
-    const { currentAyah, isPlaying } = useAudioState();
+    const { currentAyah, isRightPanelOpen } = useAudioState();
 
     if (!currentAyah) return null;
 
     return (
         <motion.div
-            initial={false}
-            animate={{
-                height: '100px',
-                y: 0,
-                paddingTop: '0px'
-            }}
-            className="w-full bg-background/80 backdrop-blur-3xl border-t border-white/5 flex items-center px-4 md:px-8 fixed bottom-0 left-0 right-0 z-[100] gap-4 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] transition-all"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className={cn(
+                "fixed bottom-0 left-0 right-0 z-[100] transition-all duration-500 ease-in-out",
+                "px-2 pb-2 md:px-0 md:pb-0" // Padding for floating effect on mobile
+            )}
         >
-            <div className="flex flex-1 items-center gap-4 w-full h-full">
-                <TrackInfo />
-                <div className="flex-1 flex flex-col items-center max-w-[600px] gap-1 md:gap-2">
-                    <PlaybackControls />
-                    <ProgressSection />
+            <div className={cn(
+                "w-full mx-auto transition-all duration-500",
+                "h-14 md:h-20", // Responsive height
+                "bg-[#121212]/90 backdrop-blur-3xl border border-white/5 md:border-0 md:border-t",
+                "rounded-2xl md:rounded-none", // Pill on mobile, bar on desktop
+                "flex items-center px-4 md:px-8 gap-4 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]",
+                isRightPanelOpen ? "md:pr-[400px]" : "" // Offset if panel is open on desktop
+            )}>
+                {/* Progress bar at the very top for mobile, integrated for desktop */}
+                <div className="absolute top-0 left-4 right-4 md:hidden">
+                    <MiniProgress />
                 </div>
-                <VolumeSection />
+
+                <div className="flex flex-1 items-center gap-2 md:gap-4 w-full h-full">
+                    <TrackInfo />
+                    
+                    {/* Desktop Central Controls */}
+                    <div className="hidden md:flex flex-1 flex-col items-center max-w-[600px] gap-1 md:gap-2">
+                        <PlaybackControls />
+                        <ProgressSection />
+                    </div>
+
+                    {/* Mobile Controls (Right Side) */}
+                    <div className="flex md:hidden items-center gap-1">
+                        <MobileControls />
+                    </div>
+
+                    <VolumeSection />
+                </div>
             </div>
-
-
         </motion.div>
     );
 }
 
+function MiniProgress() {
+    const { progress } = useAudioProgress();
+    return (
+        <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+            <motion.div 
+                className="h-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+            />
+        </div>
+    );
+}
+
+function MobileControls() {
+    const { isPlaying, togglePlay, nextAyah } = useAudioState();
+    return (
+        <div className="flex items-center gap-1">
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={togglePlay}
+                className="w-10 h-10 rounded-full text-white hover:bg-white/10 active:scale-90 transition-all"
+            >
+                {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+            </Button>
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={nextAyah}
+                className="w-10 h-10 rounded-full text-white/60 hover:text-white hover:bg-white/10 active:scale-90 transition-all"
+            >
+                <SkipForward className="w-5 h-5 fill-current" />
+            </Button>
+        </div>
+    );
+}
+
 function TrackInfo() {
-    const { currentAyah, currentSurah, toggleFavorite, isFavorite } = useAudioState();
+    const { currentAyah, currentSurah, toggleFavorite, isFavorite, setRightPanelOpen } = useAudioState();
     const heartActive = currentSurah ? isFavorite(currentSurah.nomor, currentAyah!.nomorAyat) : false;
 
     return (
-        <div className="flex items-center gap-4 w-[30%] min-w-0">
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-headline font-black border border-primary/20 shrink-0 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]">
+        <div className="flex items-center gap-3 md:gap-4 flex-1 md:flex-none md:w-[30%] min-w-0">
+            <div 
+                onClick={() => setRightPanelOpen(true)}
+                className="w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-lg md:rounded-xl flex items-center justify-center text-primary font-headline font-black border border-primary/20 shrink-0 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)] cursor-pointer hover:scale-105 transition-transform"
+            >
                 {currentSurah?.nomor}
             </div>
-            <div className="flex flex-col min-w-0 overflow-hidden">
-                <span className="text-sm md:text-base font-headline font-bold text-on-surface hover:text-primary transition-colors cursor-pointer truncate">
+            <div className="flex flex-col min-w-0 overflow-hidden cursor-pointer group" onClick={() => setRightPanelOpen(true)}>
+                <span className="text-[13px] md:text-base font-headline font-bold text-on-surface group-hover:text-primary transition-colors truncate leading-tight">
                     {currentSurah?.namaLatin}
                 </span>
-                <span className="text-[10px] md:text-xs text-on-surface/40 font-label font-bold uppercase tracking-widest hover:text-primary transition-colors cursor-pointer truncate">
+                <span className="text-[10px] md:text-xs text-on-surface/40 font-label font-bold uppercase tracking-widest group-hover:text-primary/60 transition-colors truncate">
                     Ayat {currentAyah?.nomorAyat}
                 </span>
             </div>
@@ -67,7 +127,10 @@ function TrackInfo() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => currentSurah && toggleFavorite(currentSurah.nomor, currentAyah!.nomorAyat)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            currentSurah && toggleFavorite(currentSurah.nomor, currentAyah!.nomorAyat);
+                        }}
                         className={cn(
                             "transition-all duration-300 hidden sm:flex shrink-0",
                             heartActive ? "text-primary hover:text-primary/80 scale-110" : "text-on-surface/20 hover:text-primary/60"
@@ -191,7 +254,7 @@ function ProgressSection() {
 }
 
 function VolumeSection() {
-    const { volume, setVolume } = useAudioState();
+    const { volume, setVolume, isRightPanelOpen, setRightPanelOpen } = useAudioState();
     const [isMuted, setIsMuted] = React.useState(false);
     const [prevVolume, setPrevVolume] = React.useState(0.7);
     const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -228,18 +291,40 @@ function VolumeSection() {
     };
 
     return (
-        <div className="hidden lg:flex items-center justify-end gap-3 w-[30%]">
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={toggleFullScreen} className="text-muted-foreground hover:text-white transition-colors">
-                        {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={28}>
-                    <p>{isFullscreen ? 'Keluar Layar Penuh' : 'Layar Penuh'}</p>
-                </TooltipContent>
-            </Tooltip>
-            <div className="flex items-center gap-3 w-24 xl:w-32 group">
+        <div className="hidden md:flex items-center justify-end gap-3 w-[30%]">
+            <div className="flex items-center gap-2 mr-2 border-r border-white/5 pr-4">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => setRightPanelOpen(!isRightPanelOpen)} 
+                            className={cn(
+                                "transition-colors",
+                                isRightPanelOpen ? "text-primary" : "text-muted-foreground hover:text-white"
+                            )}
+                        >
+                            <PanelRight className="w-4 h-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" sideOffset={28}>
+                        <p>{isRightPanelOpen ? 'Tutup Panel' : 'Buka Panel'}</p>
+                    </TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={toggleFullScreen} className="text-muted-foreground hover:text-white transition-colors">
+                            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" sideOffset={28}>
+                        <p>{isFullscreen ? 'Keluar Layar Penuh' : 'Layar Penuh'}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </div>
+
+            <div className="flex items-center gap-3 w-24 xl:w-32 group animate-in fade-in slide-in-from-right-4">
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="p-0 h-fit w-fit hover:bg-transparent">
@@ -264,3 +349,4 @@ function VolumeSection() {
         </div>
     );
 }
+

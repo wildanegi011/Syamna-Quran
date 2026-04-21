@@ -27,7 +27,7 @@ function CategorySkeleton() {
             />
 
             {/* Filter Bar Skeleton placeholder */}
-            <div className="max-w-[1400px] mx-auto w-full px-8 md:px-12 mt-12 mb-10">
+            <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 md:px-12 mt-12 mb-10">
                 <div className="flex items-center gap-4">
                     <div className="h-4 w-12 rounded-full bg-white/5 opacity-50" />
                     <div className="flex gap-4 overflow-hidden">
@@ -105,10 +105,11 @@ export default function HadithPage() {
                 items={["Semua", ...rootCategories.map(r => r.title)]}
                 activeItem={activeRoot}
                 onSelect={setActiveRoot}
+                className="!top-0 !sticky border-b-0"
             />
 
             <ModuleGrid
-                columnsClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                columnsClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 isEmpty={filteredCategories.length === 0}
                 isLoading={isLoading}
                 emptyState={

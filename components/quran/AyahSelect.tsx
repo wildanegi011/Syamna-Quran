@@ -122,7 +122,11 @@ export function AyahSelect({ ayahs, onSelect, placeholder = "Pilih Ayat...", sho
                 </div>
 
                 {/* Daftar ayat */}
-                <div className="max-h-[300px] overflow-y-auto overscroll-contain">
+                <div 
+                    className="max-h-[300px] overflow-y-auto overscroll-contain"
+                    data-vaul-no-drag
+                    onPointerDown={(e) => e.stopPropagation()}
+                >
                     {filtered.length === 0 ? (
                         <div className="py-6 text-center text-xs text-muted-foreground/60 italic">
                             Ayat tidak ditemukan.

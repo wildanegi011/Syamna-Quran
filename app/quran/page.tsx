@@ -24,19 +24,21 @@ import { useAudioState } from "@/contexts/AudioContext";
 function QuranSkeleton() {
     return (
         <div className="flex-1 flex flex-col min-h-full pb-32 animate-pulse">
-            <ModuleHero
-                title="Daftar Surah"
-                subtitle="Temukan ketenangan dalam setiap ayat yang suci."
-                backgroundImage="/backgrounds/quran_hero.png"
-            />
+            <div className="sticky top-[65px] z-20 bg-background shadow-md shadow-background">
+                <ModuleHero
+                    title="Daftar Surah"
+                    subtitle="Temukan ketenangan dalam setiap ayat yang suci."
+                    backgroundImage="/backgrounds/quran_hero.png"
+                />
 
-            <div className="w-full px-8 md:px-12 mt-12 mb-10">
-                <div className="flex items-center gap-4">
-                    <div className="h-4 w-12 rounded-full bg-white/5 opacity-50" />
-                    <div className="flex gap-4">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="h-11 w-28 rounded-full bg-white/5" />
-                        ))}
+                <div className="w-full px-8 md:px-12 mt-12 mb-10">
+                    <div className="flex items-center gap-4">
+                        <div className="h-4 w-12 rounded-full bg-white/5 opacity-50" />
+                        <div className="flex gap-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-11 w-28 rounded-full bg-white/5" />
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -67,7 +69,20 @@ function QuranSkeleton() {
 
 export default function QuranRootPage() {
     const { searchQuery } = useSearch();
-    const { isRightPanelOpen } = useAudioState();
+    const { 
+        isRightPanelOpen, 
+        isPlaying, 
+        currentSurah: playingSurah, 
+        currentAyah, 
+        playSurah, 
+        playAyah, // Needed for JuzCard
+        togglePlay, 
+        setRightPanelOpen, 
+        setViewedSurah, 
+        setViewedJuz, 
+        selectedReciterId, 
+        currentJuz 
+    } = useAudioState();
     const [activeFilter, setActiveFilter] = useState("Semua");
 
     const { data: surahs = [], isLoading } = useSurahs();
@@ -126,13 +141,14 @@ export default function QuranRootPage() {
                 items={filterItems}
                 activeItem={activeFilter}
                 onSelect={setActiveFilter}
+                className="!top-0 !sticky border-b-0"
             />
 
             <div className="mt-12 overflow-hidden">
                 <ModuleGrid
                     columnsClassName={cn(
                         isRightPanelOpen
-                            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2"
+                            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                             : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     )}
                     isEmpty={activeFilter === "Juz" ? filteredJuz.length === 0 : filteredSurahs.length === 0}
@@ -161,7 +177,19 @@ export default function QuranRootPage() {
                     <AnimatePresence mode="popLayout">
                         {activeFilter === "Juz" ? (
                             filteredJuz.map((juz, index) => (
-                                <JuzCard key={`juz-${juz.id}`} juz={juz} index={index} />
+                                <JuzCard 
+                                    key={`juz-${juz.id}`} 
+                                    juz={juz} 
+                                    index={index} 
+                                    isCurrentJuzActive={currentJuz === juz.id}
+                                    isPlaying={isPlaying}
+                                    currentAyah={currentAyah}
+                                    togglePlay={togglePlay}
+                                    playAyah={playAyah}
+                                    setRightPanelOpen={setRightPanelOpen}
+                                    setViewedJuz={setViewedJuz}
+                                    selectedReciterId={selectedReciterId}
+                                />
                             ))
                         ) : (
                             filteredSurahs.map((surah, index) => (
@@ -169,6 +197,14 @@ export default function QuranRootPage() {
                                     key={surah.nomor}
                                     surah={surah}
                                     index={index}
+                                    isCurrentlyPlaying={playingSurah?.nomor === surah.nomor && !currentJuz}
+                                    isPlaying={isPlaying}
+                                    currentAyah={currentAyah}
+                                    togglePlay={togglePlay}
+                                    playSurah={playSurah}
+                                    setRightPanelOpen={setRightPanelOpen}
+                                    setViewedSurah={setViewedSurah}
+                                    selectedReciterId={selectedReciterId}
                                 />
                             ))
                         )}

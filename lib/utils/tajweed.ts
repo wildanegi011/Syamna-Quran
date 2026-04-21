@@ -47,8 +47,7 @@ export function parseTajweed(text: string): string {
     
     const replaceFn = (_: string, cls: string, char: string) => {
         const color = TAJWEED_COLORS[cls] || 'inherit';
-        // We add cursor pointer to signify it's clickable
-        return `<span style="color:${color};cursor:pointer" data-rule="${cls}" title="Klik untuk info Tajweed">${char}</span>`;
+        return `<span style="color:${color}">${char}</span>`;
     };
 
     parsed = parsed.replace(tajweedRegex, replaceFn);

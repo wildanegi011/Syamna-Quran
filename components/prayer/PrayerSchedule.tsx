@@ -43,8 +43,11 @@ export function PrayerSchedule({ month, year }: { month?: number; year?: number 
     const currentYear = now.getFullYear();
 
     return (
-        <div className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.03] bg-surface-container-low/20 backdrop-blur-3xl shadow-xl">
-            <div className="overflow-x-auto scrollbar-hide">
+        <div className="relative group/table overflow-hidden rounded-[2.5rem] border border-white/[0.03] bg-surface-container-low/20 backdrop-blur-3xl shadow-xl">
+            {/* Mobile Scroll Hint - Sublet gradient on the right */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-black/20 to-transparent pointer-events-none z-10 md:hidden" />
+            
+            <div className="overflow-x-auto scrollbar-hide scroll-smooth">
                 <Table>
                     <TableHeader className="bg-white/[0.01]">
                         <TableRow className="border-white/[0.03] hover:bg-transparent">
@@ -71,14 +74,14 @@ export function PrayerSchedule({ month, year }: { month?: number; year?: number 
                                         isToday ? "bg-primary/[0.04] hover:bg-primary/[0.08]" : "hover:bg-white/[0.01]"
                                     )}
                                 >
-                                    <TableCell className="text-center font-body py-6">
+                                    <TableCell className="text-center font-body py-4 md:py-6">
                                         <div className="flex flex-col gap-0.5 relative">
-                                            {isToday && <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />}
+                                            {isToday && <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-6 md:h-8 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />}
                                             <span className={cn(
-                                                "text-sm font-headline font-black tracking-tight transition-colors",
+                                                "text-xs md:text-sm font-headline font-black tracking-tight transition-colors",
                                                 isToday ? "text-primary" : "text-on-surface/80"
                                             )}>{day.tanggal}</span>
-                                            <span className="text-[8px] font-headline font-bold text-on-surface/20 uppercase tracking-widest">{day.hari}</span>
+                                            <span className="text-[7px] md:text-[8px] font-headline font-bold text-on-surface/20 uppercase tracking-widest">{day.hari}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-center text-xs font-body font-medium text-on-surface/40 tabular-nums">{day.imsak}</TableCell>
@@ -99,6 +102,11 @@ export function PrayerSchedule({ month, year }: { month?: number; year?: number 
                         })}
                     </TableBody>
                 </Table>
+                
+                {/* Mobile Scroll Indicator - Subtle text */}
+                <div className="md:hidden flex justify-center py-2 bg-white/[0.02] border-t border-white/[0.02]">
+                    <span className="text-[8px] font-headline font-black text-on-surface/20 uppercase tracking-[0.2em]">Geser horizontal untuk lihat waktu lengkap</span>
+                </div>
             </div>
 
             {/* Legend / Info */}

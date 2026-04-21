@@ -43,14 +43,13 @@ export const POPULAR_RECITERS = [
     'ar.yasseraldossari'
 ];
 
-/**
- * Hook to fetch detail for a specific Surah by its number.
+/** Hook to fetch detail for a specific Surah by its number.
  * Pre-fetches a group of popular reciters for instant switching.
  */
 export function useSurahDetail(surahNumber: number, selectedReciterId: string = "ar.alafasy") {
     // Ensure the selected reciter is included in the fetch list if not already there
     const reciterIds = [...new Set([selectedReciterId, ...POPULAR_RECITERS])];
-    
+
     return useQuery({
         queryKey: ["surah", surahNumber, reciterIds],
         queryFn: () => getSurahDetail(surahNumber, reciterIds),
@@ -80,7 +79,7 @@ export function useJuzDetail(juzNumber: number, selectedReciterId: string = "ar.
     // For Juz, we reduce the pre-fetch list to avoid hitting API size limits (Juz data is large)
     const JUZ_PREFETCH_RECITERS = ['ar.alafasy', 'ar.abdurrahmaansudais', 'ar.mahermuaiqly'];
     const reciterIds = [...new Set([selectedReciterId, ...JUZ_PREFETCH_RECITERS])];
-    
+
     return useQuery({
         queryKey: ["juz", juzNumber, reciterIds],
         queryFn: () => getJuzDetail(juzNumber, reciterIds),

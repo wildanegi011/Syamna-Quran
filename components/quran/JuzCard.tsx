@@ -17,6 +17,14 @@ interface JuzCardProps {
         end: string;
     };
     index: number;
+    isCurrentJuzActive: boolean;
+    isPlaying: boolean;
+    currentAyah: any | null;
+    togglePlay: () => void;
+    playAyah: (ayah: any, surah: any, queue?: any[], juzId?: number | null) => Promise<void>;
+    setRightPanelOpen: (val: boolean) => void;
+    setViewedJuz: (id: number) => void;
+    selectedReciterId: string;
 }
 
 // Mapping Juz to starting surah and ayah
@@ -60,13 +68,22 @@ const JUZ_THEME = {
     border: 'rgba(143, 169, 244, 0.2)'
 };
 
-export function JuzCard({ juz, index }: JuzCardProps) {
+export const JuzCard = React.memo(function JuzCard({ 
+    juz, 
+    index,
+    isCurrentJuzActive,
+    isPlaying,
+    currentAyah,
+    togglePlay,
+    playAyah,
+    setRightPanelOpen,
+    setViewedJuz,
+    selectedReciterId
+}: JuzCardProps) {
     const queryClient = useQueryClient();
-    const { isPlaying, togglePlay, currentSurah, currentAyah, playAyah, setRightPanelOpen, setCurrentSurah, setViewedSurah, setViewedJuz, selectedReciterId, currentJuz, setCurrentJuz } = useAudioState();
     const [isLoading, setIsLoading] = React.useState(false);
 
     const startInfo = JUZ_START_MAP[juz.id];
-    const isCurrentJuzActive = currentJuz === juz.id;
 
     // Correctly parse Surah names (handling spaces like "Ali 'Imran")
     const startSurahName = juz.start.replace(/\s\s*\d+$/, '');
@@ -153,7 +170,7 @@ export function JuzCard({ juz, index }: JuzCardProps) {
                     }
                 }}
                 className={cn(
-                    "group relative flex flex-col p-6 h-[170px] transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-[1.25rem] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                    "group relative flex flex-col p-5 sm:p-6 min-h-[160px] h-full transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-[1.25rem] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                     isCurrentJuzActive
                         ? "border-primary/40 bg-primary/[0.05] shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]"
                         : "border-white/[0.05] hover:border-white/10 hover:shadow-[0_15px_35px_-12px_rgba(0,0,0,0.3)]"
@@ -199,13 +216,13 @@ export function JuzCard({ juz, index }: JuzCardProps) {
                                 >
                                     Juz {juz.id}
                                 </h3>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                    <p className="text-[10px] font-medium text-white/50 italic whitespace-nowrap">
+                                <div className="flex items-center gap-2 mt-0.5 overflow-hidden">
+                                    <p className="text-xs font-medium text-white/50 italic whitespace-nowrap truncate">
                                         Mulai: {startSurahName}
                                     </p>
-                                    <span className="w-1 h-1 rounded-full bg-white/10" />
+                                    <span className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
                                     {surahCount > 0 && (
-                                        <p className="text-[10px] font-bold text-primary/60 uppercase tracking-wider">
+                                        <p className="text-xs font-bold text-primary/60 uppercase tracking-wider whitespace-nowrap">
                                             {surahCount} Surah
                                         </p>
                                     )}
@@ -219,7 +236,7 @@ export function JuzCard({ juz, index }: JuzCardProps) {
                     <div className="flex items-center justify-between w-full mt-4">
                         <div
                             className={cn(
-                                "flex flex-col text-[10px] font-bold uppercase tracking-[0.1em]",
+                                "flex flex-col text-xs font-bold uppercase tracking-[0.1em]",
                                 isCurrentJuzActive ? "text-primary" : "text-white/40"
                             )}
                         >
@@ -234,7 +251,7 @@ export function JuzCard({ juz, index }: JuzCardProps) {
                         <button
                             onClick={handlePlayClick}
                             className={cn(
-                                "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg group/play",
+                                "h-10 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 shadow-lg group/play",
                                 isCurrentJuzActive && isPlaying
                                     ? "bg-primary text-primary-foreground scale-110"
                                     : "bg-white/10 text-white hover:bg-primary hover:text-primary-foreground hover:scale-110",
@@ -245,9 +262,15 @@ export function JuzCard({ juz, index }: JuzCardProps) {
                             {isLoading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : isCurrentJuzActive && isPlaying ? (
-                                <Pause className="w-5 h-5 fill-current" />
+                                <>
+                                    <Pause className="w-5 h-5 fill-current" />
+                                    <span className="text-xs font-black uppercase tracking-wider">Berhenti</span>
+                                </>
                             ) : (
-                                <Play className="w-5 h-5 fill-current ml-0.5" />
+                                <>
+                                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                                    <span className="text-xs font-black uppercase tracking-wider">Putar</span>
+                                </>
                             )}
                         </button>
                     </div>
@@ -255,4 +278,10 @@ export function JuzCard({ juz, index }: JuzCardProps) {
             </div>
         </motion.div>
     );
-}
+}, (prevProps, nextProps) => {
+    return prevProps.juz.id === nextProps.juz.id && 
+           prevProps.index === nextProps.index &&
+           prevProps.isCurrentJuzActive === nextProps.isCurrentJuzActive &&
+           prevProps.isPlaying === nextProps.isPlaying &&
+           prevProps.selectedReciterId === nextProps.selectedReciterId;
+});

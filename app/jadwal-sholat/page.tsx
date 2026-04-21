@@ -81,13 +81,13 @@ export default function PrayerSchedulePage() {
                 backgroundImage="/backgrounds/desert.png"
             />
 
-            <div className="max-w-7xl mx-auto w-full px-6 md:px-12 -mt-10 z-20 space-y-10">
+            <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-12 -mt-10 z-20 space-y-10">
                 {/* Unified Control Bar */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="p-3 md:p-4 rounded-[2.5rem] border border-white/[0.03] bg-surface-container-low/30 backdrop-blur-3xl shadow-2xl flex flex-col lg:flex-row items-stretch lg:items-center gap-4"
+                    className="p-2 md:p-4 rounded-[2rem] md:rounded-[2.5rem] border border-white/[0.03] bg-surface-container-low/30 backdrop-blur-3xl shadow-2xl flex flex-col lg:flex-row items-stretch lg:items-center gap-3 md:gap-4 px-3 md:px-4"
                 >
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Province & City Combine */}
@@ -152,11 +152,11 @@ export default function PrayerSchedulePage() {
                     </div>
                     
                     {/* Active Info Badge */}
-                    <div className="lg:w-64 h-16 lg:h-20 px-6 rounded-[1.8rem] bg-primary/10 border border-primary/20 flex flex-col justify-center gap-0.5">
-                        <span className="text-[8px] font-headline font-black text-primary uppercase tracking-[0.2em] opacity-60">Wilayah Aktif</span>
+                    <div className="lg:w-64 h-14 md:h-16 lg:h-20 px-5 md:px-6 rounded-[1.5rem] md:rounded-[1.8rem] bg-primary/10 border border-primary/20 flex flex-col justify-center gap-0.5">
+                        <span className="text-[7px] md:text-[8px] font-headline font-black text-primary uppercase tracking-[0.2em] opacity-60">Wilayah Aktif</span>
                         <div className="flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-xs font-headline font-black text-on-surface truncate">{location?.city || "Belum Dipilih"}</span>
+                            <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 text-primary" />
+                            <span className="text-[10px] md:text-xs font-headline font-black text-on-surface truncate">{location?.city || "Belum Dipilih"}</span>
                         </div>
                     </div>
                 </motion.section>
@@ -167,35 +167,35 @@ export default function PrayerSchedulePage() {
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="relative p-6 rounded-[2.5rem] border border-primary/20 bg-gradient-to-r from-primary/10 to-transparent backdrop-blur-2xl flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden group shadow-2xl shadow-primary/5"
+                        className="relative p-5 sm:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-primary/20 bg-gradient-to-r from-primary/10 to-transparent backdrop-blur-2xl flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 overflow-hidden group shadow-2xl shadow-primary/5"
                     >
                         <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 blur-[120px] -mr-40 -mt-40 rounded-full animate-pulse" />
                         
-                        <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 w-full md:w-auto">
+                        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 relative z-10 w-full md:w-auto">
                             {/* Visual Indicator */}
                             <div className="relative group/ring">
                                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl group-hover/ring:bg-primary/40 transition-all duration-500 animate-pulse" />
-                                <div className="w-20 h-20 rounded-full border-2 border-primary/30 flex items-center justify-center relative bg-background/40 backdrop-blur-xl">
-                                    <Clock className="w-8 h-8 text-primary animate-pulse" />
+                                <div className="w-14 h-14 md:w-20 md:h-20 rounded-full border-2 border-primary/30 flex items-center justify-center relative bg-background/40 backdrop-blur-xl">
+                                    <Clock className="w-6 h-6 md:w-8 md:h-8 text-primary animate-pulse" />
                                 </div>
                             </div>
 
                             <div className="flex flex-col text-center md:text-left">
-                                <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                                    <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                                    <span className="text-[10px] font-headline font-black text-primary uppercase tracking-[0.4em] leading-none mb-0.5">Shalat Berikutnya</span>
+                                <div className="flex items-center justify-center md:justify-start gap-2 mb-1 md:mb-2">
+                                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-primary animate-ping" />
+                                    <span className="text-[8px] md:text-[10px] font-headline font-black text-primary uppercase tracking-[0.4em] leading-none mb-0.5">Shalat Berikutnya</span>
                                 </div>
-                                <h3 className="text-2xl md:text-3xl font-headline font-black text-on-surface tracking-tight leading-tight">
+                                <h3 className="text-xl md:text-3xl font-headline font-black text-on-surface tracking-tight leading-tight">
                                     {nextPrayer.name} 
-                                    <span className="text-primary/40 font-black text-lg ml-3 italic tracking-widest lowercase opacity-60">mendatang</span>
+                                    <span className="text-primary/40 font-black text-sm md:text-lg ml-2 md:ml-3 italic tracking-widest lowercase opacity-60">mendatang</span>
                                 </h3>
                             </div>
                         </div>
 
-                        <div className="flex flex-row items-center gap-8 relative z-10 bg-white/5 p-4 md:p-6 rounded-[2rem] border border-white/5 w-full md:w-auto justify-center md:justify-end">
+                        <div className="flex flex-row items-center gap-4 md:gap-8 relative z-10 bg-white/5 p-3 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-white/5 w-full md:w-auto justify-center md:justify-end">
                             <div className="flex flex-col items-center md:items-end">
-                                <span className="text-[9px] font-headline font-black text-on-surface/30 uppercase tracking-[0.3em] leading-none mb-2">Hitung Mundur</span>
-                                <div className="text-3xl md:text-5xl font-headline font-black text-primary tabular-nums tracking-tighter drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]">
+                                <span className="text-[8px] md:text-[9px] font-headline font-black text-on-surface/30 uppercase tracking-[0.3em] leading-none mb-1 md:mb-2">Hitung Mundur</span>
+                                <div className="text-2xl md:text-5xl font-headline font-black text-primary tabular-nums tracking-tighter drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]">
                                     {nextPrayer.countdown}
                                 </div>
                             </div>
@@ -244,7 +244,7 @@ export default function PrayerSchedulePage() {
                                     <div
                                         key={prayer.name}
                                         className={cn(
-                                            "p-6 h-40 rounded-[2.5rem] border transition-all duration-500 flex flex-col items-center justify-center text-center gap-5 relative overflow-hidden group/item",
+                                            "p-4 md:p-6 h-32 md:h-40 rounded-[2rem] md:rounded-[2.5rem] border transition-all duration-500 flex flex-col items-center justify-center text-center gap-3 md:gap-5 relative overflow-hidden group/item",
                                             isNext
                                                 ? "bg-primary text-black border-primary shadow-2xl scale-105 z-10"
                                                 : "bg-surface-container-low/20 border-white/[0.03] hover:bg-surface-container-low/40 hover:border-white/[0.1] hover:-translate-y-1"
@@ -252,18 +252,18 @@ export default function PrayerSchedulePage() {
                                     >
                                         {isNext && <div className="absolute inset-0 bg-white/10 blur-xl animate-pulse" />}
                                         <prayer.icon className={cn(
-                                            "w-6 h-6 transition-all duration-500 relative z-10",
+                                            "w-5 h-5 md:w-6 h-6 transition-all duration-500 relative z-10",
                                             isNext ? "text-black scale-110" : "text-primary/40 group-hover/item:text-primary group-hover/item:scale-110"
                                         )} />
                                         <div className="space-y-1 relative z-10">
                                             <div className={cn(
-                                                "text-[9px] font-headline font-black uppercase tracking-[0.2em] leading-none mb-1.5",
+                                                "text-[8px] md:text-[9px] font-headline font-black uppercase tracking-[0.2em] leading-none mb-1 md:mb-1.5",
                                                 isNext ? "text-black/60" : "text-on-surface/20"
                                             )}>
                                                 {prayer.name}
                                             </div>
                                             <div className={cn(
-                                                "text-2xl font-headline font-black tabular-nums tracking-tighter leading-none",
+                                                "text-xl md:text-2xl font-headline font-black tabular-nums tracking-tighter leading-none",
                                                 isNext ? "text-black" : "text-on-surface/80"
                                             )}>
                                                 {prayer.time}

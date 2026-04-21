@@ -7,9 +7,11 @@ import { useParams, usePathname } from 'next/navigation';
 import { useSearch } from '@/contexts/SearchContext';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, User, Moon, Sun, Bell } from 'lucide-react';
+import { LogOut, User, Moon, Sun, Bell, Menu, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
+import Link from 'next/link';
 
 interface TopNavBarProps {
     isReadingMode?: boolean;
@@ -24,23 +26,14 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed }: TopNavBarP
     const { user, signInWithGoogle, signOut, loading } = useAuth();
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false);
+    const { isMobileMenuOpen, setIsMobileMenuOpen } = useSearch(); // Reusing SearchContext for layout state or a local one
     const searchRef = React.useRef<HTMLInputElement>(null);
+    const mobileSearchRef = React.useRef<HTMLInputElement>(null);
 
-    // Avoid hydration mismatch
+    // Initial mount to avoid hydration mismatch
     React.useEffect(() => {
         setMounted(true);
-    }, []);
-
-    // Focus search on Cmd+K
-    React.useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                searchRef.current?.focus();
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     const getSearchPlaceholder = () => {
@@ -53,85 +46,103 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed }: TopNavBarP
 
     return (
         <nav className={cn(
-            "fixed top-0 right-0 z-50 transition-all duration-500 flex items-center h-16 left-0",
-            isCollapsed ? "md:left-20" : "md:left-72",
-            "bg-background/60 backdrop-blur-3xl border-b border-white/10 shadow-sm",
+            "fixed top-0 right-0 left-0 z-50 transition-all duration-500 h-[65px]",
+            "bg-background shadow-sm",
         )}>
-            <div className="w-full px-8 md:px-12 flex justify-between items-center h-full">
-                <div className="flex items-center gap-4 flex-1">
-                    <div className="md:hidden font-headline text-xl font-bold tracking-tight text-white drop-shadow-md">
-                        Syamna <span className="text-primary italic">Quran</span>
-                    </div>
+            <div className="w-full px-4 sm:px-6 md:px-12 flex justify-between items-center h-full relative">
+                <div className={cn(
+                    "flex items-center gap-4 flex-1 transition-all duration-300",
+                    isMobileSearchOpen ? "opacity-0 invisible pointer-events-none md:opacity-100 md:visible md:pointer-events-auto" : "opacity-100 visible"
+                )}>
+                    {/* Hamburger Toggle - Animated Morph */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white active:scale-95 transition-all mr-2 group"
+                    >
+                        <div className="relative w-5 h-5">
+                            <motion.div
+                                animate={{
+                                    rotate: isMobileMenuOpen ? 180 : 0,
+                                    opacity: isMobileMenuOpen ? 0 : 1
+                                }}
+                                className="absolute inset-0 flex items-center justify-center"
+                            >
+                                <Menu className="w-5 h-5" />
+                            </motion.div>
+                            <motion.div
+                                initial={{ opacity: 0, rotate: -180 }}
+                                animate={{
+                                    rotate: isMobileMenuOpen ? 0 : -180,
+                                    opacity: isMobileMenuOpen ? 1 : 0
+                                }}
+                                className="absolute inset-0 flex items-center justify-center"
+                            >
+                                <X className="w-5 h-5" />
+                            </motion.div>
+                        </div>
+                    </button>
 
-                    {/* Global Search Bar - Hidden in Reading Mode Desktop */}
+                    {/* Branding - Synced with Landing Page */}
+                    <Link href="/" className="hidden sm:flex items-center gap-3 group shrink-0">
+                        <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-2xl border border-white/10 shrink-0 transition-transform group-hover:scale-110 duration-500">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-[#00df9a]/20 to-transparent z-10" />
+                            <Image
+                                src="/logos/white.png"
+                                alt="Syamna Quran Logo"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+                        <span className="text-lg font-black text-white tracking-tight">
+                            Syamna <span className="text-[#00df9a] transition-all group-hover:drop-shadow-[0_0_8px_rgba(0,223,154,0.5)]">Quran</span>
+                        </span>
+                    </Link>
+
+                    {/* Unified Search Bar - Mobile & Desktop (Centered on Desktop) */}
                     {!isReadingMode && (
-                        <div className="hidden md:flex items-center relative w-full max-w-md group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface/30 group-focus-within:text-primary transition-colors" />
+                        <div className={cn(
+                            "flex-1 relative group transition-all duration-500",
+                            "lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-full lg:max-w-md lg:flex-none"
+                        )}>
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface/30 group-focus-within:text-primary transition-colors" />
                             <input
                                 ref={searchRef}
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={getSearchPlaceholder()}
-                                className="w-full h-11 pl-12 pr-4 bg-surface-container-low/50 hover:bg-surface-container-low border border-white/10 rounded-2xl text-sm font-body focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-on-surface/20 text-white"
+                                className="w-full h-9 sm:h-10 pl-10 pr-4 bg-white/5 border border-white/10 rounded-xl text-xs font-body focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-on-surface/20 text-white"
                             />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-md bg-surface-container-highest border border-white/10 text-[10px] font-black text-on-surface/40">
-                                ⌘ K
-                            </div>
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center gap-4">
-                    {/* Theme & Notification Toggle */}
-                    <div className="flex items-center gap-3">
-                        <button 
-                            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/5 hover:bg-white/10 transition-all text-on-surface/60 hover:text-white"
-                            title="Toggle Theme"
-                        >
-                            {mounted && resolvedTheme === 'dark' ? (
-                                <Sun className="w-4 h-4" />
-                            ) : (
-                                <Moon className="w-4 h-4" />
-                            )}
-                        </button>
-
-                        <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/5 hover:bg-white/10 transition-all text-on-surface/60 hover:text-white relative">
-                            <Bell className="w-4 h-4" />
-                            {/* Notification Badge */}
-                            <span className="absolute top-1 right-1 w-4 h-4 bg-[#EF4444] rounded-full border-2 border-[#121212] flex items-center justify-center text-[9px] font-bold text-white">9</span>
-                        </button>
-                    </div>
-
-                    {/* User Profile */}
+                <div className="flex items-center gap-3 shrink-0">
+                    {/* User Profile / Login */}
                     {loading ? (
-                        <div className="w-32 h-10 rounded-full bg-white/5 animate-pulse" />
+                        <div className="w-10 h-10 rounded-full bg-white/5 animate-pulse" />
                     ) : user ? (
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-3 pl-1 pr-3 py-1 transition-all rounded-full bg-white/5 border border-white/10 group">
+                        <div className="flex items-center gap-3">
+                            <div className="hidden lg:flex items-center gap-3 pl-1 pr-3 py-1 rounded-full bg-white/5 border border-white/10 group">
                                 <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/10 bg-surface-container-highest flex items-center justify-center">
                                     {user.user_metadata.avatar_url ? (
                                         <Image
                                             src={user.user_metadata.avatar_url}
                                             alt={user.user_metadata.full_name || "User"}
                                             fill
-                                            className="object-cover relative z-10"
+                                            className="object-cover"
                                         />
                                     ) : (
                                         <User className="w-4 h-4 text-white/40" />
                                     )}
                                 </div>
-                                <div className="flex flex-col items-start text-left">
-                                    <span className="text-xs font-bold text-white transition-colors group-hover:text-primary leading-tight">
-                                        {user.user_metadata.full_name?.split(' ')[0]}
-                                    </span>
-                                    <span className="text-[8px] font-bold text-[#8FA9F4] uppercase tracking-wide">ACTIVE USER</span>
-                                </div>
+                                <span className="text-xs font-bold text-white leading-tight">
+                                    {user.user_metadata.full_name?.split(' ')[0]}
+                                </span>
                             </div>
                             <button
                                 onClick={signOut}
-                                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/30 transition-all"
+                                className="hidden lg:flex w-10 h-10 rounded-full bg-white/5 border border-white/10 items-center justify-center text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-all"
                                 title="Keluar"
                             >
                                 <LogOut className="w-4 h-4" />
@@ -142,7 +153,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed }: TopNavBarP
                             onClick={signInWithGoogle}
                             variant="outline"
                             size="sm"
-                            className="rounded-full bg-primary/10 border-primary/20 hover:bg-primary/20 text-primary font-bold px-5"
+                            className="hidden lg:flex rounded-full bg-primary/10 border-primary/20 hover:bg-primary/20 text-primary font-bold px-6 h-10"
                         >
                             Masuk
                         </Button>
@@ -152,3 +163,4 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed }: TopNavBarP
         </nav>
     );
 }
+

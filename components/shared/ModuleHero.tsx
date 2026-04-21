@@ -24,7 +24,7 @@ export function ModuleHero({
     className
 }: ModuleHeroProps) {
     return (
-        <section className={cn("relative h-[250px] md:h-[300px] w-full overflow-hidden border-b border-white/5", className)}>
+        <section className={cn("relative h-[180px] sm:h-[200px] md:h-[250px] lg:h-[300px] w-full overflow-hidden border-b border-white/5", className)}>
             {/* Background Image with Overlay - Sufter/Minimal for better readability */}
             <div className="absolute inset-0 z-0 bg-background">
                 <Image
@@ -38,12 +38,12 @@ export function ModuleHero({
                 <div className="absolute inset-0 bg-linear-to-r from-background/90 via-background/40 to-transparent" />
             </div>
 
-            <div className="relative z-10 px-8 md:px-12 h-full flex items-center pt-16">
+            <div className="relative z-10 px-4 sm:px-6 md:px-12 h-full flex items-center pt-8 md:pt-16">
                 <div className="flex items-center justify-between w-full gap-12">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="space-y-4 max-w-2xl"
+                        className="space-y-2 md:space-y-4 max-w-2xl"
                     >
                         {/* Back Button - Top Mini */}
                         {onBack && (
@@ -55,13 +55,14 @@ export function ModuleHero({
                                 <span className="text-[10px] font-headline font-black uppercase tracking-widest">Kembali</span>
                             </button>
                         )}
-                        <h1 className="text-4xl md:text-6xl font-headline font-black text-on-surface tracking-tighter leading-[1.1]">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline font-black text-on-surface tracking-tighter leading-[1.1]">
                             {title}
                         </h1>
-                        <p className="text-sm md:text-base text-on-surface/50 font-body max-w-lg leading-relaxed italic">
+                        <p className="text-xs sm:text-sm md:text-sm lg:text-base text-on-surface/50 font-body max-w-lg leading-relaxed italic line-clamp-2 md:line-clamp-none">
                             {subtitle}
                         </p>
                     </motion.div>
+
 
                     {/* {featuredImage && (
                         <motion.div 

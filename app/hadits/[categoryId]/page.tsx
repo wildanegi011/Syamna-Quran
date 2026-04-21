@@ -162,7 +162,7 @@ export default function HadithCategoryDetailPage() {
             </ModuleGrid>
 
             {totalPages > 1 && (
-                <div className="max-w-[1400px] mx-auto w-full px-8 md:px-12 mb-20">
+                <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 md:px-12 mb-20">
                     <ModulePagination
                         currentPage={currentPage}
                         totalPages={totalPages}

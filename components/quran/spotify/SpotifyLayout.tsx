@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 import { useAudioState } from '@/contexts/AudioContext';
+import { useSearch } from '@/contexts/SearchContext';
 import { NowPlayingPanel } from './NowPlayingPanel';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TajweedLegend } from '../TajweedLegend';
@@ -22,6 +23,7 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
     const [isCollapsed, setIsCollapsed] = React.useState(false);
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
     const { isRightPanelOpen, setRightPanelOpen } = useAudioState();
+    const { isMobileMenuOpen, setIsMobileMenuOpen } = useSearch();
     const [isTajweedOpen, setIsTajweedOpen] = React.useState(false);
 
     // Persist collapse state
@@ -86,40 +88,57 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
 
             {/* Main Application Structure */}
             <div className="flex flex-1 overflow-hidden p-0 relative z-10">
-                {/* Desktop Sidebar */}
-                <QuranSidebar
-                    isCollapsed={isCollapsed}
-                    toggleCollapse={toggleCollapse}
-                />
+                {/* Unified Drawer Navigation */}
+                <AnimatePresence>
+                    {isMobileMenuOpen && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="fixed inset-0 z-[150] bg-black/60 backdrop-blur-md"
+                            />
+                            <motion.div
+                                initial={{ x: "-100%" }}
+                                animate={{ x: 0 }}
+                                exit={{ x: "-100%" }}
+                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                className="fixed left-0 top-0 bottom-0 w-[85%] max-w-sm z-[160] bg-[#020617]/95 backdrop-blur-3xl border-r border-white/5 shadow-2xl flex flex-col"
+                            >
+                                <QuranSidebar
+                                    isCollapsed={false}
+                                    toggleCollapse={() => setIsMobileMenuOpen(false)}
+                                />
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
 
                 {/* Content Area + Right Panel Container */}
-                <div className={cn(
-                    "flex-1 flex overflow-hidden",
-                    isCollapsed ? "md:ml-20" : "md:ml-72"
-                )}>
-                    {/* Main Content Area - Hidden when Reading Panel is Open for Focus (Quran Only) */}
+                <div className="flex-1 flex overflow-hidden w-full">
+                    {/* Main Content Area */}
                     <div className={cn(
-                        "flex-1 flex flex-col min-w-0 h-full relative transition-all duration-500",
+                        "flex-1 flex flex-col min-w-0 h-full relative",
                         (isQuranModule && isRightPanelOpen) ? "hidden lg:flex" : "flex"
                     )}>
-                        {/* Floating Top Nav - Hide in Reading Mode */}
+                        {/* Floating Top Nav */}
                         {!isReadingMode && (
                             <TopNavBar
                                 isReadingMode={isReadingMode}
                                 isScrolled={isScrolled}
-                                isCollapsed={isCollapsed}
+                                isCollapsed={false}
                             />
                         )}
 
-                        <main ref={scrollContainerRef} className="flex-1 overflow-y-auto relative scrollbar-hide md:scrollbar-default pt-0">
+                        <main ref={scrollContainerRef} className="flex-1 overflow-y-auto relative scrollbar-hide md:scrollbar-default pt-16">
                             <div className="relative z-0 min-h-full flex flex-col">
                                 {children}
                             </div>
                         </main>
                     </div>
 
-                    {/* Desktop Right Sidebar (Now Playing Panel) - Only in Quran Module */}
-                    <AnimatePresence>
+                    <AnimatePresence mode="popLayout">
                         {isQuranModule && (
                             isRightPanelOpen ? (
                                 <NowPlayingPanel
@@ -134,7 +153,7 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
                                     exit={{ opacity: 0, x: 20 }}
                                     transition={{ type: 'spring', damping: 25, stiffness: 400 }}
                                     onClick={() => setRightPanelOpen(true)}
-                                    className="fixed right-0 top-1/2 -translate-y-1/2 z-40 w-8 h-16 rounded-l-2xl bg-primary/10 hover:bg-primary/20 border-l border-y border-primary/20 backdrop-blur-3xl flex items-center justify-center text-primary/60 hover:text-primary transition-all shadow-[-10px_0_30px_rgba(0,0,0,0.5)] group/open-side"
+                                    className="fixed right-0 top-1/2 -translate-y-1/2 z-40 w-8 h-16 rounded-l-2xl bg-primary/10 hover:bg-primary/20 border-l border-y border-primary/20 backdrop-blur-3xl hidden md:flex items-center justify-center text-primary/60 hover:text-primary transition-all shadow-[-10px_0_30px_rgba(0,0,0,0.5)] group/open-side"
                                     title="Buka Panel"
                                 >
                                     <ChevronLeft className="w-5 h-5 transition-transform group-hover/open-side:-translate-x-1 cursor-pointer" />
@@ -144,12 +163,16 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
                     </AnimatePresence>
                 </div>
 
+
                 {/* Scroll to Top button in reading mode */}
                 {isReadingMode && <ScrollToTop />}
             </div>
 
             {/* Mobile Navigation Bar */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/70 backdrop-blur-3xl border-t border-outline-variant/10 flex items-center justify-around z-50 px-6 pb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+            {/* <nav className={cn(
+                "md:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/70 backdrop-blur-3xl border-t border-outline-variant/10 flex items-center justify-around z-50 px-6 pb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-transform duration-500",
+                (isQuranModule && isRightPanelOpen) && "translate-y-full"
+            )}>
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
@@ -166,7 +189,7 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
                         </Link>
                     );
                 })}
-            </nav>
+            </nav> */}
 
 
 

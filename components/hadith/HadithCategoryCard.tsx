@@ -43,7 +43,7 @@ export function HadithCategoryCard({ category, index }: HadithCategoryCardProps)
         >
             <Link
                 href={`/hadits/${category.id}`}
-                className="group relative flex items-center justify-between p-5 md:p-6 rounded-[2rem] bg-surface-container-low/60 backdrop-blur-xl border border-white/10 hover:bg-surface-container-highest/60 hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[110px] h-full"
+                className="group relative flex items-center justify-between p-5 sm:p-6 rounded-[2rem] bg-surface-container-low/60 backdrop-blur-xl border border-white/10 hover:bg-surface-container-highest/60 hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[110px] h-full"
             >
                 {/* Visual Accent Layer */}
                 <div className="absolute inset-0 bg-linear-to-br from-primary/[0.02] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -83,7 +83,7 @@ export function HadithCategoryCard({ category, index }: HadithCategoryCardProps)
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 z-10 shrink-0 ml-4">
+                <div className="hidden md:flex items-center gap-4 z-10 shrink-0 ml-4">
                     <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary/30 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 transition-all duration-500">
                         <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
                     </div>

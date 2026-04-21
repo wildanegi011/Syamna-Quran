@@ -32,7 +32,7 @@ export default function AsmaulHusnaPage() {
             />
 
             <main className="w-full -mt-10 z-20">
-                <div className="mt-12 overflow-hidden px-8 md:px-12">
+                <div className="mt-12 overflow-hidden px-4 sm:px-6 md:px-12">
                     <ModuleGrid
                         columnsClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                         className="px-0 md:px-0"

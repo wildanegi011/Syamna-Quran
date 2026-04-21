@@ -26,9 +26,9 @@ export function ModuleGrid({
     }
 
     return (
-        <main className={cn("w-full px-8 md:px-12 pb-12 md:pb-16", className)}>
-            <div className={cn("grid gap-4 md:gap-5", columnsClassName)}>
-                <AnimatePresence mode="popLayout">
+        <main className={cn("w-full px-4 sm:px-6 md:px-12 pb-12 md:pb-16", className)}>
+            <div className={cn("grid gap-3 sm:gap-4 md:gap-5", columnsClassName)}>
+                <AnimatePresence mode="wait">
                     {children}
                 </AnimatePresence>
             </div>

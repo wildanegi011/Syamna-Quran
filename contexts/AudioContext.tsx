@@ -11,8 +11,9 @@ interface AudioStateContextType {
     isPlaying: boolean;
     volume: number;
     queue: Ayah[];
-    playAyah: (ayah: Ayah, surah: SurahSummary, queue?: Ayah[], juzId?: number | null) => void;
+    playAyah: (ayah: Ayah, surah: SurahSummary, queue?: Ayah[], juzId?: number | null) => Promise<void>;
     togglePlay: () => void;
+    stopAudio: () => void;
     nextAyah: () => void;
     prevAyah: () => void;
     setVolume: (volume: number) => void;
@@ -229,8 +230,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
         const handleAudioError = async () => {
             if (!audioRef.current) return;
+            
+            // If the source is empty or just the window URL, it's not a real playback error
+            const src = audioRef.current.src;
+            if (!src || src === window.location.href || src === "about:blank") return;
+            
+            // If we have no sources to fallback to, we are likely in a stopped state
+            if (fallbackSourcesRef.current.length === 0) return;
+
             const error = audioRef.current.error;
-            console.warn(`Audio source failed to load: ${audioRef.current.src}`, error);
+            console.warn(`Audio source failed to load: ${src}`, error);
 
             fallbackIndexRef.current++;
             if (fallbackIndexRef.current < fallbackSourcesRef.current.length) {
@@ -248,6 +257,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                     console.error("Fallback attempt failed:", e);
                 }
             } else {
+                // If we've reached here, it means we really tried all sources and failed
+                // But only report if it wasn't a manual stop (which clears fallbackSources)
                 console.error("All audio sources failed. Playback stopped.");
                 setIsPlaying(false);
                 setIsUsingFallback(false);
@@ -280,20 +291,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             playPromiseRef.current = null;
         }
     }, []);
-
-    const togglePlay = useCallback(async () => {
-        if (!audioRef.current || !currentAyah) return;
-        if (isPlaying) {
-            if (playPromiseRef.current) {
-                try { await playPromiseRef.current; } catch (e) { }
-            }
-            audioRef.current.pause();
-            setIsPlaying(false);
-        } else {
-            setIsPlaying(true);
-            await safePlay();
-        }
-    }, [isPlaying, currentAyah, safePlay]);
 
     const playAyah = useCallback(async (ayah: Ayah, surah: SurahSummary, newQueue?: Ayah[], juzId?: number | null) => {
         if (!audioRef.current) return;
@@ -365,6 +362,57 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         
         await safePlay();
     }, [currentAyah, currentSurah, selectedReciterId, safePlay, isShuffle, syncView, currentJuz]);
+
+    const playSurah = useCallback(async (surahNumber: number) => {
+        try {
+            const detail = await getSurahDetail(surahNumber, [selectedReciterId]);
+            if (detail && detail.ayat.length > 0) {
+                setCurrentJuz(null); // Clear Juz when playing a specific surah
+                await playAyah(detail.ayat[0], detail, detail.ayat, null);
+                setRightPanelOpen(true);
+            }
+        } catch (error) {
+            console.error("Failed to play surah:", error);
+        }
+    }, [selectedReciterId, playAyah]);
+
+    const togglePlay = useCallback(async () => {
+        if (!audioRef.current) return;
+
+        // If nothing is playing but we are viewing something, start playing it
+        if (!currentAyah) {
+            if (viewedSurah) {
+                await playSurah(viewedSurah.nomor);
+            } else if (viewedJuz) {
+                // Handle Juz playback logic here if needed
+            }
+            return;
+        }
+
+        if (isPlaying) {
+            if (playPromiseRef.current) {
+                try { await playPromiseRef.current; } catch (e) { }
+            }
+            audioRef.current.pause();
+            setIsPlaying(false);
+        } else {
+            setIsPlaying(true);
+            await safePlay();
+        }
+    }, [isPlaying, currentAyah, viewedSurah, viewedJuz, playSurah, safePlay]);
+
+    const stopAudio = useCallback(() => {
+        setIsPlaying(false);
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = "";
+            audioRef.current.load(); // Ensure source is cleared
+        }
+        setCurrentAyah(null);
+        // Clear fallbacks
+        fallbackSourcesRef.current = [];
+        fallbackIndexRef.current = 0;
+    }, []);
 
     const getCurrentQueue = useCallback(() => {
         return isShuffle && shuffledQueue.length > 0 ? shuffledQueue : queue;
@@ -447,19 +495,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const playSurah = useCallback(async (surahNumber: number) => {
-        try {
-            const detail = await getSurahDetail(surahNumber, [selectedReciterId]);
-            if (detail && detail.ayat.length > 0) {
-                setCurrentJuz(null); // Clear Juz when playing a specific surah
-                await playAyah(detail.ayat[0], detail, detail.ayat, null);
-                setRightPanelOpen(true);
-            }
-        } catch (error) {
-            console.error("Failed to play surah:", error);
-        }
-    }, [selectedReciterId, playAyah]);
-
     useEffect(() => {
         const switchReciter = async () => {
             if (isPlaying && currentAyah && audioRef.current && currentSurah) {
@@ -483,6 +518,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (!audioRef.current) return;
         const handleEnded = () => {
+            if (!audioRef.current || !audioRef.current.src || audioRef.current.src === window.location.href) return;
+            
             if (repeatMode === 'one') {
                 if (audioRef.current) {
                     audioRef.current.currentTime = 0;
@@ -501,7 +538,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     // Memoized Context Values
     const stateValue = React.useMemo(() => ({
         currentAyah, currentSurah, isPlaying, volume, queue,
-        playAyah, togglePlay, nextAyah, prevAyah, setVolume, seek,
+        playAyah, togglePlay, stopAudio, nextAyah, prevAyah, setVolume, seek,
         autoNext, setAutoNext: setAutoNextPersisted,
         selectedReciterId, setReciterId,
         repeatMode, toggleRepeatMode,
@@ -525,7 +562,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         isUsingFallback
     }), [
         currentAyah, currentSurah, isPlaying, volume, queue,
-        playAyah, togglePlay, nextAyah, prevAyah, setVolume, seek,
+        playAyah, togglePlay, stopAudio, nextAyah, prevAyah, setVolume, seek,
         autoNext, setAutoNextPersisted,
         selectedReciterId, setReciterId,
         repeatMode, toggleRepeatMode,

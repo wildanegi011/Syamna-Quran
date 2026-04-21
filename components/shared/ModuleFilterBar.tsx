@@ -24,43 +24,44 @@ export function ModuleFilterBar({
     className
 }: ModuleFilterBarProps) {
     return (
-        <div className={cn("sticky top-16 z-30 bg-background/80 backdrop-blur-3xl border-b border-white/5 py-3 md:py-4", className)}>
-            <div className="px-8 md:px-12">
-                <div className="flex items-center justify-between gap-6">
-                    <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide py-1">
-
+        <div className={cn(
+            "sticky top-[63px] z-30 transition-all duration-300",
+            "bg-background border-b border-white/5 py-3 md:py-4",
+            className
+        )}>
+            <div className="px-4 sm:px-6 md:px-12">
+                <div className="flex items-center justify-start gap-6">
+                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
                         {/* Filter Pills */}
-                        <div className="flex gap-2">
-                            {items.map((item, index) => {
-                                const label = typeof item === 'string' ? item : item.label;
-                                const value = typeof item === 'string' ? item : item.value;
-                                const count = typeof item === 'string' ? undefined : item.count;
-                                const isActive = activeItem === value;
+                        {items.map((item, index) => {
+                            const label = typeof item === 'string' ? item : item.label;
+                            const value = typeof item === 'string' ? item : item.value;
+                            const count = typeof item === 'string' ? undefined : item.count;
+                            const isActive = activeItem === value;
 
-                                return (
-                                    <button
-                                        key={value || index}
-                                        onClick={() => onSelect(value)}
-                                        className={cn(
-                                            "relative px-6 py-2.5 h-11 rounded-full text-[10px] font-headline font-black transition-all duration-300 whitespace-nowrap border active:scale-95 uppercase tracking-widest flex items-center gap-2",
-                                            isActive
-                                                ? "bg-white text-black border-white shadow-[0_10px_30px_-10px_rgba(255,255,255,0.3)] scale-105"
-                                                : "bg-white/[0.03] text-white/40 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10"
-                                        )}
-                                    >
-                                        <span>{label}</span>
-                                        {count !== undefined && (
-                                            <span className={cn(
-                                                "ml-1 px-1.5 py-0.5 rounded-md text-[8px] font-black leading-none",
-                                                isActive ? "bg-black/10 text-black/60" : "bg-white/10 text-white/40"
-                                            )}>
-                                                {count}
-                                            </span>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                            return (
+                                <button
+                                    key={value || index}
+                                    onClick={() => onSelect(value)}
+                                    className={cn(
+                                        "relative px-6 h-11 rounded-full text-xs font-headline font-black transition-all duration-300 whitespace-nowrap border active:scale-95 uppercase tracking-[0.1em] flex items-center gap-2",
+                                        isActive
+                                            ? "bg-white text-black border-white shadow-[0_15px_35px_-10px_rgba(255,255,255,0.4)] scale-105"
+                                            : "bg-white/[0.08] text-white/60 border-white/10 hover:bg-white/15 hover:text-white hover:border-white/20"
+                                    )}
+                                >
+                                    <span>{label}</span>
+                                    {count !== undefined && (
+                                        <span className={cn(
+                                            "ml-1 px-2 py-0.5 rounded-md text-[11px] font-black leading-none",
+                                            isActive ? "bg-black/20 text-black/70" : "bg-white/15 text-white/50"
+                                        )}>
+                                            {count}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
