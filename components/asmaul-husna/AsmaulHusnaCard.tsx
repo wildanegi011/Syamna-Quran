@@ -35,7 +35,7 @@ export function AsmaulHusnaCard({ item, index }: AsmaulHusnaCardProps) {
         >
             <div
                 className={cn(
-                    "group relative flex flex-col p-6 h-[170px] transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-[1.25rem] cursor-pointer outline-none",
+                    "group relative flex items-center md:items-stretch md:flex-col p-3 md:p-5 h-[80px] md:h-[110px] transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-[1.25rem] cursor-pointer outline-none",
                     "border-white/[0.05] hover:border-white/10 hover:shadow-[0_15px_35px_-12px_rgba(0,0,0,0.3)] hover:-translate-y-1"
                 )}
             >
@@ -45,23 +45,23 @@ export function AsmaulHusnaCard({ item, index }: AsmaulHusnaCardProps) {
                     style={{ backgroundColor: theme.color }}
                 />
 
-                <div className="relative z-10 flex flex-col justify-between w-full h-full">
-                    {/* Top Content */}
-                    <div className="flex justify-between items-start w-full">
-                        <div className="flex items-center gap-4 min-w-0">
+                <div className="relative z-10 flex flex-row md:flex-col justify-center items-center md:items-stretch w-full h-full">
+                    {/* Main Content Row */}
+                    <div className="flex justify-between items-center w-full">
+                        <div className="flex items-center gap-3 md:gap-4 min-w-0">
                             {/* Number Circle */}
                             <div
-                                className="w-[48px] h-[48px] text-xl rounded-2xl flex items-center justify-center font-black shadow-xl shrink-0 relative transition-all duration-500 group-hover:rotate-6 group-hover:scale-110"
+                                className="w-10 h-10 md:w-12 md:h-12 text-lg md:text-xl rounded-[0.85rem] md:rounded-2xl flex items-center justify-center font-black shadow-xl shrink-0 relative transition-all duration-500 group-hover:rotate-6 group-hover:scale-110"
                                 style={{ backgroundColor: theme.color, color: 'white' }}
                             >
                                 <span>{item.urutan}</span>
                             </div>
 
                             <div className="flex flex-col min-w-0">
-                                <h3 className="text-xl font-bold tracking-tight text-white group-hover:text-primary transition-colors truncate">
+                                <h3 className="text-lg md:text-xl font-bold tracking-tight text-white group-hover:text-primary transition-colors truncate">
                                     {item.latin}
                                 </h3>
-                                <p className="text-xs font-medium text-white/50 italic truncate mt-0.5 max-w-[120px] md:max-w-[150px]">
+                                <p className="text-[10px] md:text-xs font-medium text-white/50 italic truncate mt-0.5 max-w-[120px] md:max-w-[150px]">
                                     {item.arti}
                                 </p>
                             </div>
@@ -70,22 +70,11 @@ export function AsmaulHusnaCard({ item, index }: AsmaulHusnaCardProps) {
                         {/* Arabic Calligraphy */}
                         <div className="text-right">
                             <span
-                                className="text-4xl font-arabic transition-all duration-500 block group-hover:scale-110 origin-right tracking-wider text-white/90 group-hover:text-white"
+                                className="text-3xl md:text-4xl font-arabic transition-all duration-500 block group-hover:scale-110 origin-right tracking-wider text-white/90 group-hover:text-white"
                                 style={{ color: theme.color }}
                             >
                                 {item.arab}
                             </span>
-                        </div>
-                    </div>
-
-                    {/* Bottom Content */}
-                    <div className="flex items-center justify-between w-full mt-auto">
-                        <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-white/5 border border-white/5">
-                            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/30">Asmaul Husna</span>
-                        </div>
-
-                        <div className="text-[10px] font-bold text-primary/0 group-hover:text-primary/60 transition-all duration-500 uppercase tracking-widest">
-                            {item.latin}
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useDoaDetail } from "@/hooks/use-doa";
 import { Copy, Loader2, BookOpen, Quote, Info, Hash, Languages, X, Compass, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,19 +23,23 @@ interface DoaDetailModalProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function DoaDetailModal({ doaId, open, onOpenChange }: DoaDetailModalProps) {
-    const { data: doa, isLoading } = useDoaDetail(doaId || 0, open && !!doaId);
-    const isMobile = useIsMobile();
-
-    const Content = () => (
+function DoaContent({ isLoading, doa }: { isLoading: boolean, doa: any }) {
+    return (
         <AnimatePresence mode="wait">
             {isLoading ? (
-                <div className="p-12 flex flex-col items-center justify-center space-y-4 flex-1">
+                <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-12 flex flex-col items-center justify-center space-y-4 flex-1 h-full"
+                >
                     <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
                     <p className="text-[10px] font-headline font-black uppercase tracking-widest text-on-surface/30">Memuat Doa...</p>
-                </div>
+                </motion.div>
             ) : doa ? (
                 <motion.div
+                    key="content"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
@@ -124,12 +128,23 @@ export function DoaDetailModal({ doaId, open, onOpenChange }: DoaDetailModalProp
                     </div>
                 </motion.div>
             ) : (
-                <div className="p-20 text-center flex-1">
+                <motion.div
+                    key="error"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-20 text-center flex-1"
+                >
                     <p className="text-on-surface/40 font-headline font-black italic tracking-widest text-xs uppercase">Gagal memuat Detail Doa.</p>
-                </div>
+                </motion.div>
             )}
         </AnimatePresence>
     );
+}
+
+export function DoaDetailModal({ doaId, open, onOpenChange }: DoaDetailModalProps) {
+    const { data: doa, isLoading } = useDoaDetail(doaId || 0, open && !!doaId);
+    const isMobile = useIsMobile();
 
     if (isMobile) {
         return (
@@ -139,7 +154,7 @@ export function DoaDetailModal({ doaId, open, onOpenChange }: DoaDetailModalProp
                         <DrawerHeader className="sr-only">
                             <DrawerTitle>{doa?.nama || "Detail Doa"}</DrawerTitle>
                         </DrawerHeader>
-                        <Content />
+                        <DoaContent isLoading={isLoading} doa={doa} />
                         <div className="p-4 pt-0 shrink-0">
                             <Button
                                 variant="ghost"
@@ -163,7 +178,19 @@ export function DoaDetailModal({ doaId, open, onOpenChange }: DoaDetailModalProp
                 <DialogHeader className="sr-only">
                     <DialogTitle>{doa?.nama || "Detail Doa"}</DialogTitle>
                 </DialogHeader>
-                <Content />
+
+                {/* Manual Close Button for Desktop */}
+                <DialogClose asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-8 right-8 z-50 w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white transition-all"
+                    >
+                        <X className="w-6 h-6" />
+                    </Button>
+                </DialogClose>
+
+                <DoaContent isLoading={isLoading} doa={doa} />
             </DialogContent>
         </Dialog>
     );

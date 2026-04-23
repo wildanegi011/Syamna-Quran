@@ -46,7 +46,7 @@ export function PrayerSchedule({ month, year }: { month?: number; year?: number 
         <div className="relative group/table overflow-hidden rounded-[2.5rem] border border-white/[0.03] bg-surface-container-low/20 backdrop-blur-3xl shadow-xl">
             {/* Mobile Scroll Hint - Sublet gradient on the right */}
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-black/20 to-transparent pointer-events-none z-10 md:hidden" />
-            
+
             <div className="overflow-x-auto scrollbar-hide scroll-smooth">
                 <Table>
                     <TableHeader className="bg-white/[0.01]">
@@ -102,7 +102,7 @@ export function PrayerSchedule({ month, year }: { month?: number; year?: number 
                         })}
                     </TableBody>
                 </Table>
-                
+
                 {/* Mobile Scroll Indicator - Subtle text */}
                 <div className="md:hidden flex justify-center py-2 bg-white/[0.02] border-t border-white/[0.02]">
                     <span className="text-[8px] font-headline font-black text-on-surface/20 uppercase tracking-[0.2em]">Geser horizontal untuk lihat waktu lengkap</span>

@@ -41,65 +41,49 @@ export function DoaCard({ doa, index, onDetail }: DoaCardProps) {
                 stiffness: 100
             }}
             onClick={() => onDetail(doa.id)}
-            className="group relative flex items-center justify-between p-5 sm:p-6 rounded-[2.5rem] bg-surface-container-low/60 backdrop-blur-xl border border-white/10 hover:bg-surface-container-highest/60 hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[140px]"
+            className="group relative flex items-center justify-between p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.75rem] bg-surface-container-low/60 backdrop-blur-xl border border-white/10 hover:bg-surface-container-highest/60 hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[100px]"
         >
             {/* Visual Accent Layer */}
             <div className="absolute inset-0 bg-linear-to-br from-primary/[0.02] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-            <div className="flex items-center gap-6 md:gap-8 z-10 w-full min-w-0">
+            <div className="flex items-center gap-4 sm:gap-5 z-10 w-full min-w-0">
                 {/* Logo Box */}
                 <div className="relative shrink-0">
                     <div className={cn(
-                        "w-12 h-12 md:w-16 md:h-16 rounded-[1.25rem] md:rounded-[1.5rem] bg-surface-container-highest flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-white/5",
+                        "w-10 h-10 md:w-11 md:h-11 rounded-[0.85rem] md:rounded-[1rem] bg-surface-container-highest flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-white/5",
                         "group-hover:bg-primary group-hover:rotate-6 group-hover:border-primary/50"
                     )}>
                         <GroupIcon
-                            className={cn("w-6 h-6 md:w-8 md:h-8 transition-colors duration-700", color, "group-hover:text-primary-foreground")}
+                            className={cn("w-5 h-5 md:w-5.5 md:h-5.5 transition-colors duration-700", color, "group-hover:text-primary-foreground")}
                             strokeWidth={1.5}
                         />
-                        {/* Decorative background for the box */}
                         <div className="absolute inset-0 bg-linear-to-tr from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    {/* Micro Sparkle on Hover */}
-                    <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100 scale-0 group-hover:scale-100">
-                        <Sparkles className="w-4 h-4 text-primary p-0.5" />
                     </div>
                 </div>
 
                 <div className="flex flex-col min-w-0 flex-1 justify-center">
-                    <div className="flex items-center gap-3 mb-1.5 md:mb-2">
+                    <div className="flex items-center gap-2 mb-1">
                         <span className={cn(
-                            "text-[10px] md:text-[11px] font-headline font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-md border transition-colors truncate",
+                            "text-[8px] md:text-[9px] font-headline font-black uppercase tracking-widest px-1.5 py-0.5 rounded border transition-colors truncate",
                             bg, color, "border-white/[0.05] group-hover:border-primary/20"
                         )}>
                             {doa.grup}
                         </span>
                     </div>
-                    <h3 className="text-base md:text-lg font-headline font-black text-on-surface/90 tracking-tight group-hover:text-on-surface transition-all duration-300 leading-tight mb-2">
+                    <h3 className="text-sm md:text-base font-headline font-bold text-on-surface/90 tracking-tight group-hover:text-on-surface transition-all duration-300 leading-snug line-clamp-2">
                         {doa.nama}
                     </h3>
-
-                    {/* Content Previews - Arabic & Translation */}
-                    <div className="flex flex-col gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <p className="text-right font-arabic text-primary/80 line-clamp-1 text-base md:text-lg leading-relaxed select-none">
-                            {doa.ar}
-                        </p>
-                        <p className="text-xs md:text-sm font-body italic text-on-surface/50 line-clamp-1 tracking-tight">
-                            "{doa.idn}"
-                        </p>
-                    </div>
                 </div>
             </div>
 
-            <div className="hidden md:flex items-center gap-4 z-10 shrink-0 ml-4">
-                <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary/40 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 shadow-lg shadow-transparent group-hover:shadow-primary/20 transition-all duration-500">
-                    <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+            <div className="hidden sm:flex items-center gap-4 z-10 shrink-0 ml-3">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary/40 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 transition-all duration-500">
+                    <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
             </div>
 
-            {/* Decorative background glow that follows the theme */}
-            <div className={cn("absolute -right-12 -bottom-12 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-50 transition-all duration-1000", bg)} />
-            <div className="absolute -left-12 -top-12 w-32 h-32 bg-primary/2 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-all duration-1000 delay-200" />
+            {/* Decorative background glow */}
+            <div className={cn("absolute -right-8 -bottom-8 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-30 transition-all duration-1000", bg)} />
         </motion.div>
     );
 }

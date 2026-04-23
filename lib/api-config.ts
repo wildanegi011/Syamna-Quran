@@ -30,4 +30,12 @@ export const CONFIG = {
    */
   ISLAMIC_API: process.env.NEXT_PUBLIC_ISLAMIC_API || "https://islamicapi.com/api/v1",
   ISLAMIC_API_KEY: process.env.NEXT_PUBLIC_ISLAMIC_API_KEY || "",
+
+  /**
+   * Quran Foundation API - Used for Quran.
+   */
+  QURAN_FOUNDATION_API: process.env.QURAN_FOUNDATION_API || "https://api.quranfoundation.org",
+  QURAN_FOUNDATION_OAUTH: process.env.QURAN_FOUNDATION_OAUTH || "https://oauth2.quran.foundation",
+  QURAN_FOUNDATION_CLIENT_ID: process.env.QURAN_FOUNDATION_CLIENT_ID || "",
+  QURAN_FOUNDATION_CLIENT_SECRET: process.env.QURAN_FOUNDATION_CLIENT_SECRET || "",
 };

@@ -5,15 +5,17 @@ import {
     Settings, 
     Headphones, 
     Check, 
-    LayoutGrid, 
     Sparkles, 
     BookOpen, 
     ChevronRight, 
     Play, 
     Heart, 
     Copy, 
-    CheckCircle2 
+    CheckCircle2,
+    Book
 } from 'lucide-react';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useTafsirResources } from '@/hooks/use-quran';
 import { cn } from '@/lib/utils';
 import { Ayah, SurahSummary, Reciters } from '@/lib/types';
 import {
@@ -28,6 +30,12 @@ import {
 } from "@/components/ui/drawer";
 import { AyahSelect } from '@/components/quran/AyahSelect';
 import { Button } from '@/components/ui/button';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface SettingsDrawerProps {
     isSettingsOpen: boolean;
@@ -58,6 +66,29 @@ export const SettingsDrawer = ({
     onOpenTajweed,
     viewedJuz
 }: SettingsDrawerProps) => {
+    const { tafsirId, setTafsirId } = useSettings();
+    const { data: tafsirResources, isLoading: isTafsirLoading } = useTafsirResources();
+
+    // Sort tafsirs with Indonesian first, show all
+    const sortedTafsirs = React.useMemo(() => {
+        if (!tafsirResources) return [];
+        return [...tafsirResources].sort((a, b) => {
+            const isAIndonesian = a.languageName.toLowerCase() === 'indonesian';
+            const isBIndonesian = b.languageName.toLowerCase() === 'indonesian';
+            if (isAIndonesian && !isBIndonesian) return -1;
+            if (!isAIndonesian && isBIndonesian) return 1;
+            return 0;
+        });
+    }, [tafsirResources]);
+
+    // Only set default if no selection exists yet
+    React.useEffect(() => {
+        if (tafsirId === 0 && sortedTafsirs.length > 0) {
+            const kemenag = sortedTafsirs.find(t => t.id === 999);
+            setTafsirId(kemenag ? kemenag.id : sortedTafsirs[0].id);
+        }
+    }, [sortedTafsirs, tafsirId, setTafsirId]);
+
     return (
         <Drawer open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DrawerContent className="bg-[#121212] border-white/10 p-0 text-white pb-10">
@@ -66,75 +97,123 @@ export const SettingsDrawer = ({
                     <DrawerDescription className="text-[10px] text-white/40">Sesuaikan pengalaman mendengarkan Anda</DrawerDescription>
                 </DrawerHeader>
 
-                <div className="p-6 space-y-8 overflow-y-auto max-h-[60vh] custom-scrollbar">
-                    {/* Qori Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40">
-                            <Headphones className="w-3 h-3 text-primary" />
-                            Pilih Qori (Reciter)
-                        </div>
-                        <div className="grid grid-cols-1 gap-2">
-                            {reciters.slice(0, 10).map((qori) => (
-                                <button
-                                    key={qori.identifier}
-                                    onClick={() => setReciterId(qori.identifier)}
-                                    className={cn(
-                                        "flex items-center justify-between p-4 rounded-2xl transition-all",
-                                        selectedReciterId === qori.identifier
-                                            ? "bg-primary/20 text-white border border-primary/20"
-                                            : "bg-white/5 text-white/60 hover:bg-white/10"
+                <div className="overflow-y-auto max-h-[70vh] custom-scrollbar px-6 py-4">
+                    <Accordion type="multiple" defaultValue={["reciter"]} className="w-full space-y-2">
+                        {/* Qori Section */}
+                        <AccordionItem value="reciter" className="border-none bg-white/[0.03] rounded-2xl overflow-hidden px-4">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                        <Headphones className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-xs font-black uppercase tracking-widest text-white/90">Pilih Qori</p>
+                                        <p className="text-[10px] text-white/40 font-medium">Lantunan suara pilihan</p>
+                                    </div>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-6">
+                                <div className="grid grid-cols-1 gap-2 pt-2">
+                                    {reciters.slice(0, 10).map((qori) => (
+                                        <button
+                                            key={qori.identifier}
+                                            onClick={() => setReciterId(qori.identifier)}
+                                            className={cn(
+                                                "flex items-center justify-between p-4 rounded-xl transition-all",
+                                                selectedReciterId === qori.identifier
+                                                    ? "bg-primary/20 text-white border border-primary/20"
+                                                    : "bg-white/5 text-white/60 hover:bg-white/10"
+                                            )}
+                                        >
+                                            <span className="font-bold text-sm">{qori.englishName}</span>
+                                            {selectedReciterId === qori.identifier && <Check className="w-4 h-4 text-primary" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+
+                        {/* Tafsir Section */}
+                        <AccordionItem value="tafsir" className="border-none bg-white/[0.03] rounded-2xl overflow-hidden px-4">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                        <BookOpen className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-xs font-black uppercase tracking-widest text-white/90">Pilih Tafsir</p>
+                                        <p className="text-[10px] text-white/40 font-medium">Penjelasan makna ayat</p>
+                                    </div>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-6">
+                                <div className="grid grid-cols-1 gap-2 pt-2">
+                                    {isTafsirLoading ? (
+                                        <div className="space-y-2">
+                                            {[1, 2].map(i => (
+                                                <div key={i} className="h-16 w-full animate-pulse bg-white/5 rounded-2xl" />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        sortedTafsirs.map((t) => (
+                                            <button
+                                                key={t.id}
+                                                onClick={() => setTafsirId(t.id)}
+                                                className={cn(
+                                                    "flex items-center justify-between p-4 rounded-xl transition-all text-left",
+                                                    tafsirId === t.id
+                                                        ? "bg-primary/20 text-white border border-primary/20"
+                                                        : "bg-white/5 text-white/60 hover:bg-white/10"
+                                                )}
+                                            >
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="font-bold text-sm">{t.name}</span>
+                                                    <span className="text-[10px] opacity-60 font-medium truncate max-w-[200px]">
+                                                        {t.authorName}
+                                                    </span>
+                                                </div>
+                                                {tafsirId === t.id && <Check className="w-4 h-4 text-primary" />}
+                                            </button>
+                                        ))
                                     )}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+
+                        {/* Tajweed Section */}
+                        <AccordionItem value="tajweed" className="border-none bg-white/[0.03] rounded-2xl overflow-hidden px-4">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                        <Sparkles className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-xs font-black uppercase tracking-widest text-white/90">Tajwid</p>
+                                        <p className="text-[10px] text-white/40 font-medium">Panduan hukum bacaan</p>
+                                    </div>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-6">
+                                <button
+                                    onClick={() => {
+                                        onOpenTajweed?.();
+                                    }}
+                                    className="w-full flex items-center justify-between p-4 rounded-xl bg-primary/10 border border-primary/20 text-primary active:scale-95 transition-all mt-2"
                                 >
-                                    <span className="font-bold text-sm">{qori.englishName}</span>
-                                    {selectedReciterId === qori.identifier && <Check className="w-4 h-4 text-primary" />}
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center">
+                                            <BookOpen className="w-4 h-4" />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="font-bold text-sm">Buka Keterangan Tajwid</p>
+                                            <p className="text-[10px] opacity-70">Pewarnaan hukum bacaan</p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="w-4 h-4" />
                                 </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Jump to Ayah Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40">
-                            <LayoutGrid className="w-3 h-3 text-primary" />
-                            Lompat ke Ayat
-                        </div>
-                        <div className="px-0.5">
-                            <AyahSelect
-                                ayahs={(isLoading || isDataStale) ? [] : (activeData?.ayat || [])}
-                                onSelect={(ayah) => {
-                                    handleAyahJump(ayah);
-                                    setIsSettingsOpen(false);
-                                }}
-                                placeholder={viewedJuz ? "Cari ayat di Juz ini..." : "Cari atau Lompat ke ayat..."}
-                                showSurahName={!!viewedJuz}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Tajweed Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40">
-                            <Sparkles className="w-3 h-3 text-primary" />
-                            Panduan Tajwid
-                        </div>
-                        <button
-                            onClick={() => {
-                                onOpenTajweed?.();
-                            }}
-                            className="w-full flex items-center justify-between p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary active:scale-95 transition-all"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                                    <BookOpen className="w-5 h-5" />
-                                </div>
-                                <div className="text-left">
-                                    <p className="font-bold text-sm">Lihat Keterangan Tajwid</p>
-                                    <p className="text-[10px] opacity-70">Pelajari pewarnaan hukum bacaan</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
-                    </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
                 </div>
 
                 <DrawerFooter className="border-t border-white/5 pt-4 px-6">

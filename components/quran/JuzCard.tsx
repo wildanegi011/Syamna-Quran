@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAudioState } from "@/contexts/AudioContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSurahDetail, getJuzDetail } from "@/lib/quran";
-import { POPULAR_RECITERS } from "@/hooks/use-quran";
-import surahSummaryData from "@/lib/data/surahs.json";
+import { useSurahs } from "@/hooks/use-quran";
 
 interface JuzCardProps {
     juz: {
@@ -82,6 +81,7 @@ export const JuzCard = React.memo(function JuzCard({
 }: JuzCardProps) {
     const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = React.useState(false);
+    const { data: allSurahs = [] } = useSurahs();
 
     const startInfo = JUZ_START_MAP[juz.id];
 
@@ -89,15 +89,14 @@ export const JuzCard = React.memo(function JuzCard({
     const startSurahName = juz.start.replace(/\s\s*\d+$/, '');
     const endSurahName = juz.end.replace(/\s\s*\d+$/, '');
 
-    // Calculate how many surahs are in this Juz
-    const surahList = surahSummaryData as any[];
-    const startIndex = surahList.findIndex(s => s.namaLatin === startSurahName);
-    const endIndex = surahList.findIndex(s => s.namaLatin === endSurahName);
+    // Calculate how many surahs are in this Juz using dynamic surah list
+    const startIndex = allSurahs.findIndex(s => s.namaLatin === startSurahName);
+    const endIndex = allSurahs.findIndex(s => s.namaLatin === endSurahName);
     const surahCount = (startIndex !== -1 && endIndex !== -1) ? (endIndex - startIndex + 1) : 0;
 
     const handleCardClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        const surah = (surahSummaryData as any[]).find(s => s.nomor === startInfo.surah);
+        const surah = allSurahs.find(s => s.nomor === startInfo.surah);
         if (surah) {
             setViewedJuz(juz.id);
             setRightPanelOpen(true);
@@ -116,12 +115,11 @@ export const JuzCard = React.memo(function JuzCard({
         setIsLoading(true);
         try {
             // Use getJuzDetail to get ALL verses in the Juz (all surahs included)
-            const reciterIds = [selectedReciterId];
-            const detail = await getJuzDetail(juz.id, reciterIds);
+            const detail = await getJuzDetail(juz.id, selectedReciterId);
 
             if (detail && detail.ayat.length > 0) {
                 // Find the starting surah metadata
-                const initialSurah = (surahSummaryData as any[]).find(s => s.nomor === startInfo.surah);
+                const initialSurah = allSurahs.find(s => s.nomor === startInfo.surah);
 
                 // Find the specific ayah from the starting surah
                 const startAyah = detail.ayat.find(a =>
@@ -139,14 +137,6 @@ export const JuzCard = React.memo(function JuzCard({
         }
     };
 
-    const handleMouseEnter = () => {
-        const reciterIds = [...new Set([selectedReciterId, ...POPULAR_RECITERS])];
-        queryClient.prefetchQuery({
-            queryKey: ["surah", startInfo.surah, reciterIds],
-            queryFn: () => getSurahDetail(startInfo.surah, reciterIds),
-            staleTime: 1000 * 60 * 60, // 1 hour
-        });
-    };
 
     // Arabic numeral representation
     const arabicId = juz.id.toLocaleString('ar-EG');
@@ -160,7 +150,6 @@ export const JuzCard = React.memo(function JuzCard({
         >
             <div
                 onClick={handleCardClick}
-                onMouseEnter={handleMouseEnter}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -170,7 +159,7 @@ export const JuzCard = React.memo(function JuzCard({
                     }
                 }}
                 className={cn(
-                    "group relative flex flex-col p-5 sm:p-6 min-h-[160px] h-full transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-[1.25rem] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                    "group relative flex flex-row lg:flex-col p-3 sm:p-4 lg:p-6 min-h-[80px] sm:min-h-[90px] lg:min-h-[160px] items-center lg:items-stretch transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-xl sm:rounded-2xl lg:rounded-[1.25rem] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                     isCurrentJuzActive
                         ? "border-primary/40 bg-primary/[0.05] shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]"
                         : "border-white/[0.05] hover:border-white/10 hover:shadow-[0_15px_35px_-12px_rgba(0,0,0,0.3)]"
@@ -185,58 +174,56 @@ export const JuzCard = React.memo(function JuzCard({
                     style={{ backgroundColor: JUZ_THEME.color }}
                 />
 
-                <div className="relative z-10 flex flex-col justify-between w-full h-full">
-                    <div className="flex justify-between items-center w-full">
-                        <div className="flex items-center gap-4 min-w-0">
-                            {/* Circle Indicator */}
-                            <div
-                                className={cn(
-                                    "w-[48px] h-[48px] text-xl rounded-2xl flex items-center justify-center font-black shadow-xl shrink-0 relative transition-all duration-300 group-hover:rotate-3",
-                                    isCurrentJuzActive && isPlaying ? "scale-105" : "group-hover:scale-110"
-                                )}
-                                style={{ backgroundColor: JUZ_THEME.color, color: 'white' }}
-                            >
-                                {isCurrentJuzActive && isPlaying ? (
-                                    <div className="flex items-end gap-0.5 h-4 mb-0.5">
-                                        <motion.div animate={{ height: [4, 12, 6, 12, 4] }} transition={{ repeat: Infinity, duration: 0.4 }} className="w-1 bg-white rounded-full" />
-                                        <motion.div animate={{ height: [8, 4, 12, 4, 8] }} transition={{ repeat: Infinity, duration: 0.3 }} className="w-1 bg-white rounded-full" />
-                                        <motion.div animate={{ height: [12, 6, 4, 6, 12] }} transition={{ repeat: Infinity, duration: 0.5 }} className="w-1 bg-white rounded-full" />
-                                    </div>
-                                ) : (
-                                    <span>{juz.id}</span>
-                                )}
-                            </div>
-
-                            <div className="flex flex-col min-w-0">
-                                <h3
-                                    className={cn(
-                                        "text-xl font-bold tracking-tight leading-tight transition-colors truncate",
-                                        isCurrentJuzActive ? "text-primary" : "text-white group-hover:text-primary"
-                                    )}
-                                >
-                                    Juz {juz.id}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-0.5 overflow-hidden">
-                                    <p className="text-xs font-medium text-white/50 italic whitespace-nowrap truncate">
-                                        Mulai: {startSurahName}
-                                    </p>
-                                    <span className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
-                                    {surahCount > 0 && (
-                                        <p className="text-xs font-bold text-primary/60 uppercase tracking-wider whitespace-nowrap">
-                                            {surahCount} Surah
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {/* Bottom Stats */}
-                    <div className="flex items-center justify-between w-full mt-4">
+                <div className="relative z-10 flex flex-row lg:flex-col justify-between items-center lg:items-stretch w-full h-full gap-3 sm:gap-4 lg:gap-0">
+                    <div className="flex flex-row items-center gap-3 sm:gap-4 min-w-0 flex-1 sm:flex-none">
+                        {/* Circle Indicator */}
                         <div
                             className={cn(
-                                "flex flex-col text-xs font-bold uppercase tracking-[0.1em]",
+                                "w-[38px] h-[38px] sm:w-[42px] sm:h-[42px] lg:w-[48px] lg:h-[48px] text-base sm:text-lg lg:text-xl rounded-lg sm:rounded-xl lg:rounded-2xl flex items-center justify-center font-black shadow-xl shrink-0 relative transition-all duration-300 group-hover:rotate-3",
+                                isCurrentJuzActive && isPlaying ? "scale-105" : "group-hover:scale-110"
+                            )}
+                            style={{ backgroundColor: JUZ_THEME.color, color: 'white' }}
+                        >
+                            {isCurrentJuzActive && isPlaying ? (
+                                <div className="flex items-end gap-0.5 h-3 md:h-4 mb-0.5">
+                                    <motion.div animate={{ height: [4, 12, 6, 12, 4] }} transition={{ repeat: Infinity, duration: 0.4 }} className="w-1 bg-white rounded-full" />
+                                    <motion.div animate={{ height: [8, 4, 12, 4, 8] }} transition={{ repeat: Infinity, duration: 0.3 }} className="w-1 bg-white rounded-full" />
+                                    <motion.div animate={{ height: [12, 6, 4, 6, 12] }} transition={{ repeat: Infinity, duration: 0.5 }} className="w-1 bg-white rounded-full" />
+                                </div>
+                            ) : (
+                                <span>{juz.id}</span>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col min-w-0">
+                            <h3
+                                className={cn(
+                                    "text-sm sm:text-base lg:text-xl font-bold tracking-tight leading-tight transition-colors truncate",
+                                    isCurrentJuzActive ? "text-primary" : "text-white group-hover:text-primary"
+                                )}
+                            >
+                                Juz {juz.id}
+                            </h3>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-0.5 overflow-hidden">
+                                <p className="text-[9px] sm:text-xs font-medium text-white/50 italic whitespace-nowrap truncate max-w-[120px] sm:max-w-none">
+                                    Mulai: {startSurahName}
+                                </p>
+                                <span className="hidden sm:block w-1 h-1 rounded-full bg-white/10 shrink-0" />
+                                {surahCount > 0 && (
+                                    <p className="text-[9px] sm:text-xs font-bold text-primary/60 uppercase tracking-wider whitespace-nowrap">
+                                        {surahCount} Surah
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Stats (Desktop/Card) / Right Content (Mobile/List) */}
+                    <div className="flex flex-row lg:flex-col items-center lg:items-stretch gap-4 sm:gap-0 lg:mt-4 ml-auto sm:ml-0">
+                        {/* Range/Stats Info */}
+                        <div
+                            className={cn(
+                                "hidden lg:flex flex-col text-[10px] sm:text-xs font-bold uppercase tracking-[0.1em]",
                                 isCurrentJuzActive ? "text-primary" : "text-white/40"
                             )}
                         >
@@ -247,32 +234,57 @@ export const JuzCard = React.memo(function JuzCard({
                             </div>
                         </div>
 
-                        {/* Play Button */}
-                        <button
-                            onClick={handlePlayClick}
-                            className={cn(
-                                "h-10 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 shadow-lg group/play",
-                                isCurrentJuzActive && isPlaying
-                                    ? "bg-primary text-primary-foreground scale-110"
-                                    : "bg-white/10 text-white hover:bg-primary hover:text-primary-foreground hover:scale-110",
-                                (isLoading || (isCurrentJuzActive && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
-                            )}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : isCurrentJuzActive && isPlaying ? (
-                                <>
-                                    <Pause className="w-5 h-5 fill-current" />
-                                    <span className="text-xs font-black uppercase tracking-wider">Berhenti</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Play className="w-5 h-5 fill-current ml-0.5" />
-                                    <span className="text-xs font-black uppercase tracking-wider">Putar</span>
-                                </>
-                            )}
-                        </button>
+                        {/* Play Button - Desktop/Card */}
+                        <div className="hidden lg:flex items-center justify-end w-full">
+                            <button
+                                onClick={handlePlayClick}
+                                className={cn(
+                                    "h-8 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-300 shadow-lg group/play",
+                                    isCurrentJuzActive && isPlaying
+                                        ? "bg-primary text-primary-foreground scale-110"
+                                        : "bg-white/10 text-white hover:bg-primary hover:text-primary-foreground hover:scale-110",
+                                    (isLoading || (isCurrentJuzActive && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
+                                )}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : isCurrentJuzActive && isPlaying ? (
+                                    <>
+                                        <Pause className="w-3.5 h-3.5 fill-current" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Berhenti</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Putar</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Play Button - Mobile/Tablet Row */}
+                        <div className="lg:hidden flex items-center gap-2">
+                            <button
+                                onClick={handlePlayClick}
+                                className={cn(
+                                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg shrink-0",
+                                    isCurrentJuzActive && isPlaying
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-white/10 text-white hover:bg-primary hover:text-primary-foreground",
+                                    (isLoading || (isCurrentJuzActive && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
+                                )}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : isCurrentJuzActive && isPlaying ? (
+                                    <Pause className="w-4 h-4 fill-current" />
+                                ) : (
+                                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

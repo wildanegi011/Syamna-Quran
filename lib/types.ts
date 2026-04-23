@@ -5,6 +5,21 @@
 
 // --- Application Modules (Landing Page) ---
 
+
+export interface SurahSummary {
+    nomor: number;
+    nama: string;
+    namaLatin: string;
+    jumlahAyat: number;
+    tempatTurun: string;
+    arti: string;
+    deskripsi: string;
+    audioFull: Record<string, string>;
+    juz?: number;
+    ayatsajdah?: boolean;
+    revelationType?: string; // Aladhan field
+}
+
 export interface AppModule {
     id: string;
     title: string;
@@ -53,29 +68,27 @@ export type IqroItem = HijaiyahLetter;
 
 // --- Quran Module (EQuran.id API) ---
 
-export interface SurahSummary {
-    nomor: number;
-    nama: string;
-    namaLatin: string;
-    jumlahAyat: number;
-    tempatTurun: string;
-    arti: string;
-    deskripsi: string;
-    audioFull: Record<string, string>;
-    background?: string;
-    juz?: number;
-    ayatsajdah?: boolean;
-    revelationType?: string; // Aladhan field
+export interface AyahAudio {
+    url: string;
+    segments?: (string | number)[][];
 }
 
 export interface Ayah {
     nomorAyat: number;
     numberGlobal?: number; // Absolute ayah number (1-6236)
+    verseKey?: string;
     teksArab: string;
     teksTajweed?: string;
     teksLatin: string;
     teksIndonesia: string;
-    audio: Record<string, string>;
+    audio: Record<string, AyahAudio>;
+    hizbNumber?: number;
+    rubElHizbNumber?: number;
+    rukuNumber?: number;
+    manzilNumber?: number;
+    sajdahNumber?: number | null;
+    pageNumber?: number;
+    juzNumber?: number;
     surahInfo?: {
         nomor: number;
         namaLatin: string;
@@ -279,6 +292,41 @@ export interface Reciters {
     language: string;
     name: string;
     englishName: string;
+    format?: string;
+    type?: string;
+}
+
+export interface Language {
+    id: number;
+    name: string;
+    isoCode: string;
+    nativeName: string;
+    direction: string;
+    translationsCount?: number;
+}
+
+export interface Translation {
+    id: number;
+    name: string;
+    authorName: string;
+    slug: string;
+    languageName: string;
+    translatedName?: {
+        name: string;
+        languageName: string;
+    };
+}
+
+export interface TafsirResource {
+    id: number;
+    name: string;
+    authorName: string;
+    slug: string;
+    languageName: string;
+    translatedName?: {
+        name: string;
+        languageName: string;
+    };
 }
 
 

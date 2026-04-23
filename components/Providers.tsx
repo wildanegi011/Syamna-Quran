@@ -5,6 +5,7 @@ import { ReactNode, useState } from "react";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import QuranDataPrefetcher from "./quran/QuranDataPrefetcher";
 
 export default function Providers({ children }: { children: ReactNode }) {
     const [queryClient] = useState(
@@ -22,6 +23,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
+            <QuranDataPrefetcher />
             <AuthProvider>
                 <SearchProvider>
                     <AudioProvider>

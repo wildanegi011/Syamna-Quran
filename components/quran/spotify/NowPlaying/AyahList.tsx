@@ -1,11 +1,14 @@
 "use client";
 
-import React from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ayah, SurahSummary } from '@/lib/types';
-import { AyahSelect } from '@/components/quran/AyahSelect';
 import { AyahItem } from './AyahItem';
+import { Search, Loader2, ChevronDown } from 'lucide-react';
+
+// Surahs that don't start with Bismillah (At-Taubah) or already contains it (Al-Fatihah)
+const NO_BISMILLAH = [1, 9];
 
 interface AyahListProps {
     scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -25,6 +28,178 @@ interface AyahListProps {
     handleOpenMenu: (ayah: Ayah) => void;
     viewedSurah: SurahSummary | null;
     viewedJuz: number | null;
+    // Infinite scroll
+    hasNextPage?: boolean;
+    isFetchingNextPage?: boolean;
+    fetchNextPage?: () => void;
+    pagination?: any;
+    isJumping?: boolean;
+}
+
+// Compact inline jump input 
+export function AyahJumpInput({
+    ayahs,
+    onSelect,
+    viewedJuz,
+    pagination
+}: {
+    ayahs: Ayah[],
+    onSelect: (ayah: Ayah) => void,
+    viewedJuz: number | null,
+    pagination?: any
+}) {
+    const [search, setSearch] = React.useState("");
+    const [isFocused, setIsFocused] = React.useState(false);
+
+    const placeholder = React.useMemo(() => {
+        if (!ayahs || ayahs.length === 0) return "Lompat ke ayat...";
+
+        const minAyat = Math.min(...ayahs.map(a => a.nomorAyat || 0));
+        const maxAyat = Math.max(...ayahs.map(a => a.nomorAyat || 0));
+
+        const pages = ayahs.map(a => a.pageNumber).filter(Boolean) as number[];
+        const minPage = pages.length > 0 ? Math.min(...pages) : null;
+        const maxPage = pages.length > 0 ? Math.max(...pages) : null;
+
+        let label = `Lompat ke ayat (${minAyat}-${maxAyat})`;
+        if (minPage && maxPage) {
+            label += ` • Hal ${minPage === maxPage ? minPage : `${minPage}-${maxPage}`}`;
+        }
+
+        return `${label}...`;
+    }, [ayahs]);
+
+    const filtered = React.useMemo(() => {
+        if (!search.trim()) return [];
+        const q = search.toLowerCase().trim();
+        return ayahs.filter((ayah) => {
+            if (String(ayah.nomorAyat) === q) return true;
+            if (String(ayah.nomorAyat).startsWith(q)) return true;
+            if (ayah.surahInfo?.namaLatin?.toLowerCase().includes(q)) return true;
+            return false;
+        }).slice(0, 8);
+    }, [ayahs, search]);
+
+    // Check if we should offer a jump to a number that hasn't been loaded yet
+    const jumpOption = React.useMemo(() => {
+        const num = parseInt(search);
+        if (isNaN(num)) return null;
+
+        // Don't show jump if already in filtered list
+        if (filtered.some(a => a.nomorAyat === num)) return null;
+
+        // Check against total records if available
+        const total = pagination?.totalRecords || 0;
+        if (total > 0 && (num < 1 || num > total)) return null;
+
+        return num;
+    }, [search, filtered, pagination]);
+
+    const handleSelect = (ayah: Ayah) => {
+        setSearch("");
+        setIsFocused(false);
+        onSelect(ayah);
+    };
+
+    const handleJump = () => {
+        if (!jumpOption) return;
+        setSearch("");
+        setIsFocused(false);
+        // Create a partial Ayah object to trigger the fetch logic in parent
+        onSelect({ nomorAyat: jumpOption } as Ayah);
+    };
+
+    return (
+        <div className="relative">
+            <div className="relative group">
+                <Search className={cn(
+                    "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-300",
+                    isFocused ? "text-primary" : "text-white/20"
+                )} />
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && jumpOption) handleJump();
+                    }}
+                    placeholder={placeholder}
+                    className="w-full h-12 pl-11 pr-4 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-medium text-white placeholder:text-white/20 outline-none focus:border-primary/30 focus:bg-primary/5 focus:ring-4 focus:ring-primary/5 transition-all"
+                />
+            </div>
+
+            {/* Results Dropdown */}
+            {isFocused && (filtered.length > 0 || jumpOption) && (
+                <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="lg:absolute relative top-full left-0 right-0 lg:mt-1 mt-2 bg-[#1a1a1a] lg:border border-white/10 rounded-xl overflow-hidden lg:shadow-2xl z-[100] max-h-[300px] overflow-y-auto custom-scrollbar"
+                >
+                    {filtered.map((ayah, idx) => (
+                        <button
+                            key={`jump-${ayah.surahInfo?.nomor || 0}-${ayah.nomorAyat}-${idx}`}
+                            type="button"
+                            onMouseDown={() => handleSelect(ayah)}
+                            className="w-full text-left px-5 py-4 hover:bg-primary/10 transition-colors flex items-center justify-between gap-3 border-b border-white/5 last:border-none"
+                        >
+                            <span className="text-xs font-bold text-white">Ayat {ayah.nomorAyat}</span>
+                            {ayah.surahInfo && (
+                                <span className="text-[10px] text-white/30 font-medium">
+                                    {ayah.surahInfo.namaLatin}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+
+                    {jumpOption && (
+                        <button
+                            type="button"
+                            onMouseDown={handleJump}
+                            className="w-full text-left px-5 py-4 hover:bg-primary/10 transition-colors flex items-center justify-between gap-3 border-t border-white/5"
+                        >
+                            <div className="flex flex-col">
+                                <span className="text-xs font-bold text-primary">Lompat ke Ayat {jumpOption}</span>
+                                <span className="text-[9px] text-white/40 font-medium uppercase tracking-tight">Data belum dimuat, klik untuk tarik otomatis</span>
+                            </div>
+                            <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                                <ChevronDown className="w-3 h-3 text-primary -rotate-90" />
+                            </div>
+                        </button>
+                    )}
+                </motion.div>
+            )}
+        </div>
+    );
+}
+
+// Clean skeleton that mirrors actual AyahItem layout
+function AyahSkeleton() {
+    return (
+        <div className="py-6 px-2 sm:px-4 space-y-4 animate-pulse">
+            {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="space-y-3 py-5 border-b border-white/[0.03]">
+                    {/* Arabic text skeleton */}
+                    <div className="flex justify-end gap-3">
+                        <div className="h-8 w-[85%] rounded-lg bg-white/[0.04]" />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <div className="h-8 w-[65%] rounded-lg bg-white/[0.04]" />
+                    </div>
+                    {/* Translation skeleton */}
+                    <div className="space-y-1.5 mt-3">
+                        <div className="h-3.5 w-[90%] rounded bg-white/[0.03]" />
+                        <div className="h-3.5 w-[70%] rounded bg-white/[0.03]" />
+                    </div>
+                    {/* Badge skeleton */}
+                    <div className="flex items-center justify-between mt-3">
+                        <div className="h-7 w-20 rounded-full bg-white/[0.04]" />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
 }
 
 export const AyahList = ({
@@ -44,20 +219,35 @@ export const AyahList = ({
     handleCopyAyah,
     handleOpenMenu,
     viewedSurah,
-    viewedJuz
+    viewedJuz,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    pagination,
+    isJumping
 }: AyahListProps) => {
-    return (
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar px-4 sm:px-6 pb-20 relative">
-            {/* Sticky Search Area */}
-            <div className="sticky top-0 z-30 pt-4 pb-6 bg-[#121212] -mx-2 px-2 border-b border-white/5 shadow-md hidden lg:block">
-                <AyahSelect
-                    ayahs={(isLoading || isDataStale) ? [] : (activeData?.ayat || [])}
-                    onSelect={handleAyahJump}
-                    placeholder={viewedJuz ? "Cari ayat di Juz ini..." : "Cari atau Lompat ke ayat..."}
-                    showSurahName={!!viewedJuz}
-                />
-            </div>
 
+    // Infinite scroll sentinel
+    const loadMoreRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage?.();
+                }
+            },
+            { root: scrollContainerRef.current, threshold: 0.1 }
+        );
+
+        observer.observe(loadMoreRef.current);
+        return () => observer.disconnect();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage, scrollContainerRef]);
+
+    return (
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar px-0 sm:px-5 lg:px-6 pb-20 relative">
             <AnimatePresence mode="wait">
                 <motion.div
                     key={viewedJuz ? `juz-${viewedJuz}` : `surah-${viewedSurah?.nomor}`}
@@ -65,56 +255,133 @@ export const AyahList = ({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className={cn("flex-1 flex flex-col", (isFetching && !isDataStale) && "opacity-60")}
+                    className={cn("flex-1 flex flex-col", (isFetching && !isFetchingNextPage && !isDataStale) && "opacity-60")}
                 >
-                    {(isLoading || isDataStale) ? (
-                        <div className="flex flex-col gap-2 p-2">
-                            {[1, 2, 3, 4, 5, 6].map((i) => (
-                                <div key={i} className="h-20 rounded-2xl bg-white/5 animate-pulse" />
-                            ))}
-                        </div>
-                    ) : (
-                        activeData?.ayat?.map((ayah: Ayah, idx: number) => {
-                            const prevAyah = idx > 0 ? activeData?.ayat?.[idx - 1] : null;
-                            const showSurahHeader = viewedJuz && (!prevAyah || prevAyah.surahInfo?.nomor !== ayah.surahInfo?.nomor);
+                    <div className="hidden lg:block sticky top-0 z-30 pt-3 pb-3 bg-[#0a0a0a] lg:bg-[#121212] -mx-1 px-1">
+                        <AyahJumpInput
+                            ayahs={(isLoading || isDataStale) ? [] : (activeData?.ayat || [])}
+                            onSelect={handleAyahJump}
+                            viewedJuz={viewedJuz}
+                            pagination={pagination}
+                        />
+                    </div>
 
-                            return (
-                                <React.Fragment key={`${ayah.surahInfo?.nomor || viewedSurah?.nomor}-${ayah.nomorAyat}`}>
-                                    {showSurahHeader && (
-                                        <div className="pt-10 pb-6 px-2">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-[2px] flex-1 bg-white/[0.03] rounded-full" />
-                                                <div className="px-6 py-2 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-sm">
-                                                    <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-primary">
+                    {isJumping && (
+                        <div className="absolute inset-0 z-[40] bg-black/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-none">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="bg-[#121212] border border-white/5 px-8 py-6 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-primary/5 animate-pulse" />
+                                <div className="relative">
+                                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                                    </div>
+                                    <div className="absolute inset-0 bg-primary/20 blur-xl animate-pulse -z-10" />
+                                </div>
+                                <div className="flex flex-col items-center relative z-10">
+                                    <span className="text-sm font-black uppercase tracking-[0.2em] text-primary">Menuju Ayat</span>
+                                    <div className="flex gap-1 mt-2">
+                                        <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0 }} className="w-1 h-1 rounded-full bg-primary" />
+                                        <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1 h-1 rounded-full bg-primary" />
+                                        <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1 h-1 rounded-full bg-primary" />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {(isLoading || isDataStale) ? (
+                        <AyahSkeleton />
+                    ) : (
+                        <>
+                            {/* Bismillah Banner */}
+                            {!viewedJuz && viewedSurah && !NO_BISMILLAH.includes(viewedSurah.nomor) && (
+                                <div className="py-6 sm:py-8 flex flex-col items-center gap-2">
+                                    <p className="text-2xl sm:text-3xl font-arabic text-white/70 leading-relaxed text-center" dir="rtl">
+                                        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                                    </p>
+                                    <div className="flex items-center gap-3 mt-1">
+                                        <div className="h-px w-8 bg-white/[0.08]" />
+                                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/15">
+                                            Dengan Nama Allah
+                                        </span>
+                                        <div className="h-px w-8 bg-white/[0.08]" />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeData?.ayat?.map((ayah: Ayah, idx: number) => {
+                                const prevAyah = idx > 0 ? activeData?.ayat?.[idx - 1] : null;
+                                const showSurahHeader = viewedJuz && (!prevAyah || prevAyah.surahInfo?.nomor !== ayah.surahInfo?.nomor);
+
+                                return (
+                                    <React.Fragment key={`${ayah.surahInfo?.nomor || viewedSurah?.nomor}-${ayah.nomorAyat}`}>
+                                        {showSurahHeader && (
+                                            <div className="py-6 flex flex-col items-center gap-2">
+                                                <div className="flex items-center gap-3 w-full">
+                                                    <div className="h-px flex-1 bg-white/[0.05]" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary px-3">
                                                         Surah {ayah.surahInfo?.namaLatin}
-                                                    </h4>
+                                                    </span>
+                                                    <div className="h-px flex-1 bg-white/[0.05]" />
                                                 </div>
-                                                <div className="h-[2px] flex-1 bg-white/[0.03] rounded-full" />
+                                                {ayah.surahInfo?.nomor && !NO_BISMILLAH.includes(ayah.surahInfo.nomor) && (
+                                                    <p className="text-xl font-arabic text-white/50 mt-1" dir="rtl">
+                                                        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                                                    </p>
+                                                )}
                                             </div>
-                                        </div>
-                                    )}
-                                    <AyahItem
-                                        ayah={ayah}
-                                        surahNumber={ayah.surahInfo?.nomor || viewedSurah?.nomor}
-                                        customId={viewedJuz ? `np-ayah-${ayah.surahInfo?.nomor}-${ayah.nomorAyat}` : `np-ayah-${viewedSurah?.nomor}-${ayah.nomorAyat}`}
-                                        isActive={currentAyah?.nomorAyat === ayah.nomorAyat && (
-                                            // Strict surah check
-                                            (currentAyah?.surahInfo?.nomor || playingSurah?.nomor) === (ayah.surahInfo?.nomor || viewedSurah?.nomor)
                                         )}
-                                        isPlaying={isPlaying}
-                                        isFav={isFavorite(ayah.surahInfo?.nomor || viewedSurah?.nomor || 0, ayah.nomorAyat)}
-                                        onPlay={handleAyahPlay}
-                                        onTafsir={handleTafsirClick}
-                                        onCopy={handleCopyAyah}
-                                        onToggleFavorite={(e) => {
-                                            e.stopPropagation();
-                                            toggleFavorite(ayah.surahInfo?.nomor || viewedSurah?.nomor || 0, ayah.nomorAyat);
-                                        }}
-                                        onOpenMenu={handleOpenMenu}
-                                    />
-                                </React.Fragment>
-                            );
-                        })
+                                        <AyahItem
+                                            ayah={ayah}
+                                            surahNumber={ayah.surahInfo?.nomor || viewedSurah?.nomor}
+                                            customId={viewedJuz ? `np-ayah-${ayah.surahInfo?.nomor}-${ayah.nomorAyat}` : `np-ayah-${viewedSurah?.nomor}-${ayah.nomorAyat}`}
+                                            isActive={currentAyah?.nomorAyat === ayah.nomorAyat && (
+                                                (currentAyah?.surahInfo?.nomor || playingSurah?.nomor) === (ayah.surahInfo?.nomor || viewedSurah?.nomor)
+                                            )}
+                                            isPlaying={isPlaying}
+                                            isFav={isFavorite(ayah.surahInfo?.nomor || viewedSurah?.nomor || 0, ayah.nomorAyat)}
+                                            onPlay={handleAyahPlay}
+                                            onTafsir={handleTafsirClick}
+                                            onCopy={handleCopyAyah}
+                                            onToggleFavorite={(e) => {
+                                                e.stopPropagation();
+                                                toggleFavorite(ayah.surahInfo?.nomor || viewedSurah?.nomor || 0, ayah.nomorAyat);
+                                            }}
+                                            onOpenMenu={handleOpenMenu}
+                                        />
+                                    </React.Fragment>
+                                );
+                            })}
+
+                            {/* Infinite Scroll Sentinel + Loading */}
+                            <div ref={loadMoreRef} className="py-6 flex justify-center">
+                                {isFetchingNextPage ? (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="flex items-center gap-2 text-white/30"
+                                    >
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span className="text-xs font-medium">Memuat ayat...</span>
+                                    </motion.div>
+                                ) : hasNextPage ? (
+                                    <button
+                                        onClick={() => fetchNextPage?.()}
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-white/30 hover:text-white/50 text-xs font-medium transition-all"
+                                    >
+                                        <ChevronDown className="w-3.5 h-3.5" />
+                                        Muat lagi
+                                    </button>
+                                ) : activeData?.ayat?.length > 0 ? (
+                                    <span className="text-[10px] text-white/15 font-medium uppercase tracking-wider">
+                                        — Selesai —
+                                    </span>
+                                ) : null}
+                            </div>
+                        </>
                     )}
                 </motion.div>
             </AnimatePresence>

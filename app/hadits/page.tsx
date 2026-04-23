@@ -42,7 +42,7 @@ function CategorySkeleton() {
                 columnsClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
             >
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                    <div key={i} className="relative flex items-center justify-between p-5 md:p-6 rounded-[2rem] bg-surface-container-low/30 backdrop-blur-xl border border-white/[0.03] min-h-[110px] w-full">
+                    <div key={i} className="relative flex items-center justify-between p-4 sm:p-6 rounded-[1.25rem] sm:rounded-[2rem] bg-surface-container-low/30 backdrop-blur-xl border border-white/[0.03] min-h-[90px] w-full">
                         <div className="flex items-center gap-6 md:gap-7 flex-1">
                             <div className="w-10 h-10 md:w-12 md:h-12 rounded-[1rem] md:rounded-[1.25rem] bg-surface-container-highest/50" />
                             <div className="flex flex-col gap-2.5 flex-1">
