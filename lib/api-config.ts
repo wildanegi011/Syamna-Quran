@@ -38,5 +38,5 @@ export const CONFIG = {
   QURAN_FOUNDATION_OAUTH: process.env.QURAN_FOUNDATION_OAUTH || "https://oauth2.quran.foundation",
   QURAN_FOUNDATION_CLIENT_ID: process.env.QURAN_FOUNDATION_CLIENT_ID || "",
   QURAN_FOUNDATION_CLIENT_SECRET: process.env.QURAN_FOUNDATION_CLIENT_SECRET || "",
-  QURAN_FOUNDATION_REDIRECT_URI: process.env.QURAN_FOUNDATION_REDIRECT_URI || "https://syamna-quran.netlify.app/api/quran/auth/callback",
+  QURAN_FOUNDATION_REDIRECT_URI: "https://syamna-quran.netlify.app/api/quran/auth/callback",
 };
