@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
     const { origin } = new URL(req.url);
     const idToken = req.cookies.get("qf_id_token")?.value;
 
-    const res = NextResponse.redirect(`${origin}/quran`);
+    const res = NextResponse.redirect(`https://syamna-quran.netlify.app/quran`);
 
     // Hapus semua QF cookies (tanpa mengganggu Supabase session)
     const qfCookies = [
