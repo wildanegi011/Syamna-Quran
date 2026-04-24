@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     // agar session di Quran Foundation juga dihapus
     if (idToken) {
         const logoutParams = new URLSearchParams({
-            post_logout_redirect_uri: `${origin}/quran`,
+            post_logout_redirect_uri: `https://syamna-quran.netlify.app/quran`,
             id_token_hint: idToken,
         });
 
