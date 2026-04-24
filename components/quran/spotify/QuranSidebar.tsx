@@ -9,18 +9,11 @@ import {
     Search,
     BookOpen,
     History,
-    ChevronRight,
     Sparkles,
     Heart as HeartIcon,
     Clock,
-    Book,
     FileText,
-    LayoutGrid,
-    Zap,
     Settings,
-    GraduationCap,
-    Bookmark,
-    PlayCircle,
     ChevronLeft,
     PanelLeftClose,
     PanelLeftOpen,
@@ -244,41 +237,46 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
                 )}
             </div>
 
-            {/* Authentication Footer (Compact) */}
-            <div className="p-5 border-t border-white/5 bg-white/[0.02]">
-                {user ? (
-                    <div className="flex items-center gap-3">
-                        <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-white/5 shrink-0">
-                            {user.user_metadata.avatar_url ? (
-                                <Image src={user.user_metadata.avatar_url} alt="Profile" fill className="object-cover" />
-                            ) : (
-                                <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                                    {user.user_metadata.full_name?.[0] || 'U'}
-                                </div>
-                            )}
+            {/* Authentication Footer */}
+            <div className="border-t border-white/5 bg-white/[0.02]">
+
+
+                {/* User Profile */}
+                <div className="p-5">
+                    {user ? (
+                        <div className="flex items-center gap-3">
+                            <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-white/5 shrink-0">
+                                {user.user_metadata.avatar_url ? (
+                                    <Image src={user.user_metadata.avatar_url} alt="Profile" fill className="object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
+                                        {user.user_metadata.full_name?.[0] || 'U'}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex flex-col min-w-0 flex-1">
+                                <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">{user.user_metadata.full_name}</p>
+                                <p className="text-[9px] text-white/20 truncate uppercase tracking-[0.2em] font-bold">Premium</p>
+                            </div>
+                            <button
+                                onClick={signOut}
+                                className="w-10 h-10 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 flex items-center justify-center text-red-500/40 hover:text-red-500 transition-all shrink-0 cursor-pointer"
+                                title="Keluar"
+                            >
+                                <LogOut className="w-4 h-4" />
+                            </button>
                         </div>
-                        <div className="flex flex-col min-w-0 flex-1">
-                            <p className="text-[11px] font-black text-white truncate uppercase tracking-tight">{user.user_metadata.full_name}</p>
-                            <p className="text-[9px] text-white/20 truncate uppercase tracking-[0.2em] font-bold">Premium</p>
-                        </div>
-                        <button
-                            onClick={signOut}
-                            className="w-10 h-10 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 flex items-center justify-center text-red-500/40 hover:text-red-500 transition-all shrink-0 cursor-pointer"
-                            title="Keluar"
+                    ) : (
+                        <Button
+                            onClick={signInWithGoogle}
+                            disabled={authLoading}
+                            className="w-full h-12 rounded-xl bg-primary hover:bg-primary text-black font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95"
                         >
-                            <LogOut className="w-4 h-4" />
-                        </button>
-                    </div>
-                ) : (
-                    <Button
-                        onClick={signInWithGoogle}
-                        disabled={authLoading}
-                        className="w-full h-12 rounded-xl bg-primary hover:bg-primary text-black font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95"
-                    >
-                        <LogIn className="w-4 h-4" />
-                        Masuk Akun
-                    </Button>
-                )}
+                            <LogIn className="w-4 h-4" />
+                            Masuk Akun
+                        </Button>
+                    )}
+                </div>
             </div>
         </aside>
     );

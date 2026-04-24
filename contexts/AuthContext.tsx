@@ -1,13 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 type AuthContextType = {
-  user: User | null;
-  session: Session | null;
+  user: any | null;
   loading: boolean;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -16,56 +13,47 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
   const router = useRouter();
 
-  useEffect(() => {
-    const setData = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-      if (error) throw error;
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        router.refresh();
+  const checkAuth = async () => {
+    try {
+      const res = await fetch("/api/quran/status");
+      const data = await res.json();
+      
+      if (data.connected && data.user) {
+        setUser({
+          id: data.user.sub,
+          email: data.user.email,
+          user_metadata: {
+            full_name: `${data.user.firstName} ${data.user.lastName}`,
+            avatar_url: data.user.picture || null,
+          }
+        });
+      } else {
+        setUser(null);
       }
-    );
+    } catch (error) {
+      console.error("Failed to check auth status:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setData();
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, [supabase, router]);
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   const value = {
     user,
-    session,
     loading,
     signOut: async () => {
-      await supabase.auth.signOut();
-      router.refresh();
+      window.location.href = "/api/quran/auth/logout";
     },
     signInWithGoogle: async () => {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
+      window.location.href = "/api/quran/auth/login";
     },
   };
 
@@ -79,3 +67,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
