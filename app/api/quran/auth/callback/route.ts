@@ -5,6 +5,16 @@ export async function GET(req: NextRequest) {
     const { searchParams, origin } = new URL(req.url);
     const code = searchParams.get("code");
     const returnedState = searchParams.get("state");
+    const providerError = searchParams.get("error");
+    const providerErrorDesc = searchParams.get("error_description");
+
+    // Jika provider mengirim error
+    if (providerError) {
+        console.error("QF OAuth Provider Error:", providerError, providerErrorDesc);
+        return NextResponse.redirect(
+            `${origin}/quran?error=provider_error&detail=${encodeURIComponent(providerError)}`
+        );
+    }
 
     // Ambil values yang disimpan saat login
     const storedState = req.cookies.get("qf_oauth_state")?.value;
