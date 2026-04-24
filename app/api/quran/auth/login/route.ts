@@ -44,7 +44,7 @@ export async function GET() {
     // Cookies ini akan divalidasi/dipakai di callback route
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: true, // Selalu true karena Netlify pakai HTTPS
         path: "/",
         maxAge: 600, // 10 menit — cukup untuk login flow
         sameSite: "lax" as const,

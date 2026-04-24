@@ -21,11 +21,14 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Validasi code & verifier ada
-    if (!code || !verifier) {
-        console.error("QF OAuth: Missing code or verifier");
-        return NextResponse.redirect(
-            `${origin}/quran?error=oauth_missing_params`
-        );
+    if (!code) {
+        console.error("QF OAuth: Missing code from provider");
+        return NextResponse.redirect(`${origin}/quran?error=oauth_missing_code`);
+    }
+
+    if (!verifier) {
+        console.error("QF OAuth: Missing verifier from cookies");
+        return NextResponse.redirect(`${origin}/quran?error=oauth_missing_verifier`);
     }
 
     // --- Token Exchange ---
