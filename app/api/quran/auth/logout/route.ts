@@ -23,18 +23,5 @@ export async function GET(req: NextRequest) {
         res.cookies.delete(name);
     }
 
-    // Jika ada id_token, redirect ke QF logout endpoint juga
-    // agar session di Quran Foundation juga dihapus
-    if (idToken) {
-        const logoutParams = new URLSearchParams({
-            post_logout_redirect_uri: `https://syamna-quran.netlify.app/quran`,
-            id_token_hint: idToken,
-        });
-
-        return NextResponse.redirect(
-            `${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/sessions/logout?${logoutParams}`
-        );
-    }
-
     return res;
 }
