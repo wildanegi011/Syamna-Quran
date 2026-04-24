@@ -2,8 +2,7 @@
 
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { Ayah, SurahSummary } from '@/lib/types';
-import { getSurahDetail } from '@/lib/quran';
-import surahSummaryData from '@/lib/data/surahs.json';
+import { getSurahDetail, getAllSurahs } from '@/lib/quran';
 
 interface AudioStateContextType {
     currentAyah: Ayah | null;
@@ -69,7 +68,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const [queue, setQueue] = useState<Ayah[]>([]);
     const [shuffledQueue, setShuffledQueue] = useState<Ayah[]>([]);
     const [autoNext, setAutoNext] = useState(true);
-    const [selectedReciterId, setSelectedReciterId] = useState('ar.alafasy');
+    const [selectedReciterId, setSelectedReciterId] = useState('7');
     const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off');
     const [isShuffle, setIsShuffle] = useState(false);
     const [isRightPanelOpen, setRightPanelOpen] = useState(false);
@@ -88,11 +87,12 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const savedReciter = localStorage.getItem('syamna_quran_reciter');
         if (savedReciter) {
-            const legacyMap: Record<string, string> = {
-                "01": "ar.juhany", "02": "ar.muhsin", "03": "ar.abdurrahmaansudais",
-                "04": "ar.ibrahimaldossari", "05": "ar.alafasy", "06": "ar.yasseraldossari"
-            };
-            setSelectedReciterId(legacyMap[savedReciter] || savedReciter);
+            // If the user has a legacy Aladhan ID (like 'ar.abdulsamad') or old 01 string, reset to default Mishary (7)
+            if (isNaN(Number(savedReciter)) || savedReciter.startsWith('0')) {
+                setSelectedReciterId('7');
+            } else {
+                setSelectedReciterId(savedReciter);
+            }
         }
         const savedAutoNext = localStorage.getItem('syamna_quran_autonext');
         if (savedAutoNext !== null) setAutoNext(savedAutoNext === 'true');
@@ -310,27 +310,25 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         // Build potential sources list
         const sources: string[] = [];
         
-        // 1. Primary from API
-        if (ayah.audio[selectedReciterId]) sources.push(ayah.audio[selectedReciterId]);
-        
-        // 2. Secondary from CDN (Islamic Network)
-        if (ayah.numberGlobal) {
-            sources.push(`https://cdn.islamic.network/quran/audio/128/${selectedReciterId}/${ayah.numberGlobal}.mp3`);
+        // 1. Primary from API (Quran Foundation)
+        if (ayah.audio[selectedReciterId]?.url) {
+            sources.push(ayah.audio[selectedReciterId].url);
         }
         
-        // 3. Tertiary (Legacy keys from state)
-        if (ayah.audio['05']) sources.push(ayah.audio['05']);
-        if (ayah.audio['01']) sources.push(ayah.audio['01']);
-        
-        // 4. Ultimate Fallback (Default stable reciter - Al-Afasy)
-        if (selectedReciterId !== 'ar.alafasy' && ayah.numberGlobal) {
-            sources.push(`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.numberGlobal}.mp3`);
+        // 3. Ultimate Universal Fallback (Predictable Static URL for Mishary Al-Afasy)
+        // This ensures audio ALWAYS plays even if the API object is incomplete
+        if (sources.length === 0 || (!sources.includes(ayah.audio['7']?.url) && selectedReciterId !== '7')) {
+            const sNum = String(surah.nomor).padStart(3, '0');
+            const aNum = String(ayah.nomorAyat).padStart(3, '0');
+            const staticUrl = `https://verses.quran.com/Alafasy/mp3/${sNum}${aNum}.mp3`;
+            if (!sources.includes(staticUrl)) sources.push(staticUrl);
         }
         
         // Remove duplicates
         fallbackSourcesRef.current = [...new Set(sources)];
         
         if (fallbackSourcesRef.current.length === 0) {
+            // This should practically never happen now
             console.error("No audio sources available for this ayah.");
             return;
         }
@@ -365,7 +363,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
     const playSurah = useCallback(async (surahNumber: number) => {
         try {
-            const detail = await getSurahDetail(surahNumber, [selectedReciterId]);
+            const detail = await getSurahDetail(surahNumber, selectedReciterId);
             if (detail && detail.ayat.length > 0) {
                 setCurrentJuz(null); // Clear Juz when playing a specific surah
                 await playAyah(detail.ayat[0], detail, detail.ayat, null);
@@ -409,6 +407,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             audioRef.current.load(); // Ensure source is cleared
         }
         setCurrentAyah(null);
+        setRightPanelOpen(false); // Hide panel on stop
         // Clear fallbacks
         fallbackSourcesRef.current = [];
         fallbackIndexRef.current = 0;
@@ -418,7 +417,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         return isShuffle && shuffledQueue.length > 0 ? shuffledQueue : queue;
     }, [isShuffle, shuffledQueue, queue]);
 
-    const nextAyah = useCallback(() => {
+    const nextAyah = useCallback(async () => {
         const activeQueue = getCurrentQueue();
         if (!currentAyah || activeQueue.length === 0) return;
 
@@ -432,7 +431,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             let nextSurah = currentSurah;
 
             if (currentJuz && next.surahInfo && next.surahInfo.nomor !== currentSurah?.nomor) {
-                const found = (surahSummaryData as any[]).find(s => s.nomor === next.surahInfo?.nomor);
+                const allSurahs = await getAllSurahs();
+                const found = allSurahs.find(s => s.nomor === next.surahInfo?.nomor);
                 if (found) nextSurah = found;
             }
 
@@ -441,7 +441,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             const first = activeQueue[0];
             let firstSurah = currentSurah;
             if (currentJuz && first.surahInfo && first.surahInfo.nomor !== currentSurah?.nomor) {
-                const found = (surahSummaryData as any[]).find(s => s.nomor === first.surahInfo?.nomor);
+                const allSurahs = await getAllSurahs();
+                const found = allSurahs.find(s => s.nomor === first.surahInfo?.nomor);
                 if (found) firstSurah = found;
             }
             playAyah(first, firstSurah!);
@@ -450,7 +451,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
     }, [currentAyah, getCurrentQueue, currentSurah, playAyah, repeatMode, currentJuz]);
 
-    const prevAyah = useCallback(() => {
+    const prevAyah = useCallback(async () => {
         const activeQueue = getCurrentQueue();
         if (!currentAyah || activeQueue.length === 0) return;
 
@@ -464,7 +465,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             let prevSurah = currentSurah;
 
             if (currentJuz && prev.surahInfo && prev.surahInfo.nomor !== currentSurah?.nomor) {
-                const found = (surahSummaryData as any[]).find(s => s.nomor === prev.surahInfo?.nomor);
+                const allSurahs = await getAllSurahs();
+                const found = allSurahs.find(s => s.nomor === prev.surahInfo?.nomor);
                 if (found) prevSurah = found;
             }
 
@@ -473,7 +475,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             const last = activeQueue[activeQueue.length - 1];
             let lastSurah = currentSurah;
             if (currentJuz && last.surahInfo && last.surahInfo.nomor !== currentSurah?.nomor) {
-                const found = (surahSummaryData as any[]).find(s => s.nomor === last.surahInfo?.nomor);
+                const allSurahs = await getAllSurahs();
+                const found = allSurahs.find(s => s.nomor === last.surahInfo?.nomor);
                 if (found) lastSurah = found;
             }
             playAyah(last, lastSurah!);
@@ -501,7 +504,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                 // IMPORTANT: Only switch if the URL exists in the current data.
                 // This prevents the "no supported source" error during the race condition
                 // where the ID changes but the API data hasn't arrived yet.
-                let audioUrl = currentAyah.audio[selectedReciterId];
+                let audioUrl = currentAyah.audio[selectedReciterId]?.url;
 
                 if (audioUrl && audioRef.current.src !== audioUrl) {
                     if (playPromiseRef.current) try { await playPromiseRef.current; } catch (e) { }

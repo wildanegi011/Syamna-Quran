@@ -1,172 +1,347 @@
-import { ApiResponse, SurahSummary, SurahDetail, SurahTafsir, JuzDetail, Ayah, QuranCloudResponse, Reciters } from "./types";
-import surahsData from "./data/surahs.json";
-import { CONFIG } from "./api-config";
+import { ApiResponse, SurahSummary, SurahDetail, SurahTafsir, JuzDetail, Ayah, Reciters, AyahAudio, Translation, Language, TafsirResource } from "./types";
+import { stripHtml } from "./utils";
+import { fetchRecitations, fetchSurahVerses, fetchJuzVerses, fetchSurahTafsirFromQF, fetchTranslations, fetchLanguages, fetchChapters, fetchTafsirResources, fetchChapterInfo } from "./api/quran";
+import surahSummaryData from "./data/surahs.json";
 
-const BASE_URL = `${CONFIG.EQURAN_API}/v2`;
-const ALADHAN_BASE_URL = CONFIG.ALQURAN_CLOUD_API;
+const QF_AUDIO_BASE = "https://verses.quran.com";
 
-const POPULAR_RECITERS = [
-    'ar.alafasy',
-    'ar.abdurrahmaansudais',
-    'ar.abdullahbasfar',
-    'ar.ahmedajamy',
-    'ar.mahermuaiqly',
-    'ar.minshawi',
-    'ar.husary',
-    'ar.muhammadayyoub',
-    'ar.saoodshuraym',
-    'ar.hanirifai',
-    'ar.shaatree',
-    'ar.hudhaify',
-    'ar.juhany',
-    'ar.yasseraldossari'
-];
-
-function getSurahBackground(nomor: number, tempatTurun: string): string {
-    // Protection/Night surahs
-    if (nomor >= 112) return '/backgrounds/nocturnal.png';
-
-    // Nature specifically mentioned
-    const natureSurahs = [16, 27, 29, 91, 95];
-    if (natureSurahs.includes(nomor)) return '/backgrounds/nature.png';
-
-    // Cosmic/Majesty
-    const cosmicSurahs = [1, 55, 56, 67, 78, 81, 82, 84, 85, 86, 87, 88];
-    if (cosmicSurahs.includes(nomor)) return '/backgrounds/cosmic.png';
-
-    // Madinan (Geometric/Architectural focus)
-    if (tempatTurun === 'Madinah') return '/backgrounds/geometric.png';
-
-    // Default for Meccan (Desert/Ancient theme)
-    return '/backgrounds/desert.png';
+function buildAudioUrl(endpoint: string): string {
+    if (!endpoint) return "";
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) return endpoint;
+    if (endpoint.startsWith('//')) return `https:${endpoint}`;
+    return `${QF_AUDIO_BASE}/${endpoint}`;
 }
 
 /**
- * Fetches the list of all available Qoris (reciters).
- * Specifically requests audio editions in Arabic and filters for popular ones.
+ * Helper to get data from LocalStorage with expiry check.
+ */
+function getCachedData<T>(key: string): T | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const cached = localStorage.getItem(`syamna_cache_${key}`);
+        if (!cached) return null;
+
+        const { data, expiry } = JSON.parse(cached);
+        if (Date.now() > expiry) {
+            localStorage.removeItem(`syamna_cache_${key}`);
+            return null;
+        }
+        return data;
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Helper to save data to LocalStorage with expiry.
+ */
+function setCachedData<T>(key: string, data: T, ttlHours: number = 24): void {
+    if (typeof window === 'undefined') return;
+    try {
+        const payload = {
+            data,
+            expiry: Date.now() + (ttlHours * 60 * 60 * 1000)
+        };
+        localStorage.setItem(`syamna_cache_${key}`, JSON.stringify(payload));
+    } catch (e) {
+        // Silently fail
+    }
+}
+
+/**
+ * Fetches the list of all available Qoris (reciters) purely from API.
  */
 export async function getReciters(): Promise<Reciters[]> {
+    const cached = getCachedData<Reciters[]>('recitations');
+    if (cached) return cached;
+
     try {
-        const response = await fetch(`${ALADHAN_BASE_URL}/edition?format=audio&language=ar`, {
-            headers: { 'Accept-Encoding': 'gzip, zstd' }
-        });
-        if (!response.ok) throw new Error(`Failed to fetch Reciters`);
+        const result = await fetchRecitations();
 
-        const result: QuranCloudResponse<Reciters[]> = await response.json();
+        // Map strictly from QF API parameters
+        const mappedData = (result.recitations as any[])
+            .map(r => ({
+                identifier: r.id.toString(),
+                language: 'ar',
+                name: r.reciter_name,
+                englishName: r.translated_name?.name || r.reciter_name,
+                format: 'audio',
+                type: r.style || 'Murattal'
+            }));
 
-        // Filter for popular reciters and ensure we only have Latin names for display if needed
-        // although Aladhan's englishName is already Latin.
-        return result.data.filter(r => POPULAR_RECITERS.includes(r.identifier));
+        setCachedData('recitations', mappedData);
+        return mappedData;
     } catch (error) {
         console.error(`Error fetching Reciters:`, error);
         return [];
     }
 }
 
+/**
+ * Fetches the list of all available translations from Quran Foundation.
+ */
+export async function getTranslations(): Promise<Translation[]> {
+    const cached = getCachedData<Translation[]>('translations');
+    if (cached) return cached;
+
+    try {
+        const result = await fetchTranslations();
+        const mappedData = (result.translations as any[]).map(t => ({
+            id: t.id,
+            name: t.name,
+            authorName: t.author_name,
+            slug: t.slug,
+            languageName: t.language_name,
+            translatedName: t.translated_name
+        }));
+
+        setCachedData('translations', mappedData);
+        return mappedData;
+    } catch (error) {
+        console.error(`Error fetching translations:`, error);
+        return [];
+    }
+}
 
 /**
- * Returns the list of all surahs from local data to ensure Indonesian localization.
- * We use local data for the list view because it's faster and correctly localized 
- * (Indonesian surah names and meanings).
+ * Virtual Tafsir resource for Indonesian localized content.
+ * Handled via equran.id local proxy instead of Quran Foundation.
  */
-export async function getAllSurahs(): Promise<SurahSummary[]> {
-    // We use the local surahsData which already has the Indonesian translations (arti)
-    const data = surahsData as SurahSummary[];
-    return data.map(s => ({
-        ...s,
-        background: getSurahBackground(s.nomor, s.tempatTurun)
-    }));
+const VIRTUAL_ID_TAFSIR_KEMENAG = 999;
+const INDONESIAN_VIRTUAL_TAFSIRS: TafsirResource[] = [
+    {
+        id: VIRTUAL_ID_TAFSIR_KEMENAG,
+        name: "Tafsir Kemenag",
+        authorName: "Kementerian Agama RI",
+        slug: "id-tafsir-kemenag",
+        languageName: "indonesian",
+        translatedName: {
+            name: "Tafsir Kemenag",
+            languageName: "indonesian"
+        }
+    }
+];
+
+/**
+ * Fetches the list of all available tafsir resources from Quran Foundation.
+ */
+export async function getTafsirResources(): Promise<TafsirResource[]> {
+    const cached = getCachedData<TafsirResource[]>('tafsir_resources');
+    if (cached) return [...INDONESIAN_VIRTUAL_TAFSIRS, ...cached];
+
+    try {
+        const result = await fetchTafsirResources();
+        const mappedData = (result.tafsirs as any[]).map(t => ({
+            id: t.id,
+            name: t.name,
+            authorName: t.author_name,
+            slug: t.slug,
+            languageName: t.language_name,
+            translatedName: t.translated_name
+        }));
+
+        setCachedData('tafsir_resources', mappedData);
+        return [...INDONESIAN_VIRTUAL_TAFSIRS, ...mappedData];
+    } catch (error) {
+        console.error(`Error fetching tafsir resources:`, error);
+        return INDONESIAN_VIRTUAL_TAFSIRS;
+    }
+}
+
+/**
+ * Fetches the list of all supported languages from Quran Foundation.
+ */
+export async function getLanguages(): Promise<Language[]> {
+    try {
+        const result = await fetchLanguages();
+        return (result.languages as any[]).map(l => ({
+            id: l.id,
+            name: l.name,
+            isoCode: l.iso_code,
+            nativeName: l.native_name,
+            direction: l.direction,
+            translationsCount: l.translations_count
+        }));
+    } catch (error) {
+        console.error(`Error fetching languages:`, error);
+        return [];
+    }
 }
 
 
 /**
- * Fetches the detail of a specific surah (including ayats) from Aladhan API.
- * Combines Tajweed text, Indonesian translation, and multiple audio editions in one request.
- * @param nomor The surah number (1-114)
- * @param reciterIds Array of reciter identifiers
+ * Returns the list of all surahs directly from Quran Foundation API.
  */
-export async function getSurahDetail(nomor: number, reciterIds: string[] = ['ar.alafasy']): Promise<SurahDetail | null> {
+export async function getAllSurahs(): Promise<SurahSummary[]> {
+    const cached = getCachedData<SurahSummary[]>('surahs');
+    if (cached) return cached;
+
     try {
-        const fetchOptions = {
-            headers: { 'Accept-Encoding': 'gzip, zstd' }
-        };
+        const result = await fetchChapters();
+        const mappedData = (result.chapters as any[]).map(s => ({
+            nomor: s.id,
+            nama: s.name_arabic,
+            namaLatin: s.name_simple,
+            jumlahAyat: s.verses_count,
+            tempatTurun: s.revelation_place === 'makkah' ? 'Mekah' : 'Madinah',
+            arti: s.translated_name?.name || '',
+            deskripsi: '',
+            audioFull: {},
+            ayatsajdah: [7, 13, 16, 17, 19, 22, 25, 27, 32, 38, 41, 53, 84, 96].includes(s.id)
+        }));
 
-        const editions = ['quran-tajweed', 'id.indonesian', ...reciterIds];
+        setCachedData('surahs', mappedData);
+        return mappedData;
+    } catch (error) {
+        console.error("Error in getAllSurahs from API:", error);
+        return [];
+    }
+}
 
-        // Fetch aggregate editions
-        const response = await fetch(
-            `${ALADHAN_BASE_URL}/surah/${nomor}/editions/${editions.join(',')}`,
-            fetchOptions
-        );
+/**
+ * Fetches a page of ayats for a specific surah using Quran Foundation API directly.
+ */
+export async function getSurahPage(
+    nomor: number,
+    reciterId: string = '7',
+    translationId: number = 33,
+    page: number = 1
+): Promise<{ ayats: Ayah[]; pagination: { currentPage: number; totalPages: number; totalRecords: number; nextPage: number | null }; surahMeta: any } | null> {
+    try {
+        const versesData = await fetchSurahVerses(nomor, reciterId, translationId, page, 50);
+        const verses = versesData.verses || [];
+        const pag = versesData.pagination || {};
 
-        if (!response.ok)
-            throw new Error(`Failed to fetch surah ${nomor} aggregate editions from Aladhan`);
-
-        const result: QuranCloudResponse<any[]> = await response.json();
-
-        // result.data[0] -> quran-tajweed
-        // result.data[1] -> id.indonesian
-        // result.data[2...] -> audio editions
-        const tajweedEd = result.data[0];
-        const translationEd = result.data[1];
-        const audioEds = result.data.slice(2);
-
-        const ayats: Ayah[] = tajweedEd.ayahs.map((ayah: any, idx: number) => {
-            const audioMap: Record<string, string> = {};
-
-            // Map each audio edition by its identifier from the API response
-            audioEds.forEach((editionObj: any) => {
-                const identifier = editionObj.edition.identifier;
-                if (editionObj.ayahs[idx]?.audio) {
-                    audioMap[identifier] = editionObj.ayahs[idx].audio;
-                }
-            });
+        const ayats: Ayah[] = verses.map((v: any) => {
+            const audioMap: Record<string, AyahAudio> = {};
+            if (v.audio?.url) {
+                audioMap[reciterId] = {
+                    url: buildAudioUrl(v.audio.url),
+                    segments: v.audio.segments
+                };
+            }
 
             return {
-                nomorAyat: ayah.numberInSurah,
-                numberGlobal: ayah.number,
-                teksArab: ayah.text,
-                teksTajweed: ayah.text,
+                nomorAyat: v.verse_number,
+                numberGlobal: v.id,
+                verseKey: v.verse_key,
+                teksArab: v.text_uthmani,
+                teksTajweed: v.text_uthmani_tajweed || v.text_uthmani,
                 teksLatin: "",
-                teksIndonesia: translationEd.ayahs[idx].text,
-                audio: audioMap
+                teksIndonesia: stripHtml(v.translations?.[0]?.text || ""),
+                audio: audioMap,
+                pageNumber: v.page_number,
+                juzNumber: v.juz_number,
+                hizbNumber: v.hizb_number,
+                rubElHizbNumber: v.rub_el_hizb_number,
+                rukuNumber: v.ruku_number,
+                manzilNumber: v.manzil_number,
+                sajdahNumber: v.sajdah_number
             };
         });
 
-        // Locate local metadata for Indonesian translation and description
-        const localSurah = (surahsData as any[]).find(s => s.nomor === nomor);
+        // Fetch dynamic Surah List from API rather than local JSON
+        const allSurahs = await getAllSurahs();
+        const localSurah = allSurahs.find(s => s.nomor === nomor);
 
         return {
-            nomor: tajweedEd.number,
-            nama: tajweedEd.name,
-            namaLatin: localSurah?.namaLatin || tajweedEd.englishName,
-            jumlahAyat: tajweedEd.numberOfAyahs,
-            tempatTurun: localSurah?.tempatTurun || (tajweedEd.revelationType === 'Meccan' ? 'Mekah' : 'Madinah'),
-            arti: localSurah?.arti || tajweedEd.englishNameTranslation,
-            deskripsi: localSurah?.deskripsi || "",
-            audioFull: {},
-            ayat: ayats,
-            suratSebelum: false,
-            suratSesudah: false,
-            background: getSurahBackground(tajweedEd.number, tajweedEd.revelationType === 'Meccan' ? 'Mekah' : 'Madinah')
+            ayats,
+            pagination: {
+                currentPage: pag.current_page || page,
+                totalPages: pag.total_pages || 1,
+                totalRecords: pag.total_records || ayats.length,
+                nextPage: pag.next_page || null
+            },
+            surahMeta: localSurah ? {
+                nomor: localSurah.nomor,
+                nama: localSurah.nama,
+                namaLatin: localSurah.namaLatin,
+                jumlahAyat: localSurah.jumlahAyat || pag.total_records,
+                tempatTurun: localSurah.tempatTurun,
+                arti: localSurah.arti,
+                deskripsi: localSurah.deskripsi || "",
+                audioFull: localSurah.audioFull || {},
+                ayatsajdah: localSurah.ayatsajdah || false,
+            } : null
         };
     } catch (error) {
-        console.error(`Error fetching surah ${nomor} detail:`, error);
+        console.error(`Error fetching surah ${nomor} page ${page} from QF:`, error);
         return null;
     }
 }
 
 /**
- * Fetches the tafsir of a specific surah from EQuran.id.
- * @param nomor The surah number (1-114)
+ * Legacy wrapper — fetches ALL ayats (page 1 only for backward compat).
  */
-export async function getSurahTafsir(nomor: number): Promise<SurahTafsir | null> {
-    try {
-        const response = await fetch(`${BASE_URL}/tafsir/${nomor}`);
-        if (!response.ok) throw new Error(`Failed to fetch tafsir for surah ${nomor}`);
+export async function getSurahDetail(nomor: number, reciterId: string = '7', translationId: number = 33): Promise<SurahDetail | null> {
+    const result = await getSurahPage(nomor, reciterId, translationId, 1);
+    if (!result || !result.surahMeta) return null;
 
-        const result: ApiResponse<SurahTafsir> = await response.json();
-        return result.data;
+    return {
+        ...result.surahMeta,
+        ayat: result.ayats,
+        suratSebelum: false,
+        suratSesudah: false,
+    };
+}
+
+/**
+ * Fetches the tafsir for a specific surah using Quran Foundation API or local equran.id proxy.
+ * Maps it to our internal SurahTafsir format.
+ * @param nomor The surah number (1-114)
+ * @param tafsirId The tafsir resource ID
+ */
+export async function getSurahTafsir(nomor: number, tafsirId: number): Promise<SurahTafsir | null> {
+    try {
+        // Handle virtual Indonesian Tafsirs from equran.id
+        if (tafsirId === VIRTUAL_ID_TAFSIR_KEMENAG) {
+            const response = await fetch(`/api/tafsir/${nomor}`);
+            if (!response.ok) return null;
+            const result = await response.json();
+            
+            if (!result || !result.data) return null;
+            const data = result.data;
+            
+            return {
+                nomor,
+                id: nomor,
+                nama: data.nama || "",
+                namaLatin: data.nama_latin || "",
+                jumlahAyat: data.jumlah_ayat || 0,
+                tafsir: data.tafsir.map((t: any) => ({
+                    ayat: t.ayat,
+                    teks: t.teks
+                })),
+                suratSebelum: false,
+                suratSesudah: false,
+                tempatTurun: data.tempat_turun === 'Mekah' ? 'Mekah' : 'Madinah',
+                arti: data.arti || "",
+                deskripsi: data.deskripsi || "",
+                audioFull: data.audio_full || {}
+            } as SurahTafsir;
+        }
+
+        const result = await fetchSurahTafsirFromQF(nomor, tafsirId);
+
+        if (!result || !result.tafsirs) return null;
+
+        const localSurah = (surahSummaryData as any[]).find(s => s.nomor === nomor);
+
+        // Map QF structure to our internal SurahTafsir format
+        return {
+            ...(localSurah || {}),
+            id: nomor,
+            nomor: nomor,
+            nama: localSurah?.nama || "",
+            namaLatin: localSurah?.namaLatin || "",
+            jumlahAyat: result.tafsirs.length,
+            tafsir: result.tafsirs.map((t: any, index: number) => ({
+                ayat: index + 1,
+                teks: t.text
+            })),
+            suratSebelum: false,
+            suratSesudah: false
+        } as SurahTafsir;
     } catch (error) {
         console.error(`Error fetching surah ${nomor} tafsir:`, error);
         return null;
@@ -180,70 +355,93 @@ export async function getSurahTafsir(nomor: number): Promise<SurahTafsir | null>
  * @param nomor The juz number (1-30)
  * @param reciterIds Array of reciter identifiers
  */
-export async function getJuzDetail(nomor: number, reciterIds: string[] = ['ar.alafasy']): Promise<JuzDetail | null> {
+export async function getJuzPage(
+    nomor: number,
+    reciterId: string = '7',
+    translationId: number = 33,
+    page: number = 1
+): Promise<{ ayats: Ayah[]; pagination: { currentPage: number; totalPages: number; totalRecords: number; nextPage: number | null } } | null> {
     try {
-        const fetchOptions = {
-            headers: { 'Accept-Encoding': 'gzip, zstd' }
-        };
+        const result = await fetchJuzVerses(nomor, reciterId, translationId, page, 50);
+        const verses = result.verses || [];
+        const pag = result.pagination || {};
 
-        // Create a list of all editions we need to fetch
-        const targetEditions = ['quran-tajweed', 'id.indonesian', ...reciterIds];
+        const allSurahs = await getAllSurahs();
 
-        // Fetch all editions in parallel
-        const responses = await Promise.all(
-            targetEditions.map(edition =>
-                fetch(`${ALADHAN_BASE_URL}/juz/${nomor}/${edition}`, fetchOptions)
-                    .then(res => res.ok ? res.json() : null)
-                    .catch(err => {
-                        console.error(`Failed to fetch ${edition} for juz ${nomor}:`, err);
-                        return null;
-                    })
-            )
-        );
+        const ayats: Ayah[] = verses.map((v: any) => {
+            const [surahNum] = v.verse_key.split(':').map(Number);
+            const localSurah = allSurahs.find(s => s.nomor === surahNum);
 
-        // Map responses back to their roles
-        // responses[0] -> quran-tajweed
-        // responses[1] -> id.indonesian
-        // responses[2...] -> audio editions
-        const tajweedData = responses[0]?.data;
-        const translationData = responses[1]?.data;
-        const audioDataList = responses.slice(2);
-
-        if (!tajweedData || !translationData) {
-            throw new Error(`Essential Juz data (text/translation) failed to load for juz ${nomor}`);
-        }
-
-        const ayats: Ayah[] = tajweedData.ayahs.map((ayah: any, idx: number) => {
-            const audioMap: Record<string, string> = {};
-
-            audioDataList.forEach((resObj: any, audioIdx: number) => {
-                if (resObj && resObj.data && resObj.data.ayahs[idx]?.audio) {
-                    const identifier = targetEditions[audioIdx + 2]; // +2 because first 2 are non-audio
-                    audioMap[identifier] = resObj.data.ayahs[idx].audio;
-                }
-            });
+            const audioMap: Record<string, AyahAudio> = {};
+            if (v.audio?.url) {
+                audioMap[reciterId] = {
+                    url: buildAudioUrl(v.audio.url),
+                    segments: v.audio.segments
+                };
+            }
 
             return {
-                nomorAyat: ayah.numberInSurah,
-                numberGlobal: ayah.number,
-                teksArab: ayah.text,
-                teksTajweed: ayah.text,
+                nomorAyat: v.verse_number,
+                numberGlobal: v.id,
+                verseKey: v.verse_key,
+                teksArab: v.text_uthmani,
+                teksTajweed: v.text_uthmani_tajweed || v.text_uthmani,
                 teksLatin: "",
-                teksIndonesia: translationData.ayahs[idx].text,
+                teksIndonesia: stripHtml(v.translations?.[0]?.text || ""),
                 audio: audioMap,
+                pageNumber: v.page_number,
+                juzNumber: v.juz_number,
+                hizbNumber: v.hizb_number,
+                rubElHizbNumber: v.rub_el_hizb_number,
+                rukuNumber: v.ruku_number,
+                manzilNumber: v.manzil_number,
+                sajdahNumber: v.sajdah_number,
                 surahInfo: {
-                    nomor: ayah.surah.number,
-                    namaLatin: (surahsData as any[]).find(s => s.nomor === ayah.surah.number)?.namaLatin || ayah.surah.englishName
+                    nomor: surahNum,
+                    namaLatin: localSurah?.namaLatin || `Surah ${surahNum}`
                 }
             };
         });
 
         return {
-            nomor: tajweedData.number,
-            ayat: ayats
+            ayats,
+            pagination: {
+                currentPage: pag.current_page || page,
+                totalPages: pag.total_pages || 1,
+                totalRecords: pag.total_records || ayats.length,
+                nextPage: pag.next_page || null
+            }
         };
     } catch (error) {
-        console.error(`Error fetching juz ${nomor} detail in parallel:`, error);
+        console.error(`Error fetching juz ${nomor} page ${page} from QF:`, error);
         return null;
     }
 }
+
+/**
+ * Legacy wrapper for backward compat.
+ */
+export async function getJuzDetail(nomor: number, reciterId: string = '7', translationId: number = 33): Promise<JuzDetail | null> {
+    const result = await getJuzPage(nomor, reciterId, translationId, 1);
+    if (!result) return null;
+
+    return {
+        nomor,
+        ayat: result.ayats
+    };
+}
+
+/**
+ * Fetches information about a specific surah (chapter).
+ * @param nomor The surah number
+ */
+export async function getChapterInfo(nomor: number) {
+    try {
+        const result = await fetchChapterInfo(nomor);
+        return result.chapter_info;
+    } catch (error) {
+        console.error(`Error fetching surah ${nomor} info:`, error);
+        return null;
+    }
+}
+

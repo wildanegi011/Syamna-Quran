@@ -30,6 +30,7 @@ import Providers from "@/components/Providers";
 import { Toaster } from "sonner";
 import { SpotifyLayout } from "@/components/quran/spotify/SpotifyLayout";
 import { Metadata } from "next";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 
 export default function RootLayout({
   children,
@@ -47,19 +48,21 @@ export default function RootLayout({
         )}
       >
         <Providers>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <TooltipProvider delayDuration={0}>
-              <SpotifyLayout>
-                {children}
-              </SpotifyLayout>
-              {/* <Toaster dark position="top-center" richColors /> */}
-            </TooltipProvider>
-          </ThemeProvider>
+          <SettingsProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <TooltipProvider delayDuration={0}>
+                <SpotifyLayout>
+                  {children}
+                </SpotifyLayout>
+                {/* <Toaster dark position="top-center" richColors /> */}
+              </TooltipProvider>
+            </ThemeProvider>
+          </SettingsProvider>
         </Providers>
       </body>
     </html>

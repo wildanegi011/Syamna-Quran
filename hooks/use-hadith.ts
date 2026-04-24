@@ -19,48 +19,6 @@ export function useHadithList(categoryId: string, page: number = 1) {
     });
 }
 
-/**
- * Fetches the list of hadiths for a category, then fetches the details
- * in parallel for each hadith to get attribution and grade.
- */
-export function useHadithsWithDetails(categoryId: string, page: number = 1) {
-    const listQuery = useHadithList(categoryId, page);
-    const hadithSummaries = listQuery.data || [];
-
-    const detailQueries = useQueries({
-        queries: hadithSummaries.map((h: HadithSummary) => ({
-            queryKey: ["hadith-detail", h.id],
-            queryFn: () => getHadithDetail(h.id),
-            staleTime: 1000 * 60 * 60,
-            enabled: !!h.id,
-        })),
-    });
-
-    const isLoadingDetails = detailQueries.some(q => q.isLoading);
-    
-    const enrichedHadiths = useMemo(() => {
-        return hadithSummaries.map((h: HadithSummary, index: number) => {
-            const detail = detailQueries[index]?.data;
-            if (!detail) return h;
-            return {
-                ...h,
-                attribution: detail.attribution,
-                grade: detail.grade,
-                hadeeth: detail.hadeeth,
-                hadeeth_ar: detail.hadeeth_ar,
-            };
-        });
-    }, [hadithSummaries, detailQueries]);
-
-    return {
-        data: enrichedHadiths,
-        isLoading: listQuery.isLoading,
-        isLoadingDetails,
-        isError: listQuery.isError || detailQueries.some(q => q.isError),
-        refetch: listQuery.refetch,
-    };
-}
-
 export function useHadithDetail(id: string | null, enabled: boolean = true) {
     return useQuery({
         queryKey: ["hadith-detail", id],

@@ -8,8 +8,11 @@ import {
     Headphones,
     Music2,
     Check,
-    Sparkles
+    Sparkles,
+    Search,
+    Info
 } from 'lucide-react';
+import { AyahJumpInput } from './AyahList';
 import { cn } from '@/lib/utils';
 import { Ayah, SurahSummary, Reciters } from '@/lib/types';
 import {
@@ -20,6 +23,19 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerHeader,
+    DrawerTitle,
+} from "@/components/ui/drawer";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MobileHeaderProps {
@@ -31,6 +47,9 @@ interface MobileHeaderProps {
     setViewedSurah: (surah: SurahSummary | null) => void;
     setViewedJuz: (juz: number | null) => void;
     scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+    activeData: any;
+    handleAyahJump: (ayah: Ayah) => void;
+    pagination?: any;
 }
 
 export const MobileHeader = ({
@@ -41,11 +60,16 @@ export const MobileHeader = ({
     surahSummaryData,
     setViewedSurah,
     setViewedJuz,
-    scrollContainerRef
+    scrollContainerRef,
+    activeData,
+    handleAyahJump,
+    pagination
 }: MobileHeaderProps) => {
+    const [isJumpInputOpen, setIsJumpInputOpen] = React.useState(false);
+
     return (
         <div className="lg:hidden flex flex-col bg-[#0a0a0a]/80 backdrop-blur-3xl sticky top-0 z-50 shrink-0 border-b border-white/5">
-            <div className="flex items-center justify-between px-4 h-16">
+            <div className="flex items-center justify-between px-2 h-16">
                 <button
                     onClick={() => setRightPanelOpen(false)}
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white active:scale-95 transition-all"
@@ -80,13 +104,46 @@ export const MobileHeader = ({
                     </motion.div>
                 </AnimatePresence>
 
-                <button
-                    onClick={() => setIsSettingsOpen(true)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white active:scale-95 transition-all"
-                >
-                    <Settings className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setIsJumpInputOpen(!isJumpInputOpen)}
+                        className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95",
+                            isJumpInputOpen ? "text-primary bg-primary/10" : "text-white/60 hover:text-white"
+                        )}
+                    >
+                        <Search className="w-5 h-5" />
+                    </button>
+
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white active:scale-95 transition-all"
+                    >
+                        <Settings className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
+
+            {/* Jump Input Drawer */}
+            <Drawer open={isJumpInputOpen} onOpenChange={setIsJumpInputOpen}>
+                <DrawerContent className="bg-[#121212] border-white/10 p-0 text-white pb-10">
+                    <DrawerHeader className="border-b border-white/5 pb-4 px-6 text-left">
+                        <DrawerTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary">Lompat ke Ayat</DrawerTitle>
+                        <DrawerDescription className="text-[10px] text-white/40">Cari dan pilih ayat untuk langsung menuju ke lokasinya</DrawerDescription>
+                    </DrawerHeader>
+                    <div className="p-6">
+                        <AyahJumpInput
+                            ayahs={activeData?.ayat || []}
+                            onSelect={(ayah) => {
+                                handleAyahJump(ayah);
+                                setIsJumpInputOpen(false);
+                            }}
+                            viewedJuz={viewedJuz}
+                            pagination={pagination}
+                        />
+                    </div>
+                </DrawerContent>
+            </Drawer>
 
             {/* Horizontal Surah List */}
             <div className="px-4 pb-4">
@@ -129,7 +186,7 @@ interface DesktopHeaderProps {
     viewedJuz: number | null;
     viewedSurah: SurahSummary | null;
     activeData: any;
-    handleTafsirClick: (e: React.MouseEvent, ayah: Ayah) => void;
+    onOpenInfo: (e: React.MouseEvent) => void;
     onOpenTajweed?: () => void;
     reciters: Reciters[];
     selectedReciterId: string;
@@ -141,7 +198,7 @@ export const DesktopHeader = ({
     viewedJuz,
     viewedSurah,
     activeData,
-    handleTafsirClick,
+    onOpenInfo,
     onOpenTajweed,
     reciters,
     selectedReciterId,
@@ -195,11 +252,11 @@ export const DesktopHeader = ({
             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
                 {!viewedJuz && (
                     <button
-                        onClick={(e) => activeData?.ayat?.[0] && handleTafsirClick(e, activeData.ayat[0])}
+                        onClick={(e) => onOpenInfo(e)}
                         className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all active:scale-95 whitespace-nowrap"
                     >
-                        <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        Tafsir
+                        <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        Info Surat
                     </button>
                 )}
 
@@ -217,10 +274,17 @@ export const DesktopHeader = ({
                             {isFetching ? '...' : (reciters.find(r => r.identifier === selectedReciterId)?.englishName?.split(' ').slice(-1)[0] || 'Qori')}
                         </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-64 bg-[#121212]/95 backdrop-blur-2xl border-white/10 p-2 shadow-2xl" align="end">
-                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 px-3 py-4">Pilih Qori (Reciter)</DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-white/5 mb-1" />
-                        <div className="max-h-[400px] overflow-y-auto custom-scrollbar space-y-1">
+                    <DropdownMenuContent
+                        className="w-72 bg-[#0c0c0c]/95 backdrop-blur-3xl border border-white/10 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[1.5rem] overflow-hidden"
+                        align="start"
+                        sideOffset={12}
+                    >
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 px-4 py-4 flex items-center gap-2">
+                            <Headphones className="w-3 h-3" />
+                            Pilih Qori (Reciter)
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator className="bg-white/5 mx-2 mb-1" />
+                        <div className="max-h-[400px] overflow-y-auto custom-scrollbar px-1 py-1 space-y-1">
                             {reciters.map((qori) => (
                                 <DropdownMenuItem
                                     key={qori.identifier}
@@ -232,7 +296,10 @@ export const DesktopHeader = ({
                                             : "hover:bg-white/5 text-white/60 hover:text-white focus:bg-white/10"
                                     )}
                                 >
-                                    <span className="font-bold text-sm tracking-tight">{qori.englishName}</span>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="font-bold text-sm tracking-tight truncate">{qori.englishName}</span>
+                                        <span className="text-[10px] opacity-40 font-medium uppercase tracking-wider">{qori.type}</span>
+                                    </div>
                                     {selectedReciterId === qori.identifier && (
                                         <motion.div layoutId="active-qori">
                                             <Check className="w-4 h-4 text-primary" />

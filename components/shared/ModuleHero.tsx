@@ -48,11 +48,16 @@ export function ModuleHero({
                         {/* Back Button - Top Mini */}
                         {onBack && (
                             <button
-                                onClick={onBack}
-                                className="mb-2 flex items-center gap-2 text-on-surface/40 hover:text-primary transition-colors group px-0 bg-transparent border-none"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onBack();
+                                }}
+                                type="button"
+                                className="mb-2 flex items-center gap-2 text-on-surface/40 hover:text-primary transition-all duration-300 group px-2 py-1 -ml-2 bg-transparent border-none cursor-pointer relative z-20 active:scale-95"
                             >
-                                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                                <span className="text-[10px] font-headline font-black uppercase tracking-widest">Kembali</span>
+                                <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                <span className="text-[10px] font-headline font-black uppercase tracking-widest leading-none">Kembali</span>
                             </button>
                         )}
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline font-black text-on-surface tracking-tighter leading-[1.1]">

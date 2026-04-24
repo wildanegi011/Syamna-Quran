@@ -32,6 +32,7 @@ interface AyahTafsirProps {
   surahNumber?: number;
   surahName: string;
   tafsirText?: string;
+  tafsirId?: number;
 }
 
 export function AyahTafsir({
@@ -41,13 +42,15 @@ export function AyahTafsir({
   surahNumber,
   surahName,
   tafsirText,
+  tafsirId = 0,
 }: AyahTafsirProps) {
   const isMobile = useIsMobile();
 
   // On-demand fetching if tafsirText is not provided
   const { data: fechedTafsir, isLoading } = useSurahTafsir(
     surahNumber || 0,
-    isOpen && !tafsirText && !!surahNumber
+    isOpen && !tafsirText && !!surahNumber,
+    tafsirId
   );
 
   const activeTafsir = React.useMemo(() => {
@@ -64,7 +67,7 @@ export function AyahTafsir({
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[85vh] bg-surface-container-highest border-white/10 rounded-t-[2rem]">
+        <DrawerContent className="h-full bg-surface-container-highest border-white/10 rounded-none">
           <DrawerHeader className="border-b border-white/5 pb-6">
             <div className="flex items-center gap-4 mb-2">
               <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
@@ -80,22 +83,22 @@ export function AyahTafsir({
               </div>
             </div>
           </DrawerHeader>
-          <div className="px-6 py-8 overflow-y-auto min-h-[200px] flex flex-col items-center justify-center">
+          <div className="px-4 py-6 overflow-y-auto min-h-[300px] flex-1">
             {isLoading ? (
-              <div className="flex flex-col items-center gap-4 py-12">
+              <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="text-xs font-headline font-black uppercase tracking-widest text-primary/40">Mengunduh Tafsir...</p>
+                <p className="text-[10px] font-headline font-black uppercase tracking-widest text-primary/40">Mengunduh Tafsir...</p>
               </div>
             ) : (
               <div
-                className="text-base leading-relaxed text-on-surface font-body space-y-4 whitespace-pre-wrap"
+                className="text-lg leading-[1.8] text-white/90 font-body space-y-6 pb-10"
                 dangerouslySetInnerHTML={{ __html: activeTafsir || "Tafsir tidak tersedia untuk ayat ini." }}
               />
             )}
           </div>
-          <DrawerFooter className="pt-4 border-t border-white/5">
+          <DrawerFooter className="pt-4 pb-8 border-t border-white/5">
             <DrawerClose asChild>
-              <Button variant="outline" className="rounded-full border-white/10 h-12 font-black uppercase tracking-widest text-[10px]">Tutup</Button>
+              <Button variant="outline" className="rounded-2xl border-white/10 h-14 font-black uppercase tracking-widest text-[10px] bg-white/5">Tutup</Button>
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>

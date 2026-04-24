@@ -37,21 +37,24 @@ const TAJWEED_COLORS: Record<string, string> = {
 export function parseTajweed(text: string): string {
     if (!text) return "";
     
-    // We use a regex that handles both [tag[char]] and [tag:num[char]]
-    // It also handles nesting by matching the innermost tags first in a loop if needed,
-    // but typically Aladhan tags for Tajweed are flat per segment.
     let parsed = text;
     
-    // Optimized regex to handle the [tag:id[char]] format
+    // 1. Handle Quran Foundation Format: <tajweed class=tag>char</tajweed>
+    const qfRegex = /<tajweed class=([a-z_]+)>([^<]+)<\/tajweed>/g;
+    parsed = parsed.replace(qfRegex, (_, cls: string, char: string) => {
+        const color = TAJWEED_COLORS[cls] || 'inherit';
+        return `<span style="color:${color}">${char}</span>`;
+    });
+
+    // 2. Handle Aladhan Format: [tag:code[char]] or [tag[char]]
     const tajweedRegex = /\[([a-z]+)(?::\d+)?\[([^\]]+)\]/g;
-    
     const replaceFn = (_: string, cls: string, char: string) => {
         const color = TAJWEED_COLORS[cls] || 'inherit';
         return `<span style="color:${color}">${char}</span>`;
     };
 
     parsed = parsed.replace(tajweedRegex, replaceFn);
-    parsed = parsed.replace(tajweedRegex, replaceFn);
+    parsed = parsed.replace(tajweedRegex, replaceFn); // Second pass for nesting if any
 
     return parsed;
 }

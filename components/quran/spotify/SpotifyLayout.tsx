@@ -49,6 +49,15 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
     // Quran Module condition - Sidebar only for Quran
     const isQuranModule = pathname.startsWith('/quran');
 
+    // Automatically collapse sidebar on Quran module transition
+    React.useEffect(() => {
+        if (isQuranModule) {
+            setIsCollapsed(true);
+        } else if (pathname === '/hadits' || pathname === '/doa' || pathname === '/asmaul-husna' || pathname === '/jadwal-sholat') {
+            setIsCollapsed(false);
+        }
+    }, [isQuranModule, pathname]);
+
     React.useEffect(() => {
         const handleScroll = () => {
             if (scrollContainerRef.current) {
@@ -88,7 +97,20 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
 
             {/* Main Application Structure */}
             <div className="flex flex-1 overflow-hidden p-0 relative z-10">
-                {/* Unified Drawer Navigation */}
+                {/* Desktop Sidebar (Left side) */}
+                {!isLandingPage && (
+                    <aside className={cn(
+                        "hidden md:flex flex-col h-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] border-r border-white/5 bg-[#020617]/40 backdrop-blur-3xl z-30 overflow-hidden shrink-0",
+                        isCollapsed ? "w-0 opacity-0 border-none" : "w-[280px]"
+                    )}>
+                        <QuranSidebar
+                            isCollapsed={isCollapsed}
+                            toggleCollapse={toggleCollapse}
+                        />
+                    </aside>
+                )}
+
+                {/* Unified Drawer Navigation (Mobile/Tablet) */}
                 <AnimatePresence>
                     {isMobileMenuOpen && (
                         <>
@@ -127,7 +149,8 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
                             <TopNavBar
                                 isReadingMode={isReadingMode}
                                 isScrolled={isScrolled}
-                                isCollapsed={false}
+                                isCollapsed={isCollapsed}
+                                onToggleSidebar={toggleCollapse}
                             />
                         )}
 
@@ -138,29 +161,53 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
                         </main>
                     </div>
 
-                    <AnimatePresence mode="popLayout">
-                        {isQuranModule && (
-                            isRightPanelOpen ? (
-                                <NowPlayingPanel
-                                    key="panel"
-                                    onOpenTajweed={() => setIsTajweedOpen(true)}
-                                />
-                            ) : (
-                                <motion.button
-                                    key="trigger"
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-                                    onClick={() => setRightPanelOpen(true)}
-                                    className="fixed right-0 top-1/2 -translate-y-1/2 z-40 w-8 h-16 rounded-l-2xl bg-primary/10 hover:bg-primary/20 border-l border-y border-primary/20 backdrop-blur-3xl hidden md:flex items-center justify-center text-primary/60 hover:text-primary transition-all shadow-[-10px_0_30px_rgba(0,0,0,0.5)] group/open-side"
-                                    title="Buka Panel"
-                                >
-                                    <ChevronLeft className="w-5 h-5 transition-transform group-hover/open-side:-translate-x-1 cursor-pointer" />
-                                </motion.button>
-                            )
-                        )}
-                    </AnimatePresence>
+                    {/* Panel Wrapper - Handles fixed/absolute positioning and smooth sliding */}
+                    {isQuranModule && (
+                        <>
+                            {/* Mobile Overlay */}
+                            <div
+                                className={cn(
+                                    "lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300",
+                                    isRightPanelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+                                )}
+                                onClick={() => setRightPanelOpen(false)}
+                            />
+
+                            {/* Sliding Container */}
+                            <div
+                                className={cn(
+                                    "flex-shrink-0 relative z-50 h-full",
+                                    "transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                                    "fixed inset-y-0 right-0 lg:static",
+                                    isRightPanelOpen ? "w-full sm:w-[400px] lg:w-[480px] xl:w-[560px]" : "w-full lg:w-0 pointer-events-none lg:pointer-events-auto"
+                                )}
+                            >
+                                {/* Inner Fixed-Width Container (Prevents internal layout reflows during width transition) */}
+                                <div className={cn(
+                                    "absolute top-0 right-0 h-full w-full sm:w-[400px] lg:w-[480px] xl:w-[560px] shadow-2xl",
+                                    "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                                    isRightPanelOpen ? "translate-x-0" : "translate-x-full"
+                                )}>
+                                    <NowPlayingPanel
+                                        onOpenTajweed={() => setIsTajweedOpen(true)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Open trigger - only visible when panel is closed */}
+                            <button
+                                onClick={() => setRightPanelOpen(true)}
+                                className={cn(
+                                    "fixed right-0 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center justify-center w-7 h-20 rounded-l-2xl bg-gradient-to-l from-primary/20 to-primary/5 hover:from-primary/30 hover:to-primary/10 border-l border-y border-primary/25 hover:border-primary/40 backdrop-blur-xl text-primary/60 hover:text-primary transition-all duration-300 group/open-side shadow-lg shadow-black/20",
+                                    isRightPanelOpen ? "opacity-0 pointer-events-none translate-x-4" : "opacity-100 translate-x-0"
+                                )}
+                                title="Buka Panel Baca"
+                            >
+                                <div className="absolute right-0 top-3 bottom-3 w-[2px] rounded-full bg-primary/40 group-hover/open-side:bg-primary/70 transition-colors" />
+                                <ChevronLeft className="w-4 h-4 transition-transform duration-300 group-hover/open-side:-translate-x-0.5" />
+                            </button>
+                        </>
+                    )}
                 </div>
 
 

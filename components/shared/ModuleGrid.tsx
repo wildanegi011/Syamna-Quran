@@ -22,13 +22,13 @@ export function ModuleGrid({
     emptyState
 }: ModuleGridProps) {
     if (!isLoading && isEmpty && emptyState) {
-        return <div className="py-40 text-center space-y-4">{emptyState}</div>;
+        return <div className="w-full min-h-[400px] flex items-center justify-center">{emptyState}</div>;
     }
 
     return (
         <main className={cn("w-full px-4 sm:px-6 md:px-12 pb-12 md:pb-16", className)}>
-            <div className={cn("grid gap-3 sm:gap-4 md:gap-5", columnsClassName)}>
-                <AnimatePresence mode="wait">
+            <div className={cn("grid gap-2.5 sm:gap-4 md:gap-5", columnsClassName)}>
+                <AnimatePresence>
                     {children}
                 </AnimatePresence>
             </div>

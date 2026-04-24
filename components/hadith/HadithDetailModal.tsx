@@ -3,6 +3,7 @@
 import React from "react";
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogHeader,
     DialogTitle,
@@ -28,26 +29,30 @@ interface HadithDetailModalProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export function HadithDetailModal({ hadithId, open, onOpenChange }: HadithDetailModalProps) {
-    const { data: hadith, isLoading } = useHadithDetail(hadithId, open);
-    const isMobile = useIsMobile();
-
-    const Content = () => (
+function HadithContent({ isLoading, hadith }: { isLoading: boolean, hadith: any }) {
+    return (
         <AnimatePresence mode="wait">
             {isLoading ? (
-                <div className="p-8 md:p-12 space-y-8 flex-1 flex flex-col items-center justify-center">
+                <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-8 md:p-12 space-y-8 flex-1 flex flex-col items-center justify-center h-full"
+                >
                     <Skeleton className="h-8 w-3/4 rounded-xl" />
                     <Skeleton className="h-64 w-full rounded-[2rem]" />
-                </div>
+                </motion.div>
             ) : hadith ? (
                 <motion.div
+                    key="content"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="flex-1 flex flex-col min-h-0 overflow-hidden"
+                    className="flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-hide"
                 >
-                    {/* Header Section */}
-                    <div className="relative p-6 md:p-10 pb-4 md:pb-6 border-b border-white/[0.03] overflow-hidden shrink-0 bg-surface-container-lowest/40 backdrop-blur-md z-20">
+                    {/* Header Section (Not sticky anymore) */}
+                    <div className="relative p-6 md:p-10 pb-4 md:pb-6 border-b border-white/5 overflow-hidden shrink-0">
                         <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                             <BookOpen className="w-48 h-48 rotate-12" />
                         </div>
@@ -73,8 +78,8 @@ export function HadithDetailModal({ hadithId, open, onOpenChange }: HadithDetail
                         </div>
                     </div>
 
-                    {/* Scrollable Main Content Area */}
-                    <div className="overflow-y-auto p-6 md:p-10 space-y-10 scrollbar-hide flex-1 pb-20 md:pb-10">
+                    {/* Main Content Area (No longer the only scrollable part) */}
+                    <div className="p-6 md:p-10 space-y-10 flex-1 pb-20 md:pb-10">
                         {/* Arabic Section */}
                         <section className="relative space-y-6">
                             <div className="flex items-center gap-4 text-primary/40">
@@ -125,12 +130,23 @@ export function HadithDetailModal({ hadithId, open, onOpenChange }: HadithDetail
                     </div>
                 </motion.div>
             ) : (
-                <div className="p-20 text-center">
+                <motion.div
+                    key="error"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-20 text-center flex-1 h-full"
+                >
                     <p className="text-on-surface/40 font-headline font-black italic tracking-widest text-xs uppercase">Gagal memuat detail hadist.</p>
-                </div>
+                </motion.div>
             )}
         </AnimatePresence>
     );
+}
+
+export function HadithDetailModal({ hadithId, open, onOpenChange }: HadithDetailModalProps) {
+    const { data: hadith, isLoading } = useHadithDetail(hadithId, open);
+    const isMobile = useIsMobile();
 
     if (isMobile) {
         return (
@@ -140,7 +156,7 @@ export function HadithDetailModal({ hadithId, open, onOpenChange }: HadithDetail
                         <DrawerHeader className="sr-only">
                             <DrawerTitle>{hadith?.title || "Detail Hadits"}</DrawerTitle>
                         </DrawerHeader>
-                        <Content />
+                        <HadithContent isLoading={isLoading} hadith={hadith} />
                         <div className="p-4 pt-0 shrink-0">
                             <Button
                                 variant="ghost"
@@ -162,7 +178,19 @@ export function HadithDetailModal({ hadithId, open, onOpenChange }: HadithDetail
                 <DialogHeader className="sr-only">
                     <DialogTitle>{hadith?.title || "Detail Hadits"}</DialogTitle>
                 </DialogHeader>
-                <Content />
+
+                {/* Manual Close Button for Desktop */}
+                <DialogClose asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-8 right-8 z-50 w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white transition-all"
+                    >
+                        <X className="w-6 h-6" />
+                    </Button>
+                </DialogClose>
+
+                <HadithContent isLoading={isLoading} hadith={hadith} />
             </DialogContent>
         </Dialog>
     );

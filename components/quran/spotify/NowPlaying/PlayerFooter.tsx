@@ -2,17 +2,17 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-    Shuffle, 
-    SkipBack, 
-    Pause, 
-    Play, 
-    Square, 
-    SkipForward, 
-    Repeat, 
-    Repeat1, 
-    Volume2, 
-    VolumeX 
+import {
+    Shuffle,
+    SkipBack,
+    Pause,
+    Play,
+    Square,
+    SkipForward,
+    Repeat,
+    Repeat1,
+    Volume2,
+    VolumeX
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAudioState, useAudioProgress } from '@/contexts/AudioContext';
@@ -39,7 +39,7 @@ export function SidebarProgress() {
                 onValueChange={(val) => seek(val[0])}
                 className="w-full py-1 group cursor-pointer"
             />
-            <div className="flex justify-between items-center text-[10px] text-white/40 font-black tabular-nums tracking-widest uppercase">
+            <div className="hidden lg:flex justify-between items-center text-[10px] text-white/40 font-black tabular-nums tracking-widest uppercase">
                 <span>{formatTime(progress * duration / 100)}</span>
                 <span>{formatTime(duration)}</span>
             </div>

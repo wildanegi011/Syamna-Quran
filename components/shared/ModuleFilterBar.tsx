@@ -26,7 +26,7 @@ export function ModuleFilterBar({
     return (
         <div className={cn(
             "sticky top-[63px] z-30 transition-all duration-300",
-            "bg-background border-b border-white/5 py-3 md:py-4",
+            "bg-background border-b border-white/5 pt-3 pb-1 md:pt-4 md:pb-2",
             className
         )}>
             <div className="px-4 sm:px-6 md:px-12">

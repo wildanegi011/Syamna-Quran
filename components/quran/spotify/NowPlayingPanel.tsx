@@ -8,6 +8,7 @@ import surahSummaryData from '@/lib/data/surahs.json';
 import { cn } from '@/lib/utils';
 import { Ayah } from '@/lib/types';
 import { AyahTafsir } from '../AyahTafsir';
+import { SurahInfo } from '../SurahInfo';
 import { ChevronRight, Music2 } from 'lucide-react';
 
 // Sub-components
@@ -15,6 +16,7 @@ import { MobileHeader, DesktopHeader } from './NowPlaying/Header';
 import { AyahList } from './NowPlaying/AyahList';
 import { SettingsDrawer, ActionDrawer } from './NowPlaying/Drawers';
 import { SidebarProgress, SidebarControls, SidebarVolume, SidebarActiveInfo } from './NowPlaying/PlayerFooter';
+import { useSettings } from '@/contexts/SettingsContext';
 
 function findScrollParent(el: HTMLElement): HTMLElement | null {
     let parent = el.parentElement;
@@ -36,7 +38,9 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
     const [isCopied, setIsCopied] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [tafsirOpen, setTafsirOpen] = useState(false);
+    const [infoOpen, setInfoOpen] = useState(false);
     const [activeAyahForTafsir, setActiveAyahForTafsir] = useState<Ayah | null>(null);
+    const [targetAyahNum, setTargetAyahNum] = useState<number | null>(null);
 
     const {
         currentAyah,
@@ -52,24 +56,49 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
         isFavorite,
         currentSurah: playingSurah,
         setRightPanelOpen,
+        isRightPanelOpen,
     } = useAudioState();
+    const { tafsirId } = useSettings();
 
     const { data: reciters = [] } = useReciters();
 
-    // Data Fetching
-    const { data: surahDetail, isLoading: surahLoading, isFetching: surahFetching } = useSurahDetail(
+    // Data Fetching — Infinite Query
+    const {
+        data: surahDetail,
+        isLoading: surahLoading,
+        isFetching: surahFetching,
+        isFetchingNextPage: surahFetchingNext,
+        hasNextPage: surahHasNext,
+        fetchNextPage: surahFetchNext,
+        pagination: surahPagination
+    } = useSurahDetail(
         !viewedJuz ? (viewedSurah?.nomor || 0) : 0,
-        selectedReciterId
+        selectedReciterId,
+        isRightPanelOpen // Only fetch when panel is open
     );
 
-    const { data: juzDetail, isLoading: juzLoading, isFetching: juzFetching } = useJuzDetail(
+    const {
+        data: juzDetail,
+        isLoading: juzLoading,
+        isFetching: juzFetching,
+        isFetchingNextPage: juzFetchingNext,
+        hasNextPage: juzHasNext,
+        fetchNextPage: juzFetchNext,
+        pagination: juzPagination
+    } = useJuzDetail(
         viewedJuz || 0,
-        selectedReciterId
+        selectedReciterId,
+        isRightPanelOpen // Only fetch when panel is open
     );
 
     const activeData = viewedJuz ? juzDetail : surahDetail;
     const isLoading = viewedJuz ? juzLoading : surahLoading;
     const isFetching = viewedJuz ? juzFetching : surahFetching;
+    const isFetchingNextPage = viewedJuz ? juzFetchingNext : surahFetchingNext;
+    const hasNextPage = viewedJuz ? juzHasNext : surahHasNext;
+    const fetchNextPage = viewedJuz ? juzFetchNext : surahFetchNext;
+    const pagination = viewedJuz ? juzPagination : surahPagination;
+    const isJumping = !!targetAyahNum;
 
     // Detect if the currently displayed data belongs to a previous surah/juz (stale due to keepPreviousData)
     const isDataStale = !isLoading && isFetching && (
@@ -80,14 +109,49 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
 
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
+    // Effect to handle sequential jump fetching
+    React.useEffect(() => {
+        if (!targetAyahNum || !activeData?.ayat || isFetchingNextPage) return;
+
+        const found = activeData.ayat.find((a: Ayah) => a.nomorAyat === targetAyahNum);
+        if (found) {
+            handleAyahJump(found);
+            setTargetAyahNum(null);
+        } else if (hasNextPage) {
+            fetchNextPage();
+        } else {
+            // Reached end and not found
+            setTargetAyahNum(null);
+        }
+    }, [activeData?.ayat, targetAyahNum, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    // Sync scroll to active ayah
+    React.useEffect(() => {
+        if (currentAyah && isRightPanelOpen && !isJumping) {
+            // Check if we are viewing the surah/juz that is currently playing
+            const playingSurahNum = currentAyah.surahInfo?.nomor || playingSurah?.nomor;
+            const isPlayingViewedSurah = !viewedJuz && playingSurahNum === viewedSurah?.nomor;
+            const isPlayingViewedJuz = viewedJuz && (currentAyah.juzNumber === viewedJuz);
+
+            if (isPlayingViewedSurah || isPlayingViewedJuz) {
+                // Use a slightly longer delay for auto-scroll to feel more natural
+                const timeoutId = setTimeout(() => {
+                    handleAyahJump(currentAyah);
+                }, 100);
+                return () => clearTimeout(timeoutId);
+            }
+        }
+    }, [currentAyah?.nomorAyat, currentAyah?.surahInfo?.nomor, isRightPanelOpen, viewedSurah?.nomor, viewedJuz, playingSurah?.nomor]);
+
     // Sync refreshed ayah data for audio
     React.useEffect(() => {
-        if (currentAyah && activeData) {
-            const updatedAyah = activeData.ayat?.find(a =>
+        if (currentAyah && activeData?.ayat && playingSurah) {
+            const updatedAyah = activeData.ayat.find((a: Ayah) =>
                 a.nomorAyat === currentAyah.nomorAyat &&
-                (!viewedJuz || a.surahInfo?.nomor === currentAyah.surahInfo?.nomor)
+                (a.surahInfo?.nomor || viewedSurah?.nomor) === (currentAyah.surahInfo?.nomor || playingSurah?.nomor)
             );
-            if (updatedAyah && !currentAyah.audio[selectedReciterId] && updatedAyah.audio[selectedReciterId]) {
+
+            if (updatedAyah && !currentAyah.audio[selectedReciterId]?.url && updatedAyah.audio[selectedReciterId]?.url) {
                 playAyah(updatedAyah, playingSurah!, activeData.ayat);
             }
         }
@@ -96,7 +160,18 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
     // Handlers
     const handleAyahJump = (ayah: Ayah) => {
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-        const delay = isMobile ? 400 : 250;
+        const delay = isMobile ? 400 : 150;
+
+        // If ayah only contains nomorAyat (virtual result), we need to fetch it first
+        if (Object.keys(ayah).length === 1 && ayah.nomorAyat) {
+            const existing = activeData?.ayat?.find((a: Ayah) => a.nomorAyat === ayah.nomorAyat);
+            if (existing) {
+                handleAyahJump(existing);
+            } else {
+                setTargetAyahNum(ayah.nomorAyat);
+            }
+            return;
+        }
 
         setTimeout(() => {
             const container = scrollContainerRef.current;
@@ -107,7 +182,12 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
 
             const mainId = `ayah-${surahNum}-${ayah.nomorAyat}`;
             const element = document.getElementById(npId) || document.getElementById(mainId);
-            if (!element) return;
+
+            if (!element) {
+                // If element still not in DOM, maybe try one more time or just set target
+                if (!targetAyahNum) setTargetAyahNum(ayah.nomorAyat);
+                return;
+            }
 
             const targetContainer = (container && container.contains(element))
                 ? container
@@ -158,20 +238,10 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
 
     return (
         <>
-            <motion.div
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={{
-                    type: 'spring',
-                    damping: 30,
-                    stiffness: 220,
-                    mass: 0.8
-                }}
+            <div
                 className={cn(
-                    "flex flex-col shadow-2xl z-50",
-                    "fixed inset-0 w-full h-screen",
-                    "lg:relative lg:inset-auto lg:w-[480px] xl:w-[560px] lg:h-full lg:border-l lg:border-white/10",
+                    "flex flex-col h-full w-full",
+                    "lg:border-l lg:border-white/10",
                     "bg-[#0a0a0a] lg:bg-[#121212]/95 lg:backdrop-blur-3xl"
                 )}
             >
@@ -184,6 +254,9 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                     setViewedSurah={setViewedSurah}
                     setViewedJuz={setViewedJuz}
                     scrollContainerRef={scrollContainerRef}
+                    activeData={activeData}
+                    handleAyahJump={handleAyahJump}
+                    pagination={pagination}
                 />
 
                 {isFetching && (
@@ -197,11 +270,14 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
 
                 <button
                     onClick={() => setRightPanelOpen(false)}
-                    className="absolute top-1/2 -left-4 -translate-y-1/2 z-50 w-8 h-16 rounded-l-2xl bg-primary/10 hover:bg-primary/20 border-l border-y border-primary/20 backdrop-blur-3xl hidden lg:flex items-center justify-center text-primary/60 hover:text-primary transition-all shadow-[-10px_0_30px_rgba(0,0,0,0.5)] group/close-side"
+                    className={cn(
+                        "absolute top-1/2 -left-5 -translate-y-1/2 z-50 hidden lg:flex flex-col items-center justify-center w-7 h-20 rounded-l-2xl bg-gradient-to-r from-primary/20 to-primary/5 hover:from-primary/30 hover:to-primary/10 border-l border-y border-primary/25 hover:border-primary/40 backdrop-blur-xl text-primary/60 hover:text-primary transition-all duration-300 group/close shadow-lg shadow-black/20 cursor-pointer",
+                        isRightPanelOpen ? "opacity-100 translate-x-0" : "opacity-0 pointer-events-none translate-x-4"
+                    )}
                 >
-                    <motion.div animate={{ rotate: 0 }} className="cursor-pointer">
-                        <motion.div whileHover={{ x: 2 }}><ChevronRight className="w-4 h-4" /></motion.div>
-                    </motion.div>
+                    {/* Accent line */}
+                    <div className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full bg-primary/40 group-hover/close:bg-primary/70 transition-colors" />
+                    <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/close:translate-x-0.5" />
                 </button>
 
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0">
@@ -221,7 +297,7 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                                 viewedJuz={viewedJuz}
                                 viewedSurah={viewedSurah}
                                 activeData={activeData}
-                                handleTafsirClick={handleTafsirClick}
+                                onOpenInfo={() => setInfoOpen(true)}
                                 onOpenTajweed={onOpenTajweed}
                                 reciters={reciters}
                                 selectedReciterId={selectedReciterId}
@@ -247,19 +323,28 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                                 handleOpenMenu={handleOpenMenu}
                                 viewedSurah={viewedSurah}
                                 viewedJuz={viewedJuz}
+                                hasNextPage={hasNextPage}
+                                isFetchingNextPage={isFetchingNextPage}
+                                fetchNextPage={fetchNextPage}
+                                pagination={pagination}
+                                isJumping={!!targetAyahNum}
                             />
                         </div>
                     )}
                 </div>
 
                 {currentAyah && (
-                    <div className="mt-auto bg-[#121212] border-t border-white/5 p-4 sm:p-6 py-5 flex flex-col gap-4 sm:gap-5 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-                        <SidebarProgress />
-                        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-                            <div className="w-full lg:w-auto flex justify-center lg:justify-start lg:flex-1 min-w-0">
+                    <div className="mt-auto bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 shadow-[0_-20px_40px_rgba(0,0,0,0.6)] flex flex-col relative">
+                        {/* Progress bar at the very top for mobile, slightly inset for desktop */}
+                        <div className="absolute top-0 left-0 right-0 lg:px-6">
+                            <SidebarProgress />
+                        </div>
+
+                        <div className="px-5 py-2 lg:p-6 lg:pt-8 flex flex-col lg:flex-row items-center justify-between gap-2 lg:gap-5">
+                            <div className="flex lg:w-auto justify-center lg:justify-start lg:flex-1 min-w-0">
                                 <SidebarActiveInfo />
                             </div>
-                            <div className="flex flex-col items-center gap-3">
+                            <div className="flex flex-col items-center py-1">
                                 <SidebarControls />
                             </div>
                             <div className="hidden lg:flex lg:flex-1 justify-end">
@@ -268,7 +353,7 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                         </div>
                     </div>
                 )}
-            </motion.div>
+            </div>
 
             <SettingsDrawer
                 isSettingsOpen={isSettingsOpen}
@@ -305,7 +390,14 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                 ayahNumber={activeAyahForTafsir?.nomorAyat || 0}
                 surahNumber={activeAyahForTafsir?.surahInfo?.nomor || viewedSurah?.nomor}
                 surahName={activeAyahForTafsir?.surahInfo?.namaLatin || viewedSurah?.namaLatin || ""}
-                tafsirText={undefined}
+                tafsirId={tafsirId}
+            />
+
+            <SurahInfo
+                isOpen={infoOpen}
+                onOpenChange={setInfoOpen}
+                surahNumber={viewedSurah?.nomor || activeAyahForTafsir?.surahInfo?.nomor || 0}
+                surahName={viewedSurah?.namaLatin || activeAyahForTafsir?.surahInfo?.namaLatin || ""}
             />
         </>
     );
