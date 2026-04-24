@@ -5,6 +5,7 @@ import { ReactNode, useState } from "react";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { QuranAuthProvider } from "@/contexts/QuranAuthContext";
 import QuranDataPrefetcher from "./quran/QuranDataPrefetcher";
 
 export default function Providers({ children }: { children: ReactNode }) {
@@ -25,11 +26,13 @@ export default function Providers({ children }: { children: ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <QuranDataPrefetcher />
             <AuthProvider>
-                <SearchProvider>
-                    <AudioProvider>
-                        {children}
-                    </AudioProvider>
-                </SearchProvider>
+                <QuranAuthProvider>
+                    <SearchProvider>
+                        <AudioProvider>
+                            {children}
+                        </AudioProvider>
+                    </SearchProvider>
+                </QuranAuthProvider>
             </AuthProvider>
         </QueryClientProvider>
     );
