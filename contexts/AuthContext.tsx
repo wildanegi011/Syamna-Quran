@@ -43,16 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Jalur alternatif jika provider malah redirect ke /quran bukannya ke /api
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
-
-    if (code && state && window.location.pathname === "/quran") {
-      window.location.href = `/api/quran/auth/callback?code=${code}&state=${state}`;
-      return;
-    }
-
     checkAuth();
   }, []);
 
