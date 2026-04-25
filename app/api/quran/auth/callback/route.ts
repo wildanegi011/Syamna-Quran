@@ -16,15 +16,24 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    // Ambil values yang disimpan saat login
     const storedState = req.cookies.get("qf_oauth_state")?.value;
     const verifier = req.cookies.get("qf_pkce_verifier")?.value;
+
+    console.log("QF OAuth Callback Debug:", {
+        returnedState,
+        storedState,
+        hasVerifier: !!verifier,
+        cookies: req.cookies.getAll().map(c => c.name)
+    });
 
     // --- Validasi ---
 
     // 1. Validasi state (CSRF protection)
     if (!returnedState || !storedState || returnedState !== storedState) {
-        console.error("QF OAuth: State mismatch — possible CSRF attack");
+        console.error("QF OAuth: State mismatch — possible CSRF attack", {
+            returned: returnedState,
+            stored: storedState
+        });
         return NextResponse.redirect(
             `https://syamna-quran.netlify.app/quran?error=oauth_state_mismatch`
         );
@@ -84,9 +93,9 @@ export async function GET(req: NextRequest) {
 
         const secureCookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
             path: "/",
-            sameSite: "lax" as const,
+            sameSite: "none" as const,
         };
 
         // Access token — set maxAge sesuai expires_in
