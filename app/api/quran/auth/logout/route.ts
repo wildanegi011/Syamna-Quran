@@ -5,9 +5,22 @@ export async function GET(req: NextRequest) {
     const { origin } = new URL(req.url);
     const idToken = req.cookies.get("qf_id_token")?.value;
 
-    const res = NextResponse.redirect(`https://syamna-quran.netlify.app/quran`);
+    // Gunakan origin saat ini untuk post_logout_redirect_uri agar dinamis (mendukung dev dan prod)
+    const postLogoutRedirectUri = `${origin}/quran`;
+    
+    // Endpoint logout resmi QF (berdasarkan OIDC spec)
+    let logoutUrl = `${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/sessions/logout`;
+    
+    if (idToken) {
+        logoutUrl += `?id_token_hint=${idToken}&post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+    } else {
+        // Jika tidak ada idToken, langsung redirect ke halaman utama
+        logoutUrl = postLogoutRedirectUri;
+    }
 
-    // Hapus semua QF cookies (tanpa mengganggu Supabase session)
+    const res = NextResponse.redirect(logoutUrl);
+
+    // Hapus semua QF cookies (tanpa mengganggu Supabase session jika ada)
     const qfCookies = [
         "qf_access_token",
         "qf_refresh_token",
