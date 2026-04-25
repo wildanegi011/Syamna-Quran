@@ -5,8 +5,8 @@ export async function GET(req: NextRequest) {
     const { origin } = new URL(req.url);
     const idToken = req.cookies.get("qf_id_token")?.value;
 
-    // Gunakan origin saat ini untuk post_logout_redirect_uri agar dinamis (mendukung dev dan prod)
-    const postLogoutRedirectUri = `${origin}/quran`;
+    // Gunakan URL produksi utama untuk post_logout_redirect_uri agar konsisten
+    const postLogoutRedirectUri = `https://syamna-quran.netlify.app/quran`;
     
     // Endpoint logout resmi QF (berdasarkan OIDC spec)
     let logoutUrl = `${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/sessions/logout`;

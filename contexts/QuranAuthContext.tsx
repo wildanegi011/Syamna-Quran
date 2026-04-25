@@ -53,12 +53,12 @@ export function QuranAuthProvider({ children }: { children: React.ReactNode }) {
 
     const connectQuranAccount = () => {
         // Redirect ke QF OAuth login — akan kembali ke /quran setelah selesai
-        window.location.href = "/api/quran/auth/login";
+        window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/login";
     };
 
     const disconnectQuranAccount = () => {
         // Redirect ke QF logout — akan kembali ke /quran
-        window.location.href = "/api/quran/auth/logout";
+        window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/logout";
     };
 
     const refreshStatus = async () => {
