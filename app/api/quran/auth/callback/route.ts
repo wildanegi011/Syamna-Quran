@@ -28,7 +28,14 @@ export async function GET(req: NextRequest) {
 
     // --- Validasi ---
 
-    // 1. Validasi state (CSRF protection)
+    // 1. Cek apakah sebenarnya sudah berhasil login di request sebelumnya (mencegah error double-redirect)
+    const alreadyConnected = req.cookies.get("qf_connected")?.value === "true";
+    if (alreadyConnected && (!returnedState || !storedState)) {
+        console.log("QF OAuth: Redirecting already connected user (double-request handled)");
+        return NextResponse.redirect(`https://syamna-quran.netlify.app/quran`);
+    }
+
+    // 2. Validasi state (CSRF protection)
     if (!returnedState || !storedState || returnedState !== storedState) {
         console.error("QF OAuth: State mismatch — possible CSRF attack", {
             returned: returnedState,
