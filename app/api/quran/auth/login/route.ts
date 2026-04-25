@@ -1,27 +1,34 @@
 import { NextResponse } from "next/server";
-import {
-    generatePkcePair,
-    randomString,
-} from "@/lib/pkce";
+import { generatePkcePair, randomString } from "@/lib/pkce";
 import { CONFIG } from "@/lib/api-config";
 
 export async function GET() {
-
-
     const { codeVerifier, codeChallenge } = generatePkcePair();
     const state = randomString(16);
     const nonce = randomString(16);
 
+    // Scopes optimized for Quran Foundation usage
     const scopes = [
         "openid",
         "offline_access",
-        "user",
+        "content",
+        "search",
+        "bookmark",
         "collection",
+        "reading_session",
+        "preference",
+        "activity_day",
+        "goal",
+        "streak",
+        "user",
+        "post",
+        "comment",
+        "room",
+        "tag",
+        "note"
     ].join(" ");
 
-    const url = new URL(
-        `${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/auth`
-    );
+    const url = new URL(`${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/auth`);
 
     url.searchParams.set("response_type", "code");
     url.searchParams.set("client_id", CONFIG.QURAN_FOUNDATION_CLIENT_ID);
@@ -35,16 +42,15 @@ export async function GET() {
 
     const res = NextResponse.redirect(url.toString());
 
-    // Simpan PKCE verifier, state, dan nonce di httpOnly cookies
-    // Cookies ini akan divalidasi/dipakai di callback route
     const cookieOptions = {
         httpOnly: true,
         secure: true,
         path: "/",
-        maxAge: 600, // 10 menit
+        maxAge: 600, // 10 minutes for temporary auth state
         sameSite: "none" as const,
     };
 
+    // Store PKCE and OAuth state in secure cookies for callback validation
     res.cookies.set("qf_pkce_verifier", codeVerifier, cookieOptions);
     res.cookies.set("qf_oauth_state", state, cookieOptions);
     res.cookies.set("qf_oauth_nonce", nonce, cookieOptions);

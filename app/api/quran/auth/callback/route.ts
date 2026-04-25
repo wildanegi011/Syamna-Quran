@@ -2,67 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import { CONFIG } from "@/lib/api-config";
 
 export async function GET(req: NextRequest) {
-    const { searchParams, origin } = new URL(req.url);
+    const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
     const returnedState = searchParams.get("state");
     const providerError = searchParams.get("error");
     const providerErrorDesc = searchParams.get("error_description");
 
-    // Jika provider mengirim error
+    const baseUrl = "https://syamna-quran.netlify.app/quran";
+
+    // Handle provider errors
     if (providerError) {
         console.error("QF OAuth Provider Error:", providerError, providerErrorDesc);
-        return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=provider_error&detail=${encodeURIComponent(providerError)}`
-        );
+        return NextResponse.redirect(`${baseUrl}?error=provider_error&detail=${encodeURIComponent(providerError)}`);
     }
 
     const storedState = req.cookies.get("qf_oauth_state")?.value;
     const verifier = req.cookies.get("qf_pkce_verifier")?.value;
 
-    console.log("QF OAuth Callback Debug:", {
-        returnedState,
-        storedState,
-        hasVerifier: !!verifier,
-        cookies: req.cookies.getAll().map(c => c.name)
-    });
-
-    // --- Validasi ---
-
-    // 1. Cek apakah sebenarnya sudah berhasil login di request sebelumnya (mencegah error double-redirect)
+    // 1. Handle double-redirects (already connected)
     const alreadyConnected = req.cookies.get("qf_connected")?.value === "true";
     if (alreadyConnected && (!returnedState || !storedState)) {
-        console.log("QF OAuth: Redirecting already connected user (double-request handled)");
-        return NextResponse.redirect(`https://syamna-quran.netlify.app/quran`);
+        return NextResponse.redirect(baseUrl);
     }
 
-    // 2. Validasi state (CSRF protection)
+    // 2. Validate state (CSRF protection)
     if (!returnedState || !storedState || returnedState !== storedState) {
-        console.error("QF OAuth: State mismatch — possible CSRF attack", {
-            returned: returnedState,
-            stored: storedState
-        });
-        return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=oauth_state_mismatch`
-        );
+        console.error("QF OAuth: State mismatch");
+        return NextResponse.redirect(`${baseUrl}?error=oauth_state_mismatch`);
     }
 
-    // 2. Validasi code & verifier ada
-    if (!code) {
-        console.error("QF OAuth: Missing code from provider");
-        return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=oauth_missing_code`
-        );
-    }
-
-    if (!verifier) {
-        console.error("QF OAuth: Missing verifier from cookies");
-        return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=oauth_missing_verifier`
-        );
+    // 3. Validate code and PKCE verifier
+    if (!code || !verifier) {
+        console.error("QF OAuth: Missing code or verifier");
+        return NextResponse.redirect(`${baseUrl}?error=oauth_invalid_request`);
     }
 
     // --- Token Exchange ---
-    // Confidential client: gunakan Basic Auth (client_id:client_secret)
     const credentials = Buffer.from(
         `${CONFIG.QURAN_FOUNDATION_CLIENT_ID}:${CONFIG.QURAN_FOUNDATION_CLIENT_SECRET}`
     ).toString("base64");
@@ -88,16 +63,11 @@ export async function GET(req: NextRequest) {
         if (!tokenRes.ok) {
             const errorData = await tokenRes.json().catch(() => ({}));
             console.error("QF OAuth: Token exchange failed:", errorData);
-            return NextResponse.redirect(
-                `https://syamna-quran.netlify.app/quran?error=oauth_token_exchange_failed`
-            );
+            return NextResponse.redirect(`${baseUrl}?error=oauth_token_exchange_failed`);
         }
 
         const data = await tokenRes.json();
-
-        // --- Simpan tokens di httpOnly cookies ---
-        const res = NextResponse.redirect(`https://syamna-quran.netlify.app/quran`);
-
+        const res = NextResponse.redirect(baseUrl);
         const secureCookieOptions = {
             httpOnly: true,
             secure: true,
@@ -105,21 +75,19 @@ export async function GET(req: NextRequest) {
             sameSite: "none" as const,
         };
 
-        // Access token — set maxAge sesuai expires_in
+        // Persist tokens in secure httpOnly cookies
         res.cookies.set("qf_access_token", data.access_token, {
             ...secureCookieOptions,
             maxAge: data.expires_in || 3600,
         });
 
-        // Refresh token — long-lived
         if (data.refresh_token) {
             res.cookies.set("qf_refresh_token", data.refresh_token, {
                 ...secureCookieOptions,
-                maxAge: 30 * 24 * 60 * 60, // 30 hari
+                maxAge: 30 * 24 * 60 * 60, // 30 days
             });
         }
 
-        // ID token — untuk user info (sub, email)
         if (data.id_token) {
             res.cookies.set("qf_id_token", data.id_token, {
                 ...secureCookieOptions,
@@ -127,31 +95,28 @@ export async function GET(req: NextRequest) {
             });
         }
 
-        // Simpan expires_at untuk frontend
+        // Expose connection state and expiry to the frontend
         const expiresAt = Date.now() + (data.expires_in || 3600) * 1000;
         res.cookies.set("qf_expires_at", expiresAt.toString(), {
             ...secureCookieOptions,
-            httpOnly: false, // Frontend perlu baca ini
+            httpOnly: false,
             maxAge: data.expires_in || 3600,
         });
 
-        // Simpan flag connected (readable by frontend)
         res.cookies.set("qf_connected", "true", {
             ...secureCookieOptions,
-            httpOnly: false, // Frontend perlu baca ini
-            maxAge: 30 * 24 * 60 * 60, // 30 hari
+            httpOnly: false,
+            maxAge: 30 * 24 * 60 * 60,
         });
 
-        // Cleanup temporary cookies
+        // Cleanup temporary auth cookies
         res.cookies.delete("qf_pkce_verifier");
         res.cookies.delete("qf_oauth_state");
         res.cookies.delete("qf_oauth_nonce");
 
         return res;
     } catch (error) {
-        console.error("QF OAuth: Unexpected error during token exchange:", error);
-        return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=oauth_unexpected_error`
-        );
+        console.error("QF OAuth: Unexpected error:", error);
+        return NextResponse.redirect(`${baseUrl}?error=oauth_unexpected_error`);
     }
 }

@@ -2,27 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { CONFIG } from "@/lib/api-config";
 
 export async function GET(req: NextRequest) {
-    const { origin } = new URL(req.url);
     const idToken = req.cookies.get("qf_id_token")?.value;
-
-    // Gunakan URL produksi utama untuk post_logout_redirect_uri (sesuai permintaan user)
     const postLogoutRedirectUri = `https://syamna-quran.netlify.app`;
-
-    // Endpoint logout resmi QF (berdasarkan OIDC spec)
+    
+    // RP-Initiated Logout URL according to OIDC spec
     let logoutUrl = `${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/sessions/logout`;
-
-    console.log("QF OAuth Logout: idToken found?", !!idToken);
-
+    
     if (idToken) {
-        logoutUrl += `?id_token_hint=${idToken}&post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}&client_id=${CONFIG.QURAN_FOUNDATION_CLIENT_ID}`;
+        const params = new URLSearchParams({
+            id_token_hint: idToken,
+            post_logout_redirect_uri: postLogoutRedirectUri,
+            client_id: CONFIG.QURAN_FOUNDATION_CLIENT_ID
+        });
+        logoutUrl += `?${params.toString()}`;
     } else {
-        // Jika tidak ada idToken, langsung redirect ke halaman utama
         logoutUrl = postLogoutRedirectUri;
     }
 
     const res = NextResponse.redirect(logoutUrl);
 
-    // Hapus semua QF cookies (tanpa mengganggu Supabase session jika ada)
+    // Clear all app cookies related to Quran Foundation
     const qfCookies = [
         "qf_access_token",
         "qf_refresh_token",

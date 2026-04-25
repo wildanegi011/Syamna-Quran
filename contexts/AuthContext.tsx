@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type AuthContextType = {
   user: any | null;
@@ -15,7 +14,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   const checkAuth = async () => {
     try {
@@ -27,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: data.user.sub,
           email: data.user.email,
           user_metadata: {
-            full_name: `${data.user.firstName} ${data.user.lastName}`,
+            full_name: `${data.user.firstName || ""} ${data.user.lastName || ""}`.trim(),
             avatar_url: data.user.picture || null,
           }
         });
@@ -43,25 +41,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Jika QF mengirim code ke /quran (bukan ke /api/quran/auth/callback),
-    // forward ke API callback. Gunakan sessionStorage untuk mencegah infinite loop.
     if (typeof window !== "undefined" && window.location.pathname === "/quran") {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get("code");
       const state = urlParams.get("state");
 
       if (code && state) {
-        const forwardKey = `qf_forwarded_${state}`;
+        // Forward code/state to API callback if redirected to /quran directly (QF Dashboard issue)
+        const forwardKey = `qf_fwd_${state}`;
         if (!sessionStorage.getItem(forwardKey)) {
           sessionStorage.setItem(forwardKey, "true");
-          window.location.href = `https://syamna-quran.netlify.app/api/quran/auth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+          const callbackUrl = new URL("https://syamna-quran.netlify.app/api/quran/auth/callback");
+          callbackUrl.searchParams.set("code", code);
+          callbackUrl.searchParams.set("state", state);
+          window.location.href = callbackUrl.toString();
           return;
         }
-        // Jika sudah pernah di-forward dengan state ini, bersihkan URL dan lanjutkan
+        // Cleanup URL if already forwarded
         window.history.replaceState({}, "", "/quran");
       }
     }
-
     checkAuth();
   }, []);
 
@@ -86,4 +85,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
