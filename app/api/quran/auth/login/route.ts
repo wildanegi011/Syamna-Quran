@@ -15,14 +15,8 @@ export async function GET() {
 
     const scopes = [
         "openid",
-        "offline_access",
         "bookmark",
         "collection",
-        "reading_session",
-        "preference",
-        "goal",
-        "streak",
-        "user",
     ].join(" ");
 
     const url = new URL(
