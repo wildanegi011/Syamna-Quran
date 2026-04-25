@@ -12,18 +12,20 @@ export async function GET() {
         "openid",
         "offline_access",
         "content",
-        "search",
+        // "search",
         "bookmark",
         "collection",
-        "reading_session",
-        "preference",
-        "activity_day",
-        "goal",
-        "streak",
-        "user",
-        "post",
-        "comment",
-
+        // "reading_session",
+        // "preference",
+        // "activity_day",
+        // "goal",
+        // "streak",
+        // "user",
+        // "post",
+        // "comment",
+        // "room",
+        // "tag",
+        // "note"
     ].join(" ");
 
     const url = new URL(`${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/auth`);
