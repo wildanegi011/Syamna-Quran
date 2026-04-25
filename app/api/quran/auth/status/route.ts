@@ -38,8 +38,12 @@ export async function GET(req: NextRequest) {
         }
     }
 
+    const scopeStr = req.cookies.get("qf_scope")?.value || "";
+    const scopes = scopeStr ? scopeStr.split(" ") : [];
+
     return NextResponse.json({
         connected: true,
         user,
+        scopes,
     });
 }

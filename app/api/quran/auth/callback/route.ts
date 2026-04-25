@@ -109,6 +109,15 @@ export async function GET(req: NextRequest) {
             maxAge: 30 * 24 * 60 * 60,
         });
 
+        // Simpan daftar scope yang aktif
+        if (data.scope) {
+            res.cookies.set("qf_scope", data.scope, {
+                ...secureCookieOptions,
+                httpOnly: false, // Biar bisa dibaca frontend/user
+                maxAge: 30 * 24 * 60 * 60,
+            });
+        }
+
         // Cleanup temporary auth cookies
         res.cookies.delete("qf_pkce_verifier");
         res.cookies.delete("qf_oauth_state");

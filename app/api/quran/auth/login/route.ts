@@ -23,9 +23,7 @@ export async function GET() {
         "user",
         "post",
         "comment",
-        "room",
-        "tag",
-        "note"
+
     ].join(" ");
 
     const url = new URL(`${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/auth`);
