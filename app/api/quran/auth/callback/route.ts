@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     if (providerError) {
         console.error("QF OAuth Provider Error:", providerError, providerErrorDesc);
         return NextResponse.redirect(
-            `${origin}/quran?error=provider_error&detail=${encodeURIComponent(providerError)}`
+            `https://syamna-quran.netlify.app/quran?error=provider_error&detail=${encodeURIComponent(providerError)}`
         );
     }
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     if (!returnedState || !storedState || returnedState !== storedState) {
         console.error("QF OAuth: State mismatch — possible CSRF attack");
         return NextResponse.redirect(
-            `${origin}/quran?error=oauth_state_mismatch`
+            `https://syamna-quran.netlify.app/quran?error=oauth_state_mismatch`
         );
     }
 
@@ -34,14 +34,14 @@ export async function GET(req: NextRequest) {
     if (!code) {
         console.error("QF OAuth: Missing code from provider");
         return NextResponse.redirect(
-            `${origin}/quran?error=oauth_missing_code`
+            `https://syamna-quran.netlify.app/quran?error=oauth_missing_code`
         );
     }
 
     if (!verifier) {
         console.error("QF OAuth: Missing verifier from cookies");
         return NextResponse.redirect(
-            `${origin}/quran?error=oauth_missing_verifier`
+            `https://syamna-quran.netlify.app/quran?error=oauth_missing_verifier`
         );
     }
 
@@ -73,14 +73,14 @@ export async function GET(req: NextRequest) {
             const errorData = await tokenRes.json().catch(() => ({}));
             console.error("QF OAuth: Token exchange failed:", errorData);
             return NextResponse.redirect(
-                `${origin}/quran?error=oauth_token_exchange_failed`
+                `https://syamna-quran.netlify.app/quran?error=oauth_token_exchange_failed`
             );
         }
 
         const data = await tokenRes.json();
 
         // --- Simpan tokens di httpOnly cookies ---
-        const res = NextResponse.redirect(`${origin}/quran`);
+        const res = NextResponse.redirect(`https://syamna-quran.netlify.app/quran`);
 
         const secureCookieOptions = {
             httpOnly: true,
