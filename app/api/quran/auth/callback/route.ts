@@ -151,7 +151,7 @@ export async function GET(req: NextRequest) {
     } catch (error) {
         console.error("QF OAuth: Unexpected error during token exchange:", error);
         return NextResponse.redirect(
-            `${origin}/quran?error=oauth_unexpected_error`
+            `https://syamna-quran.netlify.app/quran?error=oauth_unexpected_error`
         );
     }
 }

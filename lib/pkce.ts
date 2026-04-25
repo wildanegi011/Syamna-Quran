@@ -1,20 +1,21 @@
 import crypto from "crypto";
 
-export function generateCodeVerifier() {
-    return crypto.randomBytes(32).toString("base64url");
+
+function base64url(buf: Buffer) {
+    return buf
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
 }
 
-export function generateCodeChallenge(verifier: string) {
-    return crypto
-        .createHash("sha256")
-        .update(verifier)
-        .digest("base64url");
+export function generatePkcePair() {
+    const codeVerifier = base64url(crypto.randomBytes(32));
+    const hash = crypto.createHash("sha256").update(codeVerifier).digest();
+    const codeChallenge = base64url(hash);
+    return { codeVerifier, codeChallenge };
 }
 
-export function generateState() {
-    return crypto.randomBytes(16).toString("hex");
-}
-
-export function generateNonce() {
-    return crypto.randomBytes(16).toString("hex");
+export function randomString(bytes = 16) {
+    return crypto.randomBytes(bytes).toString("hex");
 }
