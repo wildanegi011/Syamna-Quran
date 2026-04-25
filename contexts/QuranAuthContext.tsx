@@ -35,7 +35,7 @@ export function QuranAuthProvider({ children }: { children: React.ReactNode }) {
 
     const checkStatus = useCallback(async () => {
         try {
-            const res = await fetch("/api/quran/status");
+            const res = await fetch("/api/quran/auth/status");
             const data = await res.json();
             setIsConnected(data.connected);
             setQfUser(data.user);
