@@ -29,6 +29,7 @@ export async function GET() {
     url.searchParams.set("scope", scopes);
     url.searchParams.set("state", state);
     url.searchParams.set("nonce", nonce);
+    url.searchParams.set("prompt", "login");
     url.searchParams.set("code_challenge", codeChallenge);
     url.searchParams.set("code_challenge_method", "S256");
 
