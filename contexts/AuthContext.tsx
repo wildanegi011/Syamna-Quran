@@ -43,6 +43,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // Jika QF mengirim code ke /quran (bukan ke /api/quran/auth/callback),
+    // forward ke API callback. Gunakan sessionStorage untuk mencegah infinite loop.
+    if (typeof window !== "undefined" && window.location.pathname === "/quran") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const state = urlParams.get("state");
+
+      if (code && state) {
+        const forwardKey = `qf_forwarded_${state}`;
+        if (!sessionStorage.getItem(forwardKey)) {
+          sessionStorage.setItem(forwardKey, "true");
+          window.location.href = `https://syamna-quran.netlify.app/api/quran/auth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+          return;
+        }
+        // Jika sudah pernah di-forward dengan state ini, bersihkan URL dan lanjutkan
+        window.history.replaceState({}, "", "/quran");
+      }
+    }
+
     checkAuth();
   }, []);
 
