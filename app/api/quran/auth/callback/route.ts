@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     if (providerError) {
         console.error("QF OAuth Provider Error:", providerError, providerErrorDesc);
         return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=provider_error&detail=${encodeURIComponent(providerError)}`
+            `${origin}/quran?error=provider_error&detail=${encodeURIComponent(providerError)}`
         );
     }
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     if (!returnedState || !storedState || returnedState !== storedState) {
         console.error("QF OAuth: State mismatch — possible CSRF attack");
         return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=oauth_state_mismatch`
+            `${origin}/quran?error=oauth_state_mismatch`
         );
     }
 
@@ -34,14 +34,14 @@ export async function GET(req: NextRequest) {
     if (!code) {
         console.error("QF OAuth: Missing code from provider");
         return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=oauth_missing_code`
+            `${origin}/quran?error=oauth_missing_code`
         );
     }
 
     if (!verifier) {
         console.error("QF OAuth: Missing verifier from cookies");
         return NextResponse.redirect(
-            `https://syamna-quran.netlify.app/quran?error=oauth_missing_verifier`
+            `${origin}/quran?error=oauth_missing_verifier`
         );
     }
 
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
         const data = await tokenRes.json();
 
         // --- Simpan tokens di httpOnly cookies ---
-        const res = NextResponse.redirect(`https://syamna-quran.netlify.app/quran`);
+        const res = NextResponse.redirect(`${origin}/quran`);
 
         const secureCookieOptions = {
             httpOnly: true,

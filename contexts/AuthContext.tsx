@@ -60,10 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     signOut: async () => {
-      window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/logout";
+      window.location.href = "/api/quran/auth/logout";
     },
     signInWithGoogle: async () => {
-      window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/login";
+      window.location.href = "/api/quran/auth/login";
     },
   };
 
