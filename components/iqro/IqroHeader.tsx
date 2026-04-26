@@ -66,7 +66,8 @@ export function IqroHeader({ levelId, levelTitle, currentPage, totalPages }: Iqr
                             <LogOut className="absolute inset-0 m-auto w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                     </div>
-                ) : (
+                ) : null}
+                {false && !user && (
                     <Button 
                         variant="outline" 
                         size="sm" 

@@ -220,7 +220,8 @@ export function Navbar() {
                       Keluar
                     </Button>
                   </div>
-                ) : (
+                ) : null}
+                {false && (
                   <Button
                     onClick={signInWithGoogle}
                     disabled={loading}

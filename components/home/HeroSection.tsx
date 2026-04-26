@@ -107,7 +107,8 @@ export function HeroSection() {
                 </div>
                 Kembali ke Dashboard
               </button>
-            ) : (
+            ) : null}
+            {false && !user && (
               <button
                 onClick={signInWithGoogle}
                 disabled={loading}

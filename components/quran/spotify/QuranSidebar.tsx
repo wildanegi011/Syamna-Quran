@@ -266,7 +266,8 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
                                 <LogOut className="w-4 h-4" />
                             </button>
                         </div>
-                    ) : (
+                    ) : null}
+                    {false && !user && (
                         <Button
                             onClick={signInWithGoogle}
                             disabled={authLoading}

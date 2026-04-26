@@ -181,7 +181,8 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                 <LogOut className="w-4 h-4" />
                             </button>
                         </div>
-                    ) : (
+                    ) : null}
+                    {false && !user && (
                         <Button
                             onClick={signInWithGoogle}
                             variant="outline"
