@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { CONFIG } from "@/lib/api-config";
 
 type AuthContextType = {
   user: any | null;
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const forwardKey = `qf_fwd_${state}`;
         if (!sessionStorage.getItem(forwardKey)) {
           sessionStorage.setItem(forwardKey, "true");
-          const callbackUrl = new URL("https://syamna-quran.netlify.app/api/quran/auth/callback");
+          const callbackUrl = new URL(`${CONFIG.NEXT_PUBLIC_URL}/api/quran/auth/callback`);
           callbackUrl.searchParams.set("code", code);
           callbackUrl.searchParams.set("state", state);
           window.location.href = callbackUrl.toString();
@@ -68,10 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     signOut: async () => {
-      window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/logout";
+      window.location.href = `${CONFIG.NEXT_PUBLIC_URL}/api/quran/auth/logout`;
     },
     signInWithGoogle: async () => {
-      window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/login";
+      window.location.href = `${CONFIG.NEXT_PUBLIC_URL}/api/quran/auth/login`;
     },
   };
 

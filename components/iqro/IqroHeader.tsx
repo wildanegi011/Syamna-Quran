@@ -24,7 +24,7 @@ export function IqroHeader({ levelId, levelTitle, currentPage, totalPages }: Iqr
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full w-10 h-10 md:w-14 md:h-14 bg-white/50 dark:bg-white/10 hover:bg-primary/10 transition-colors border border-white/40 dark:border-white/10 shadow-lg"
+                    className="rounded-full w-10 h-10 md:w-14 md:h-14 bg-foreground/10 hover:bg-primary/10 transition-colors border border-foreground/10 shadow-lg"
                     onClick={() => router.push('/iqro')}
                 >
                     <ChevronLeft className="w-5 h-5 md:w-8 md:h-8" />
@@ -43,16 +43,16 @@ export function IqroHeader({ levelId, levelTitle, currentPage, totalPages }: Iqr
             
             <div className="flex items-center gap-4">
                 {loading ? (
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/5 animate-pulse" />
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-foreground/5 animate-pulse" />
                 ) : user ? (
                     <div className="flex items-center gap-2">
                         <div className="hidden md:flex flex-col items-end text-right">
-                            <span className="text-xs font-bold text-white leading-tight">
+                            <span className="text-xs font-bold text-foreground leading-tight">
                                 {user.user_metadata.full_name?.split(' ')[0]}
                             </span>
                             <span className="text-[8px] font-bold text-primary uppercase tracking-wide">IQRO LEARNER</span>
                         </div>
-                        <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-white/10 bg-surface-container-highest flex items-center justify-center group cursor-pointer" onClick={signOut} title="Sign Out">
+                        <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-foreground/10 bg-foreground/5 flex items-center justify-center group cursor-pointer" onClick={signOut} title="Sign Out">
                             {user.user_metadata.avatar_url ? (
                                 <Image
                                     src={user.user_metadata.avatar_url}
@@ -61,9 +61,9 @@ export function IqroHeader({ levelId, levelTitle, currentPage, totalPages }: Iqr
                                     className="object-cover group-hover:opacity-20 transition-opacity"
                                 />
                             ) : (
-                                <UserIcon className="w-4 h-4 text-white/40 group-hover:opacity-20 transition-opacity" />
+                                <UserIcon className="w-4 h-4 text-foreground/40 group-hover:opacity-20 transition-opacity" />
                             )}
-                            <LogOut className="absolute inset-0 m-auto w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <LogOut className="absolute inset-0 m-auto w-4 h-4 text-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                     </div>
                 ) : null}

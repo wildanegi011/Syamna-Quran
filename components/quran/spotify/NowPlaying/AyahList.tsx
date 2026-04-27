@@ -114,7 +114,7 @@ export function AyahJumpInput({
             <div className="relative group">
                 <Search className={cn(
                     "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-300",
-                    isFocused ? "text-primary" : "text-white/20"
+                    isFocused ? "text-primary" : "text-foreground/20"
                 )} />
                 <input
                     type="text"
@@ -126,7 +126,7 @@ export function AyahJumpInput({
                         if (e.key === 'Enter' && jumpOption) handleJump();
                     }}
                     placeholder={placeholder}
-                    className="w-full h-12 pl-11 pr-4 bg-white/[0.03] border border-white/5 rounded-2xl text-sm font-medium text-white placeholder:text-white/20 outline-none focus:border-primary/30 focus:bg-primary/5 focus:ring-4 focus:ring-primary/5 transition-all"
+                    className="w-full h-12 pl-11 pr-4 bg-foreground/[0.03] border border-foreground/5 rounded-2xl text-sm font-medium text-foreground placeholder:text-foreground/20 outline-none focus:border-primary/30 focus:bg-primary/5 focus:ring-4 focus:ring-primary/5 transition-all"
                 />
             </div>
 
@@ -135,18 +135,18 @@ export function AyahJumpInput({
                 <motion.div
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="lg:absolute relative top-full left-0 right-0 lg:mt-1 mt-2 bg-[#1a1a1a] lg:border border-white/10 rounded-xl overflow-hidden lg:shadow-2xl z-[100] max-h-[300px] overflow-y-auto custom-scrollbar"
+                    className="lg:absolute relative top-full left-0 right-0 lg:mt-1 mt-2 bg-background lg:border border-foreground/10 rounded-xl overflow-hidden lg:shadow-2xl z-[100] max-h-[300px] overflow-y-auto custom-scrollbar"
                 >
                     {filtered.map((ayah, idx) => (
                         <button
                             key={`jump-${ayah.surahInfo?.nomor || 0}-${ayah.nomorAyat}-${idx}`}
                             type="button"
                             onMouseDown={() => handleSelect(ayah)}
-                            className="w-full text-left px-5 py-4 hover:bg-primary/10 transition-colors flex items-center justify-between gap-3 border-b border-white/5 last:border-none"
+                            className="w-full text-left px-5 py-4 hover:bg-primary/10 transition-colors flex items-center justify-between gap-3 border-b border-foreground/5 last:border-none"
                         >
-                            <span className="text-xs font-bold text-white">Ayat {ayah.nomorAyat}</span>
+                            <span className="text-xs font-bold text-foreground">Ayat {ayah.nomorAyat}</span>
                             {ayah.surahInfo && (
-                                <span className="text-[10px] text-white/30 font-medium">
+                                <span className="text-[10px] text-foreground/30 font-medium">
                                     {ayah.surahInfo.namaLatin}
                                 </span>
                             )}
@@ -157,11 +157,11 @@ export function AyahJumpInput({
                         <button
                             type="button"
                             onMouseDown={handleJump}
-                            className="w-full text-left px-5 py-4 hover:bg-primary/10 transition-colors flex items-center justify-between gap-3 border-t border-white/5"
+                            className="w-full text-left px-5 py-4 hover:bg-primary/10 transition-colors flex items-center justify-between gap-3 border-t border-foreground/5"
                         >
                             <div className="flex flex-col">
                                 <span className="text-xs font-bold text-primary">Lompat ke Ayat {jumpOption}</span>
-                                <span className="text-[9px] text-white/40 font-medium uppercase tracking-tight">Data belum dimuat, klik untuk tarik otomatis</span>
+                                <span className="text-[9px] text-foreground/40 font-medium uppercase tracking-tight">Data belum dimuat, klik untuk tarik otomatis</span>
                             </div>
                             <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
                                 <ChevronDown className="w-3 h-3 text-primary -rotate-90" />
@@ -179,22 +179,22 @@ function AyahSkeleton() {
     return (
         <div className="py-6 px-2 sm:px-4 space-y-4 animate-pulse">
             {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="space-y-3 py-5 border-b border-white/[0.03]">
+                <div key={i} className="space-y-3 py-5 border-b border-foreground/5">
                     {/* Arabic text skeleton */}
                     <div className="flex justify-end gap-3">
-                        <div className="h-8 w-[85%] rounded-lg bg-white/[0.04]" />
+                        <div className="h-8 w-[85%] rounded-lg bg-foreground/[0.04]" />
                     </div>
                     <div className="flex justify-end gap-3">
-                        <div className="h-8 w-[65%] rounded-lg bg-white/[0.04]" />
+                        <div className="h-8 w-[65%] rounded-lg bg-foreground/[0.04]" />
                     </div>
                     {/* Translation skeleton */}
                     <div className="space-y-1.5 mt-3">
-                        <div className="h-3.5 w-[90%] rounded bg-white/[0.03]" />
-                        <div className="h-3.5 w-[70%] rounded bg-white/[0.03]" />
+                        <div className="h-3.5 w-[90%] rounded bg-foreground/[0.03]" />
+                        <div className="h-3.5 w-[70%] rounded bg-foreground/[0.03]" />
                     </div>
                     {/* Badge skeleton */}
                     <div className="flex items-center justify-between mt-3">
-                        <div className="h-7 w-20 rounded-full bg-white/[0.04]" />
+                        <div className="h-7 w-20 rounded-full bg-foreground/[0.04]" />
                     </div>
                 </div>
             ))}
@@ -257,7 +257,7 @@ export const AyahList = ({
                     transition={{ duration: 0.3, ease: "easeOut" }}
                     className={cn("flex-1 flex flex-col", (isFetching && !isFetchingNextPage && !isDataStale) && "opacity-60")}
                 >
-                    <div className="hidden lg:block sticky top-0 z-30 pt-3 pb-3 bg-[#0a0a0a] lg:bg-[#121212] -mx-1 px-1">
+                    <div className="hidden lg:block sticky top-0 z-30 pt-3 pb-3 bg-background -mx-1 px-1">
                         <AyahJumpInput
                             ayahs={(isLoading || isDataStale) ? [] : (activeData?.ayat || [])}
                             onSelect={handleAyahJump}
@@ -271,7 +271,7 @@ export const AyahList = ({
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="bg-[#121212] border border-white/5 px-8 py-6 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 relative overflow-hidden"
+                                className="bg-background border border-foreground/5 px-8 py-6 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 relative overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-primary/5 animate-pulse" />
                                 <div className="relative">
@@ -299,15 +299,15 @@ export const AyahList = ({
                             {/* Bismillah Banner */}
                             {!viewedJuz && viewedSurah && !NO_BISMILLAH.includes(viewedSurah.nomor) && (
                                 <div className="py-6 sm:py-8 flex flex-col items-center gap-2">
-                                    <p className="text-2xl sm:text-3xl font-arabic text-white/70 leading-relaxed text-center" dir="rtl">
+                                    <p className="text-2xl sm:text-3xl font-arabic text-foreground/70 leading-relaxed text-center" dir="rtl">
                                         بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                                     </p>
                                     <div className="flex items-center gap-3 mt-1">
-                                        <div className="h-px w-8 bg-white/[0.08]" />
-                                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/15">
+                                        <div className="h-px w-8 bg-foreground/[0.08]" />
+                                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-foreground/15">
                                             Dengan Nama Allah
                                         </span>
-                                        <div className="h-px w-8 bg-white/[0.08]" />
+                                        <div className="h-px w-8 bg-foreground/[0.08]" />
                                     </div>
                                 </div>
                             )}
@@ -321,14 +321,14 @@ export const AyahList = ({
                                         {showSurahHeader && (
                                             <div className="py-6 flex flex-col items-center gap-2">
                                                 <div className="flex items-center gap-3 w-full">
-                                                    <div className="h-px flex-1 bg-white/[0.05]" />
+                                                    <div className="h-px flex-1 bg-foreground/[0.05]" />
                                                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary px-3">
                                                         Surah {ayah.surahInfo?.namaLatin}
                                                     </span>
-                                                    <div className="h-px flex-1 bg-white/[0.05]" />
+                                                    <div className="h-px flex-1 bg-foreground/[0.05]" />
                                                 </div>
                                                 {ayah.surahInfo?.nomor && !NO_BISMILLAH.includes(ayah.surahInfo.nomor) && (
-                                                    <p className="text-xl font-arabic text-white/50 mt-1" dir="rtl">
+                                                    <p className="text-xl font-arabic text-foreground/50 mt-1" dir="rtl">
                                                         بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                                                     </p>
                                                 )}
@@ -362,7 +362,7 @@ export const AyahList = ({
                                     <motion.div
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
-                                        className="flex items-center gap-2 text-white/30"
+                                        className="flex items-center gap-2 text-foreground/30"
                                     >
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                         <span className="text-xs font-medium">Memuat ayat...</span>
@@ -370,13 +370,13 @@ export const AyahList = ({
                                 ) : hasNextPage ? (
                                     <button
                                         onClick={() => fetchNextPage?.()}
-                                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-white/30 hover:text-white/50 text-xs font-medium transition-all"
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground/30 hover:text-foreground/50 text-xs font-medium transition-all"
                                     >
                                         <ChevronDown className="w-3.5 h-3.5" />
                                         Muat lagi
                                     </button>
                                 ) : activeData?.ayat?.length > 0 ? (
-                                    <span className="text-[10px] text-white/15 font-medium uppercase tracking-wider">
+                                    <span className="text-[10px] text-foreground/15 font-medium uppercase tracking-wider">
                                         — Selesai —
                                     </span>
                                 ) : null}

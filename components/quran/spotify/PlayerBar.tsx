@@ -33,9 +33,9 @@ export function PlayerBar() {
             <div className={cn(
                 "w-full mx-auto transition-all duration-500",
                 "h-14 md:h-20", // Responsive height
-                "bg-[#121212]/90 backdrop-blur-3xl border border-white/5 md:border-0 md:border-t",
+                "bg-background/90 backdrop-blur-3xl border border-foreground/10 md:border-0 md:border-t",
                 "rounded-2xl md:rounded-none", // Pill on mobile, bar on desktop
-                "flex items-center px-4 md:px-8 gap-4 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]",
+                "flex items-center px-4 md:px-8 gap-4 shadow-[0_-20px_50px_rgba(0,0,0,0.1)]",
                 isRightPanelOpen ? "md:pr-[400px]" : "" // Offset if panel is open on desktop
             )}>
                 {/* Progress bar at the very top for mobile, integrated for desktop */}
@@ -67,7 +67,7 @@ export function PlayerBar() {
 function MiniProgress() {
     const { progress } = useAudioProgress();
     return (
-        <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+        <div className="h-[2px] w-full bg-foreground/5 rounded-full overflow-hidden">
             <motion.div 
                 className="h-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"
                 initial={{ width: 0 }}
@@ -86,7 +86,7 @@ function MobileControls() {
                 variant="ghost"
                 size="icon"
                 onClick={togglePlay}
-                className="w-10 h-10 rounded-full text-white hover:bg-white/10 active:scale-90 transition-all"
+                className="w-10 h-10 rounded-full text-foreground hover:bg-foreground/10 active:scale-90 transition-all"
             >
                 {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
             </Button>
@@ -94,7 +94,7 @@ function MobileControls() {
                 variant="ghost"
                 size="icon"
                 onClick={nextAyah}
-                className="w-10 h-10 rounded-full text-white/60 hover:text-white hover:bg-white/10 active:scale-90 transition-all"
+                className="w-10 h-10 rounded-full text-foreground/60 hover:text-foreground hover:bg-foreground/10 active:scale-90 transition-all"
             >
                 <SkipForward className="w-5 h-5 fill-current" />
             </Button>
@@ -115,10 +115,10 @@ function TrackInfo() {
                 {currentSurah?.nomor}
             </div>
             <div className="flex flex-col min-w-0 overflow-hidden cursor-pointer group" onClick={() => setRightPanelOpen(true)}>
-                <span className="text-[13px] md:text-base font-headline font-bold text-on-surface group-hover:text-primary transition-colors truncate leading-tight">
+                <span className="text-[13px] md:text-base font-headline font-bold text-foreground group-hover:text-primary transition-colors truncate leading-tight">
                     {currentSurah?.namaLatin}
                 </span>
-                <span className="text-[10px] md:text-xs text-on-surface/40 font-label font-bold uppercase tracking-widest group-hover:text-primary/60 transition-colors truncate">
+                <span className="text-[10px] md:text-xs text-foreground/40 font-label font-bold uppercase tracking-widest group-hover:text-primary/60 transition-colors truncate">
                     Ayat {currentAyah?.nomorAyat}
                 </span>
             </div>
@@ -133,7 +133,7 @@ function TrackInfo() {
                         }}
                         className={cn(
                             "transition-all duration-300 hidden sm:flex shrink-0",
-                            heartActive ? "text-primary hover:text-primary/80 scale-110" : "text-on-surface/20 hover:text-primary/60"
+                            heartActive ? "text-primary hover:text-primary/80 scale-110" : "text-foreground/20 hover:text-primary/60"
                         )}
                     >
                         <Heart className={cn("w-5 h-5", heartActive && "fill-current")} />
@@ -160,7 +160,7 @@ function PlaybackControls() {
                         onClick={toggleShuffle}
                         className={cn(
                             "transition-colors hidden md:flex relative",
-                            isShuffle ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-white"
+                            isShuffle ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
                         )}
                     >
                         <Shuffle className="w-4 h-4" />
@@ -173,7 +173,7 @@ function PlaybackControls() {
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={prevAyah} className="text-muted-foreground hover:text-white transition-colors hover:scale-110 active:scale-95">
+                    <Button variant="ghost" size="icon" onClick={prevAyah} className="text-muted-foreground hover:text-foreground transition-colors hover:scale-110 active:scale-95">
                         <SkipBack className="w-5 h-5 md:w-6 md:h-6 fill-current" />
                     </Button>
                 </TooltipTrigger>
@@ -185,7 +185,7 @@ function PlaybackControls() {
                 <TooltipTrigger asChild>
                     <Button
                         onClick={togglePlay}
-                        className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white text-black hover:scale-105 transition-transform p-0 flex items-center justify-center shrink-0 shadow-lg"
+                        className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-foreground text-background hover:scale-105 transition-transform p-0 flex items-center justify-center shrink-0 shadow-lg"
                     >
                         {isPlaying ? <Pause className="w-5 h-5 md:w-6 md:h-6 fill-current" /> : <Play className="w-5 h-5 md:w-6 md:h-6 fill-current ml-1" />}
                     </Button>
@@ -196,7 +196,7 @@ function PlaybackControls() {
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={nextAyah} className="text-muted-foreground hover:text-white transition-colors hover:scale-110 active:scale-95">
+                    <Button variant="ghost" size="icon" onClick={nextAyah} className="text-muted-foreground hover:text-foreground transition-colors hover:scale-110 active:scale-95">
                         <SkipForward className="w-5 h-5 md:w-6 md:h-6 fill-current" />
                     </Button>
                 </TooltipTrigger>
@@ -212,7 +212,7 @@ function PlaybackControls() {
                         onClick={toggleRepeatMode}
                         className={cn(
                             "transition-colors hidden md:flex relative",
-                            repeatMode !== 'off' ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-white"
+                            repeatMode !== 'off' ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
                         )}
                     >
                         {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
@@ -292,7 +292,7 @@ function VolumeSection() {
 
     return (
         <div className="hidden md:flex items-center justify-end gap-3 w-[30%]">
-            <div className="flex items-center gap-2 mr-2 border-r border-white/5 pr-4">
+            <div className="flex items-center gap-2 mr-2 border-r border-foreground/5 pr-4">
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button 
@@ -301,7 +301,7 @@ function VolumeSection() {
                             onClick={() => setRightPanelOpen(!isRightPanelOpen)} 
                             className={cn(
                                 "transition-colors",
-                                isRightPanelOpen ? "text-primary" : "text-muted-foreground hover:text-white"
+                                isRightPanelOpen ? "text-primary" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <PanelRight className="w-4 h-4" />
@@ -314,10 +314,10 @@ function VolumeSection() {
                 
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={toggleFullScreen} className="text-muted-foreground hover:text-white transition-colors">
-                            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                        </Button>
-                    </TooltipTrigger>
+                    <Button variant="ghost" size="icon" onClick={toggleFullScreen} className="text-muted-foreground hover:text-foreground transition-colors">
+                        {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </Button>
+                </TooltipTrigger>
                     <TooltipContent side="top" sideOffset={28}>
                         <p>{isFullscreen ? 'Keluar Layar Penuh' : 'Layar Penuh'}</p>
                     </TooltipContent>
@@ -327,10 +327,10 @@ function VolumeSection() {
             <div className="flex items-center gap-3 w-24 xl:w-32 group animate-in fade-in slide-in-from-right-4">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="p-0 h-fit w-fit hover:bg-transparent">
-                            {isMuted || volume === 0 ? <VolumeX className="w-5 h-5 text-muted-foreground group-hover:text-white" /> : <Volume2 className="w-5 h-5 text-muted-foreground group-hover:text-white" />}
-                        </Button>
-                    </TooltipTrigger>
+                    <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="p-0 h-fit w-fit hover:bg-transparent">
+                        {isMuted || volume === 0 ? <VolumeX className="w-5 h-5 text-muted-foreground group-hover:text-foreground" /> : <Volume2 className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />}
+                    </Button>
+                </TooltipTrigger>
                     <TooltipContent side="top" sideOffset={18}>
                         <p>{isMuted || volume === 0 ? 'Bunyikan' : 'Senyap'}</p>
                     </TooltipContent>

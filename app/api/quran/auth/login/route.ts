@@ -15,17 +15,17 @@ export async function GET() {
         // "search",
         "bookmark",
         "collection",
-        // "reading_session",
-        // "preference",
-        // "activity_day",
-        // "goal",
-        // "streak",
-        // "user",
-        // "post",
-        // "comment",
-        // "room",
-        // "tag",
-        // "note"
+        "reading_session",
+        "preference",
+        "activity_day",
+        "goal",
+        "streak",
+        "user",
+        "post",
+        "comment",
+        "room",
+        "tag",
+        "note"
     ].join(" ");
 
     const url = new URL(`${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/auth`);
@@ -40,6 +40,7 @@ export async function GET() {
     url.searchParams.set("code_challenge", codeChallenge);
     url.searchParams.set("code_challenge_method", "S256");
 
+    console.log("QF OAuth Login URL:", url.toString());
     const res = NextResponse.redirect(url.toString());
 
     const cookieOptions = {

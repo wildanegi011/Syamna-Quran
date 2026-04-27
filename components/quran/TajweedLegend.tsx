@@ -80,7 +80,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
             <Sheet open={isOpen} onOpenChange={onOpenChange}>
                 <SheetContent
                     side="right"
-                    className="w-full h-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-none p-0 flex flex-col shadow-2xl z-[60]"
+                    className="w-full h-full bg-background/95 backdrop-blur-3xl border-none p-0 flex flex-col shadow-2xl"
                 >
                     <SheetHeader className="p-6 sm:p-8 pb-4">
                         <div className="flex items-center gap-4 mb-2">
@@ -88,11 +88,11 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                                 <BookOpen className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                                <SheetTitle className="text-xl sm:text-2xl font-headline font-black tracking-tighter text-white">Panduan Tajwid</SheetTitle>
+                                <SheetTitle className="text-xl sm:text-2xl font-headline font-black tracking-tighter text-foreground">Panduan Tajwid</SheetTitle>
                                 <div className="h-1 w-12 bg-primary rounded-full mt-1" />
                             </div>
                         </div>
-                        <SheetDescription className="text-on-surface/50 font-body font-medium leading-relaxed mt-2 text-xs sm:text-sm">
+                        <SheetDescription className="text-foreground/50 font-body font-medium leading-relaxed mt-2 text-xs sm:text-sm">
                             Gunakan panduan warna ini untuk membaca Al-Quran dengan tartil sesuai kaidah tajwid yang benar.
                         </SheetDescription>
                     </SheetHeader>
@@ -102,7 +102,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                             {TAJWEED_RULES.map((rule) => (
                                 <div
                                     key={rule.codes[0]}
-                                    className="group flex items-start gap-4 p-4 sm:p-5 rounded-[1.5rem] sm:rounded-[2rem] bg-white/[0.03] border border-white/[0.05] hover:bg-primary/[0.05] hover:border-primary/20 transition-all duration-500"
+                                    className="group flex items-start gap-4 p-4 sm:p-5 rounded-[1.5rem] sm:rounded-[2rem] bg-foreground/[0.03] border border-foreground/5 hover:bg-primary/[0.05] hover:border-primary/20 transition-all duration-500"
                                 >
                                     <div
                                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
@@ -111,8 +111,8 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                                         <span className="text-white font-headline font-bold uppercase text-[10px] sm:text-xs opacity-50">{rule.codes[0]}</span>
                                     </div>
                                     <div className="flex flex-col gap-0.5 sm:gap-1">
-                                        <h4 className="text-sm md:text-base font-headline font-black text-white/90 tracking-tight group-hover:text-primary transition-colors">{rule.name}</h4>
-                                        <p className="text-[11px] sm:text-xs text-on-surface/40 font-body leading-relaxed font-medium">
+                                        <h4 className="text-sm md:text-base font-headline font-black text-foreground/90 tracking-tight group-hover:text-primary transition-colors">{rule.name}</h4>
+                                        <p className="text-[11px] sm:text-xs text-foreground/40 font-body leading-relaxed font-medium">
                                             {rule.description}
                                         </p>
                                     </div>
@@ -121,7 +121,7 @@ export function TajweedLegend({ isOpen, onOpenChange }: TajweedLegendProps) {
                         </div>
                     </div>
 
-                    <div className="p-6 sm:p-8 pt-4 border-t border-white/5 bg-black/40 backdrop-blur-md">
+                    <div className="p-6 sm:p-8 pt-4 border-t border-foreground/5 bg-foreground/[0.02] backdrop-blur-md">
                         <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 rounded-[1.2rem] sm:rounded-[1.5rem] bg-primary/5 border border-primary/10 shadow-inner">
                             <Info className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0 mt-0.5" />
                             <p className="text-[10px] sm:text-[12px] text-primary/80 font-body leading-relaxed font-bold italic">

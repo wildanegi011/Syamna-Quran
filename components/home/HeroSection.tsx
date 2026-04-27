@@ -48,12 +48,12 @@ export function HeroSection() {
         <motion.div variants={itemVariants} className="flex flex-col items-center gap-4">
           <div className="relative group">
             <div className="absolute inset-0 bg-[#00df9a]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <div className="relative inline-flex items-center gap-3 px-3 md:px-4 py-2 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-2xl transition-all hover:bg-white/[0.05] hover:border-[#00df9a]/30">
-              <div className="flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-[#00df9a]/20 ring-1 ring-[#00df9a]/40">
-                <Sparkles className="w-2 md:w-2.5 h-2 md:h-2.5 text-[#00df9a]" />
+            <div className="relative inline-flex items-center gap-3 px-3 md:px-4 py-2 rounded-full bg-foreground/[0.03] border border-foreground/10 backdrop-blur-xl shadow-2xl transition-all hover:bg-foreground/[0.05] hover:border-primary/30">
+              <div className="flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full bg-primary/20 ring-1 ring-primary/40">
+                <Sparkles className="w-2 md:w-2.5 h-2 md:h-2.5 text-primary" />
               </div>
-              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[#00df9a]">
-                Platform Al-Quran Digital Terlengkap
+              <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-primary">
+                Bersama Al-Qur'an Setiap Hari
               </span>
             </div>
           </div>
@@ -63,25 +63,26 @@ export function HeroSection() {
         <motion.div variants={itemVariants} className="space-y-4 md:space-y-6">
           <div className="relative">
             <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-[140%] h-[120%] bg-[#00df9a]/5 blur-[120px] rounded-full pointer-events-none" />
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] md:leading-[0.85] text-white select-none">
-              Al-Qur’an Digital
+            <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.1] md:leading-[1] text-foreground select-none">
+              Syamna Quran,
               <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00df9a] via-[#34d399] to-[#00df9a] bg-[length:200%_auto] animate-shimmer drop-shadow-[0_0_30px_rgba(0,223,154,0.2)]">
-                Terpadu.
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-emerald-400 to-primary bg-[length:200%_auto] animate-shimmer drop-shadow-[0_0_30px_rgba(0,223,154,0.2)]">
+                Teman Ibadahmu.
               </span>
             </h1>
 
           </div>
 
-          <h2 className="text-base sm:text-lg md:text-2xl font-bold tracking-[0.05em] text-white/50 leading-relaxed max-w-4xl mx-auto">
-            Baca, dengarkan, dan hafalkan Al-Qur’an dalam satu aplikasi.
+          <h2 className="text-base sm:text-xl md:text-2xl font-medium tracking-tight text-foreground/60 leading-relaxed max-w-2xl mx-auto">
+            Pendamping ibadah digital untuk tilawah harian, tadabbur tafsir, hingga memantau progres hafalanmu secara cerdas.
           </h2>
         </motion.div>
 
         {/* Hard-hitting Description */}
-        <motion.p variants={itemVariants} className="max-w-3xl mx-auto text-base sm:text-lg md:text-2xl text-white/40 font-medium leading-[1.6] px-6 sm:px-0">
-          Tilawah harian, tafsir mendalam, dan hafalan interaktif —
-          <span className="text-white/70"> semua dalam satu platform modern. </span>
+        <motion.p variants={itemVariants} className="max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-foreground/60 dark:text-foreground/40 font-medium leading-[1.6] px-6 sm:px-0">
+          Dirancang untuk muslim modern yang ingin tetap
+          <span className="text-foreground/80 dark:text-foreground/60"> terhubung dengan wahyu Allah </span>
+          di tengah hiruk pikuk kehidupan dunia.
         </motion.p>
 
         {/* CTA Section */}
@@ -90,40 +91,27 @@ export function HeroSection() {
             <Button
               size="lg"
               onClick={() => router.push('/quran')}
-              className="h-14 md:h-16 px-10 md:px-12 rounded-2xl bg-[#00df9a] hover:bg-[#00df9a] text-black font-black text-sm md:text-xl gap-4 shadow-[0_20px_40px_rgba(0,223,154,0.2)] transition-all hover:scale-105 active:scale-95 group/main-cta w-full sm:w-auto"
+              className="h-14 md:h-16 px-10 md:px-12 rounded-2xl bg-primary hover:bg-primary text-primary-foreground font-black text-sm md:text-xl gap-4 shadow-[0_20px_40px_rgba(0,223,154,0.2)] transition-all hover:scale-[1.03] active:scale-95 group/main-cta w-full sm:w-auto relative overflow-hidden"
             >
-              <BookOpen className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:rotate-12" />
-              Mulai Membaca
-              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/main-cta:translate-y-0 transition-transform duration-500" />
+              <BookOpen className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:rotate-12 relative z-10" />
+              <span className="relative z-10 text-primary-foreground">Mulai Tilawah</span>
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1 relative z-10" />
             </Button>
 
-            {user ? (
-              <button
-                onClick={() => router.push('/quran')}
-                className="group flex items-center gap-4 text-white/50 hover:text-white transition-all font-black uppercase tracking-[0.2em] text-[10px] md:text-xs"
-              >
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center transition-all group-hover:bg-white/[0.08] group-hover:border-[#00df9a]/40 group-hover:scale-110">
-                  <Play className="w-5 h-5 fill-current md:w-6 md:h-6 text-[#00df9a]" />
-                </div>
-                Kembali ke Dashboard
-              </button>
-            ) : null}
-            {false && !user && (
-              <button
-                onClick={signInWithGoogle}
-                disabled={loading}
-                className="group flex items-center gap-4 text-white/50 hover:text-white transition-all font-bold text-xs md:text-sm"
-              >
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center transition-all group-hover:bg-[#00df9a]/10 group-hover:border-[#00df9a]/40 group-hover:scale-110">
-                  <LogIn className="w-5 h-5 md:w-6 md:h-6 text-[#00df9a]" />
-                </div>
-                <div className="flex flex-col items-center leading-tight text-center">
-                  <span className="text-[10px] text-white/30 uppercase tracking-widest mb-0.5">Sudah punya akun?</span>
-                  <span className="uppercase tracking-wider">Masuk Sekarang</span>
-                </div>
-
-              </button>
-            )}
+            <button
+              onClick={() => {
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group flex items-center gap-4 text-foreground/50 hover:text-foreground transition-all font-bold text-xs md:text-sm"
+            >
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-foreground/[0.03] border border-foreground/10 flex items-center justify-center transition-all group-hover:bg-primary/10 group-hover:border-primary/40 group-hover:scale-110">
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              </div>
+              <div className="flex flex-col items-center leading-tight text-center">
+                <span className="uppercase tracking-wider">Jelajahi Fitur</span>
+              </div>
+            </button>
           </motion.div>
 
         </div>

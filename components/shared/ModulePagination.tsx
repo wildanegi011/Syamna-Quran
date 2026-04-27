@@ -81,7 +81,7 @@ export function ModulePagination({
                 </PaginationContent>
             </Pagination>
             
-            <p className="text-[10px] font-headline font-black uppercase tracking-[0.3em] text-on-surface/20">
+            <p className="text-[10px] font-headline font-black uppercase tracking-[0.3em] text-foreground/20">
                 Halaman {currentPage} dari {totalPages}
             </p>
         </div>

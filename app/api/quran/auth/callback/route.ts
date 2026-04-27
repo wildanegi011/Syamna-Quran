@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const providerError = searchParams.get("error");
     const providerErrorDesc = searchParams.get("error_description");
 
-    const baseUrl = "https://syamna-quran.netlify.app/quran";
+    const baseUrl = `${CONFIG.NEXT_PUBLIC_URL}/quran`;
 
     // Handle provider errors
     if (providerError) {

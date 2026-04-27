@@ -3,7 +3,7 @@ import { CONFIG } from "@/lib/api-config";
 
 export async function GET(req: NextRequest) {
     const idToken = req.cookies.get("qf_id_token")?.value;
-    const postLogoutRedirectUri = `https://syamna-quran.netlify.app`;
+    const postLogoutRedirectUri = CONFIG.NEXT_PUBLIC_URL;
     
     // RP-Initiated Logout URL according to OIDC spec
     let logoutUrl = `${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/sessions/logout`;

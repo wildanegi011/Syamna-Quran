@@ -65,10 +65,10 @@ export const AyahItem = React.memo(({
             }}
             className={cn(
                 "w-full text-left py-6 sm:py-6 px-4 sm:px-4 transition-all duration-300 relative scroll-mt-28 group cursor-pointer lg:cursor-default",
-                "border-b border-white/[0.04]",
+                "border-b border-foreground/[0.04]",
                 isActive
-                    ? "bg-white/[0.04] border-transparent"
-                    : "active:bg-white/[0.06] lg:active:bg-transparent"
+                    ? "bg-foreground/[0.04] border-transparent"
+                    : "active:bg-foreground/[0.06] lg:active:bg-transparent"
             )}
         >
             {/* Active Indicator Line */}
@@ -80,7 +80,7 @@ export const AyahItem = React.memo(({
             <div
                 className={cn(
                     "font-arabic leading-[2.4] transition-all text-right w-full mb-4",
-                    isActive ? "text-white" : "text-white/90 group-hover:text-white"
+                    isActive ? "text-foreground" : "text-foreground/90 group-hover:text-foreground"
                 )}
                 dir="rtl"
                 style={{ fontSize: `${arabicFontSize}px` }}
@@ -95,7 +95,7 @@ export const AyahItem = React.memo(({
             {showTranslation && (
                 <p className={cn(
                     "leading-relaxed transition-colors font-medium mt-2",
-                    isActive ? "text-white/80" : "text-white/40 group-hover:text-white/60"
+                    isActive ? "text-foreground/80" : "text-foreground/40 group-hover:text-foreground/60"
                 )} style={{ fontSize: `${translationFontSize}px` }}>
                     {ayah.teksIndonesia}
                 </p>
@@ -110,7 +110,7 @@ export const AyahItem = React.memo(({
                         "flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all",
                         isActive 
                             ? "bg-primary/20 text-primary" 
-                            : "bg-white/5 text-white/30 hover:bg-primary/10 hover:text-primary"
+                            : "bg-foreground/5 text-foreground/30 hover:bg-primary/10 hover:text-primary"
                     )}
                 >
                     {isActive && isPlaying ? (
@@ -137,7 +137,7 @@ export const AyahItem = React.memo(({
                 )}>
                     <button
                         onClick={(e) => onTafsir(e, ayah)}
-                        className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-white/30 hover:text-white transition-colors"
+                        className="w-8 h-8 rounded-full hover:bg-foreground/10 flex items-center justify-center text-foreground/30 hover:text-foreground transition-colors"
                         title="Tafsir"
                     >
                         <BookOpen className="w-3.5 h-3.5" />
@@ -146,7 +146,7 @@ export const AyahItem = React.memo(({
                         onClick={(e) => onToggleFavorite(e, ayah)}
                         className={cn(
                             "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                            isFav ? "text-primary" : "hover:bg-white/10 text-white/30 hover:text-white"
+                            isFav ? "text-primary" : "hover:bg-foreground/10 text-foreground/30 hover:text-foreground"
                         )}
                         title={isFav ? 'Hapus Favorit' : 'Favorit'}
                     >
@@ -156,7 +156,7 @@ export const AyahItem = React.memo(({
                         onClick={handleCopy}
                         className={cn(
                             "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                            isCopied ? "text-[#56B874]" : "hover:bg-white/10 text-white/30 hover:text-white"
+                            isCopied ? "text-[#56B874]" : "hover:bg-foreground/10 text-foreground/30 hover:text-foreground"
                         )}
                         title={isCopied ? 'Tersalin' : 'Salin'}
                     >

@@ -520,9 +520,21 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!audioRef.current) return;
-        const handleEnded = () => {
+        const handleEnded = async () => {
             if (!audioRef.current || !audioRef.current.src || audioRef.current.src === window.location.href) return;
             
+            // Log activity to Quran Foundation API if user is connected
+            try {
+                fetch('/api/quran/user/activity-days', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        duration: Math.round(audioRef.current.duration || 0),
+                        verses_count: 1
+                    })
+                }).catch(() => {}); // Silently fail if not connected or error
+            } catch (e) {}
+
             if (repeatMode === 'one') {
                 if (audioRef.current) {
                     audioRef.current.currentTime = 0;

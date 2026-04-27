@@ -43,7 +43,7 @@ export function HadithCategoryCard({ category, index }: HadithCategoryCardProps)
         >
             <Link
                 href={`/hadits/${category.id}`}
-                className="group relative flex items-center justify-between p-4 sm:p-6 rounded-[1.25rem] sm:rounded-[2rem] bg-surface-container-low/60 backdrop-blur-xl border border-white/10 hover:bg-surface-container-highest/60 hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[90px] h-full"
+                className="group relative flex items-center justify-between p-4 sm:p-6 rounded-[1.25rem] sm:rounded-[2rem] bg-foreground/[0.03] backdrop-blur-xl border border-foreground/10 hover:bg-foreground/[0.05] hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[90px] h-full"
             >
                 {/* Visual Accent Layer */}
                 <div className="absolute inset-0 bg-linear-to-br from-primary/[0.02] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -52,7 +52,7 @@ export function HadithCategoryCard({ category, index }: HadithCategoryCardProps)
                     {/* Icon Box */}
                     <div className="relative shrink-0">
                         <div className={cn(
-                            "w-10 h-10 md:w-12 md:h-12 rounded-[1rem] md:rounded-[1.25rem] bg-surface-container-highest flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-white/5",
+                            "w-10 h-10 md:w-12 md:h-12 rounded-[1rem] md:rounded-[1.25rem] bg-foreground/5 flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-foreground/5",
                             "group-hover:bg-primary group-hover:rotate-6 group-hover:border-primary/50"
                         )}>
                             <CategoryIcon
@@ -72,12 +72,12 @@ export function HadithCategoryCard({ category, index }: HadithCategoryCardProps)
                         <div className="flex items-center gap-1.5 mb-1.5 md:mb-2">
                             <div className={cn(
                                 "flex items-center gap-1 px-2.5 py-0.5 rounded-lg border text-[9px] md:text-[10px] font-headline font-black uppercase tracking-wider transition-colors",
-                                bg, color, "border-white/[0.05] group-hover:border-primary/20"
+                                bg, color, "border-foreground/5 group-hover:border-primary/20"
                             )}>
                                 <span>{category.hadeeths_count} HADITS</span>
                             </div>
                         </div>
-                        <h3 className="text-base md:text-lg font-headline font-black text-on-surface/90 tracking-tight group-hover:text-primary transition-all duration-300 leading-tight truncate">
+                        <h3 className="text-base md:text-lg font-headline font-black text-foreground/90 tracking-tight group-hover:text-primary transition-all duration-300 leading-tight truncate">
                             {displayTitle}
                         </h3>
                     </div>

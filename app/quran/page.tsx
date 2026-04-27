@@ -22,23 +22,23 @@ function QuranSkeleton() {
         <div className="flex-1 flex flex-col min-h-full pb-10 animate-pulse">
             {/* Compact Header Skeleton */}
             <div className="px-4 sm:px-6 md:px-12 pt-6 pb-4">
-                <div className="h-8 w-48 rounded-lg bg-white/5 mb-3" />
-                <div className="h-4 w-72 rounded bg-white/5 mb-6" />
+                <div className="h-8 w-48 rounded-lg bg-foreground/5 mb-3" />
+                <div className="h-4 w-72 rounded bg-foreground/5 mb-6" />
                 <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-8 w-20 rounded-full bg-white/5" />
+                        <div key={i} className="h-8 w-20 rounded-full bg-foreground/5" />
                     ))}
                 </div>
             </div>
 
             <ModuleGrid columnsClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="relative flex items-center justify-between p-5 md:p-6 rounded-2xl bg-white/[0.03] border border-white/[0.03] min-h-[84px] w-full">
+                    <div key={i} className="relative flex items-center justify-between p-5 md:p-6 rounded-2xl bg-foreground/[0.03] border border-foreground/[0.03] min-h-[84px] w-full">
                         <div className="flex items-center gap-4 flex-1">
-                            <div className="w-10 h-10 rounded-xl bg-white/5" />
+                            <div className="w-10 h-10 rounded-xl bg-foreground/5" />
                             <div className="flex flex-col gap-2 flex-1">
-                                <div className="h-5 w-[60%] rounded bg-white/5" />
-                                <div className="h-3 w-[40%] rounded bg-white/5" />
+                                <div className="h-5 w-[60%] rounded bg-foreground/5" />
+                                <div className="h-3 w-[40%] rounded bg-foreground/5" />
                             </div>
                         </div>
                     </div>
@@ -50,19 +50,19 @@ function QuranSkeleton() {
 
 export default function QuranRootPage() {
     const { searchQuery, clearSearch } = useSearch();
-    const { 
-        isRightPanelOpen, 
-        isPlaying, 
-        currentSurah: playingSurah, 
-        currentAyah, 
-        playSurah, 
+    const {
+        isRightPanelOpen,
+        isPlaying,
+        currentSurah: playingSurah,
+        currentAyah,
+        playSurah,
         playAyah,
-        togglePlay, 
-        setRightPanelOpen, 
-        setViewedSurah, 
-        setViewedJuz, 
-        selectedReciterId, 
-        currentJuz 
+        togglePlay,
+        setRightPanelOpen,
+        setViewedSurah,
+        setViewedJuz,
+        selectedReciterId,
+        currentJuz
     } = useAudioState();
     const [activeFilter, setActiveFilter] = useState("Semua");
 
@@ -145,16 +145,16 @@ export default function QuranRootPage() {
                                 {/* Enhanced Glow Effects */}
                                 <div className="absolute inset-x-0 -top-4 -bottom-4 bg-primary/20 blur-[100px] rounded-full animate-pulse" />
                                 <div className="absolute inset-0 bg-primary/10 blur-[40px] rounded-full" />
-                                
-                                <div className="relative w-28 h-28 rounded-[2.5rem] bg-white/[0.03] border border-white/10 flex items-center justify-center backdrop-blur-md shadow-2xl overflow-hidden group">
+
+                                <div className="relative w-28 h-28 rounded-[2.5rem] bg-foreground/[0.03] border border-foreground/10 flex items-center justify-center backdrop-blur-md shadow-2xl overflow-hidden group">
                                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <Search className="w-12 h-12 text-primary/40" />
                                 </div>
                             </div>
                             <div className="space-y-3 relative z-10">
-                                <h3 className="text-2xl font-black text-white tracking-tight uppercase">Pencarian Nihil</h3>
+                                <h3 className="text-2xl font-black text-foreground tracking-tight uppercase">Pencarian Nihil</h3>
                                 <div className="w-12 h-1 bg-primary/20 mx-auto rounded-full" />
-                                <p className="text-base text-white/40 font-medium max-w-[320px] mx-auto leading-relaxed mt-4">
+                                <p className="text-base text-foreground/40 font-medium max-w-[320px] mx-auto leading-relaxed mt-4">
                                     Kami tidak menemukan surah atau juz yang sesuai dengan kata kunci <span className="text-primary/60">"{searchQuery}"</span>.
                                 </p>
                             </div>
@@ -163,7 +163,7 @@ export default function QuranRootPage() {
                                     setActiveFilter("Semua");
                                     clearSearch();
                                 }}
-                                className="mt-12 px-10 py-4 rounded-2xl bg-primary text-black font-black uppercase tracking-widest text-xs hover:scale-105 transition-all active:scale-95 shadow-xl shadow-primary/20"
+                                className="mt-12 px-10 py-4 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs hover:scale-105 transition-all active:scale-95 shadow-xl shadow-primary/20"
                             >
                                 Atur Ulang Filter
                             </button>
@@ -173,10 +173,10 @@ export default function QuranRootPage() {
                     <AnimatePresence mode="popLayout">
                         {activeFilter === "Juz" ? (
                             filteredJuz.map((juz, index) => (
-                                <JuzCard 
-                                    key={`juz-${juz.id}`} 
-                                    juz={juz} 
-                                    index={index} 
+                                <JuzCard
+                                    key={`juz-${juz.id}`}
+                                    juz={juz}
+                                    index={index}
                                     isCurrentJuzActive={currentJuz === juz.id}
                                     isPlaying={isPlaying}
                                     currentAyah={currentAyah}

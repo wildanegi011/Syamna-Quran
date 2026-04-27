@@ -241,8 +241,8 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
             <div
                 className={cn(
                     "flex flex-col h-full w-full",
-                    "lg:border-l lg:border-white/10",
-                    "bg-[#0a0a0a] lg:bg-[#121212]/95 lg:backdrop-blur-3xl"
+                    "lg:border-l lg:border-foreground/10",
+                    "bg-background lg:bg-background/95 lg:backdrop-blur-3xl"
                 )}
             >
                 <MobileHeader
@@ -283,12 +283,12 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                     {!viewedSurah && !viewedJuz ? (
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-6 opacity-30 pt-24">
-                            <div className="w-20 h-20 rounded-[2rem] bg-white/5 flex items-center justify-center border border-white/10">
-                                <Music2 className="w-10 h-10 text-white" />
+                            <div className="w-20 h-20 rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10">
+                                <Music2 className="w-10 h-10 text-foreground" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-headline font-black text-white">Belum Ada Putaran</h3>
-                                <p className="text-xs font-medium text-white/60 leading-relaxed max-w-[200px]">Pilih salah satu Surah atau Juz untuk mulai mendengarkan lantunan ayat suci Al-Qur'an.</p>
+                                <h3 className="text-xl font-headline font-black text-foreground">Belum Ada Putaran</h3>
+                                <p className="text-xs font-medium text-foreground/60 leading-relaxed max-w-[200px]">Pilih salah satu Surah atau Juz untuk mulai mendengarkan lantunan ayat suci Al-Qur'an.</p>
                             </div>
                         </div>
                     ) : (
@@ -334,7 +334,7 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                 </div>
 
                 {currentAyah && (
-                    <div className="mt-auto bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 shadow-[0_-20px_40px_rgba(0,0,0,0.6)] flex flex-col relative">
+                    <div className="mt-auto bg-background/95 backdrop-blur-xl border-t border-foreground/5 z-50 shadow-[0_-20px_40px_rgba(0,0,0,0.1)] flex flex-col relative">
                         {/* Progress bar at the very top for mobile, slightly inset for desktop */}
                         <div className="absolute top-0 left-0 right-0 lg:px-6">
                             <SidebarProgress />

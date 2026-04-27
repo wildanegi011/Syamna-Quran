@@ -101,15 +101,15 @@ export function AyahSelect({ ayahs, onSelect, placeholder = "Pilih Ayat...", sho
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
-                    className="h-10 w-full pl-10 pr-4 rounded-full bg-white/5 border-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all justify-start relative group"
+                    className="h-10 w-full pl-10 pr-4 rounded-full bg-foreground/[0.03] border-foreground/5 text-[10px] font-black uppercase tracking-widest hover:bg-foreground/[0.08] transition-all justify-start relative group"
                 >
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary group-hover:text-white transition-colors" />
-                    <span className="text-white/40 group-hover:text-white transition-colors capitalize tracking-normal text-xs font-medium">{placeholder}</span>
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary group-hover:text-foreground transition-colors" />
+                    <span className="text-foreground/40 group-hover:text-foreground transition-colors capitalize tracking-normal text-xs font-medium">{placeholder}</span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 bg-surface-container-highest border-white/10 backdrop-blur-3xl rounded-md shadow-2xl z-[110]" align="end">
+            <PopoverContent className="w-80 p-0 bg-popover border-foreground/10 backdrop-blur-3xl rounded-md shadow-2xl z-[110]" align="end">
                 {/* Input pencarian */}
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-foreground/5">
                     <Search className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                         ref={inputRef}
@@ -117,7 +117,7 @@ export function AyahSelect({ ayahs, onSelect, placeholder = "Pilih Ayat...", sho
                         placeholder="Ketik nomor ayat..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-muted-foreground/50 outline-none"
+                        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none"
                     />
                 </div>
 
@@ -140,7 +140,7 @@ export function AyahSelect({ ayahs, onSelect, placeholder = "Pilih Ayat...", sho
                                 className="w-full text-left px-4 py-3 hover:bg-primary/10 active:bg-primary/20 transition-colors cursor-pointer flex flex-col gap-0.5"
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-bold text-on-surface">Ayat {ayah.nomorAyat}</span>
+                                    <span className="text-sm font-bold text-foreground">Ayat {ayah.nomorAyat}</span>
                                     {ayah.surahInfo && (
                                         <span className="text-[9px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-black tracking-tight">
                                             SURAH {ayah.surahInfo.nomor}

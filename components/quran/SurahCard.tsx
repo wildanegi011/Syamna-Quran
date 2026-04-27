@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAudioState } from "@/contexts/AudioContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSurahDetail } from "@/lib/quran";
+import { useTheme } from "next-themes";
 
 interface SurahCardProps {
     surah: {
@@ -63,6 +64,7 @@ export const SurahCard = React.memo(function SurahCard({
 }: SurahCardProps) {
     const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = React.useState(false);
+    const { theme: currentTheme } = useTheme();
 
     // Determine theme based on surah metadata
     let theme = surah.tempatTurun === "Madinah" ? THEMES.MADANIYAH : THEMES.MAKKIYAH;
@@ -115,10 +117,10 @@ export const SurahCard = React.memo(function SurahCard({
                     }
                 }}
                 className={cn(
-                    "group relative flex flex-row lg:flex-col p-3 sm:p-4 lg:p-6 min-h-[80px] sm:min-h-[90px] lg:min-h-[160px] items-center lg:items-stretch transition-all duration-500 overflow-hidden border bg-white/[0.03] backdrop-blur-3xl rounded-xl sm:rounded-2xl lg:rounded-[1.25rem] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                    "group relative flex flex-row lg:flex-col p-3 sm:p-4 lg:p-6 min-h-[80px] sm:min-h-[90px] lg:min-h-[160px] items-center lg:items-stretch transition-all duration-500 overflow-hidden border rounded-xl sm:rounded-2xl lg:rounded-[1.25rem] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                     isCurrentlyPlaying
-                        ? "border-primary/40 bg-primary/[0.05] shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]"
-                        : "border-white/[0.05] hover:border-white/10 hover:shadow-[0_15px_35px_-12px_rgba(0,0,0,0.3)]"
+                        ? "border-primary bg-primary/[0.08] shadow-[0_15px_35px_-12px_rgba(var(--primary-rgb),0.2)]"
+                        : "border-foreground/[0.05] bg-foreground/[0.02] hover:border-primary/30 hover:bg-background hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.4)]"
                 )}
                 style={{
                     '--theme-glow': theme.border,
@@ -159,19 +161,19 @@ export const SurahCard = React.memo(function SurahCard({
                             <h3
                                 className={cn(
                                     "text-sm sm:text-base lg:text-xl font-bold tracking-tight leading-tight transition-colors truncate",
-                                    isCurrentlyPlaying ? "text-primary" : "text-white group-hover:text-primary"
+                                    isCurrentlyPlaying ? "text-primary font-black" : "text-foreground group-hover:text-primary"
                                 )}
                             >
                                 {surah.namaLatin}
                             </h3>
                             <div className="flex flex-col sm:block">
-                                <p className="text-[9px] sm:text-xs font-medium text-white/50 italic truncate max-w-[100px] sm:max-w-[140px] mt-0.5">
+                                <p className="text-[9px] sm:text-xs font-medium text-foreground/50 italic truncate max-w-[100px] sm:max-w-[140px] mt-0.5">
                                     {surah.arti}
                                 </p>
                                 {/* Tablet/Mobile Stats */}
-                                <div className="flex lg:hidden items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-white/30">
+                                <div className="flex lg:hidden items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-foreground/30">
                                     <span>{surah.jumlahAyat} Ayat</span>
-                                    <span className="w-0.5 h-0.5 rounded-full bg-white/10" />
+                                    <span className="w-0.5 h-0.5 rounded-full bg-foreground/10" />
                                     <span className={cn(
                                         surah.tempatTurun === "Madinah" ? "text-[#56B874]/60" : "text-[#638FE5]/60"
                                     )}>
@@ -187,7 +189,9 @@ export const SurahCard = React.memo(function SurahCard({
                         <span
                             className="text-2xl sm:text-3xl lg:text-4xl font-arabic transition-all duration-500 block group-hover:scale-105 origin-right tracking-wider"
                             style={{
-                                color: isCurrentlyPlaying ? '#ffffff' : theme.color,
+                                color: isCurrentlyPlaying 
+                                    ? 'var(--primary)' 
+                                    : (currentTheme === 'light' ? 'rgba(var(--foreground-rgb), 0.8)' : theme.color),
                                 fontSize: 'clamp(24px, 5vw, 36px)'
                             }}
                         >
@@ -200,11 +204,11 @@ export const SurahCard = React.memo(function SurahCard({
                         <div
                             className={cn(
                                 "flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] whitespace-nowrap",
-                                isCurrentlyPlaying ? "text-primary" : "text-white/40"
+                                isCurrentlyPlaying ? "text-primary" : "text-foreground/40"
                             )}
                         >
                             <span>{surah.jumlahAyat} Ayat</span>
-                            <span className="w-1 h-1 rounded-full bg-white/10" />
+                            <span className="w-1 h-1 rounded-full bg-foreground/10" />
                             <span className={cn(
                                 surah.tempatTurun === "Madinah" ? "text-[#56B874]/80" : "text-[#638FE5]/80"
                             )}>
@@ -212,7 +216,7 @@ export const SurahCard = React.memo(function SurahCard({
                             </span>
                             {surah.ayatsajdah && (
                                 <>
-                                    <span className="w-1 h-1 rounded-full bg-white/10" />
+                                    <span className="w-1 h-1 rounded-full bg-foreground/10" />
                                     <span className="text-[#C69446]/80">Sajdah</span>
                                 </>
                             )}
@@ -226,7 +230,7 @@ export const SurahCard = React.memo(function SurahCard({
                                     "h-8 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-300 shadow-lg group/play",
                                     isCurrentlyPlaying && isPlaying
                                         ? "bg-primary text-primary-foreground scale-110"
-                                        : "bg-white/10 text-white hover:bg-primary hover:text-primary-foreground hover:scale-110",
+                                        : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground hover:scale-110",
                                     (isLoading || (isCurrentlyPlaying && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
                                 )}
                                 disabled={isLoading}
@@ -253,7 +257,11 @@ export const SurahCard = React.memo(function SurahCard({
                         {/* Arabic (shown on row layout if screen > 400px) */}
                         <span
                             className="text-xl sm:text-2xl lg:text-3xl font-arabic transition-all duration-500 opacity-60 hidden min-[400px]:block"
-                            style={{ color: isCurrentlyPlaying ? '#ffffff' : theme.color }}
+                            style={{ 
+                                color: isCurrentlyPlaying 
+                                    ? 'var(--primary)' 
+                                    : (currentTheme === 'light' ? 'rgba(var(--foreground-rgb), 0.6)' : theme.color) 
+                            }}
                         >
                             {surah.nama}
                         </span>
@@ -264,7 +272,7 @@ export const SurahCard = React.memo(function SurahCard({
                                 "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg shrink-0",
                                 isCurrentlyPlaying && isPlaying
                                     ? "bg-primary text-primary-foreground"
-                                    : "bg-white/10 text-white hover:bg-primary hover:text-primary-foreground",
+                                    : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground",
                                 (isLoading || (isCurrentlyPlaying && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
                             )}
                             disabled={isLoading}

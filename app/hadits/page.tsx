@@ -29,10 +29,10 @@ function CategorySkeleton() {
             {/* Filter Bar Skeleton placeholder */}
             <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 md:px-12 mt-12 mb-10">
                 <div className="flex items-center gap-4">
-                    <div className="h-4 w-12 rounded-full bg-white/5 opacity-50" />
+                    <div className="h-4 w-12 rounded-full bg-foreground/5 opacity-50" />
                     <div className="flex gap-4 overflow-hidden">
                         {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="h-11 w-28 rounded-full bg-white/5 shrink-0" />
+                            <div key={i} className="h-11 w-28 rounded-full bg-foreground/5 shrink-0" />
                         ))}
                     </div>
                 </div>
@@ -42,15 +42,15 @@ function CategorySkeleton() {
                 columnsClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
             >
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                    <div key={i} className="relative flex items-center justify-between p-4 sm:p-6 rounded-[1.25rem] sm:rounded-[2rem] bg-surface-container-low/30 backdrop-blur-xl border border-white/[0.03] min-h-[90px] w-full">
+                    <div key={i} className="relative flex items-center justify-between p-4 sm:p-6 rounded-[1.25rem] sm:rounded-[2rem] bg-muted/30 backdrop-blur-xl border border-border min-h-[90px] w-full">
                         <div className="flex items-center gap-6 md:gap-7 flex-1">
-                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-[1rem] md:rounded-[1.25rem] bg-surface-container-highest/50" />
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-[1rem] md:rounded-[1.25rem] bg-muted" />
                             <div className="flex flex-col gap-2.5 flex-1">
-                                <div className="h-4 w-16 rounded-md bg-primary/10" />
-                                <div className="h-5 w-[70%] rounded-lg bg-on-surface/5" />
+                                <div className="h-4 w-16 rounded-md bg-muted" />
+                                <div className="h-5 w-[70%] rounded-lg bg-muted" />
                             </div>
                         </div>
-                        <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-primary/5 ml-4" />
+                        <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-muted ml-4" />
                     </div>
                 ))}
             </ModuleGrid>
@@ -115,7 +115,7 @@ export default function HadithPage() {
                 emptyState={
                     <>
                         <div className="text-6xl mb-6">📖</div>
-                        <p className="text-2xl text-on-surface/40 font-headline font-black italic">
+                        <p className="text-2xl text-foreground/40 font-headline font-black italic">
                             Kategori tidak ditemukan.
                         </p>
                     </>

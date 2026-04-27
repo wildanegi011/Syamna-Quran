@@ -24,7 +24,7 @@ export function ModuleHero({
     className
 }: ModuleHeroProps) {
     return (
-        <section className={cn("relative h-[180px] sm:h-[200px] md:h-[250px] lg:h-[300px] w-full overflow-hidden border-b border-white/5", className)}>
+        <section className={cn("relative h-[180px] sm:h-[200px] md:h-[250px] lg:h-[300px] w-full overflow-hidden border-b border-foreground/5", className)}>
             {/* Background Image with Overlay - Sufter/Minimal for better readability */}
             <div className="absolute inset-0 z-0 bg-background">
                 <Image
@@ -54,16 +54,16 @@ export function ModuleHero({
                                     onBack();
                                 }}
                                 type="button"
-                                className="mb-2 flex items-center gap-2 text-on-surface/40 hover:text-primary transition-all duration-300 group px-2 py-1 -ml-2 bg-transparent border-none cursor-pointer relative z-20 active:scale-95"
+                                className="mb-2 flex items-center gap-2 text-foreground/40 hover:text-primary transition-all duration-300 group px-2 py-1 -ml-2 bg-transparent border-none cursor-pointer relative z-20 active:scale-95"
                             >
                                 <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                                 <span className="text-[10px] font-headline font-black uppercase tracking-widest leading-none">Kembali</span>
                             </button>
                         )}
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline font-black text-on-surface tracking-tighter leading-[1.1]">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline font-black text-foreground tracking-tighter leading-[1.1]">
                             {title}
                         </h1>
-                        <p className="text-xs sm:text-sm md:text-sm lg:text-base text-on-surface/50 font-body max-w-lg leading-relaxed italic line-clamp-2 md:line-clamp-none">
+                        <p className="text-xs sm:text-sm md:text-sm lg:text-base text-foreground/50 font-body max-w-lg leading-relaxed italic line-clamp-2 md:line-clamp-none">
                             {subtitle}
                         </p>
                     </motion.div>
