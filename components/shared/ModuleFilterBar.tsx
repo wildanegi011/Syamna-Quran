@@ -26,7 +26,7 @@ export function ModuleFilterBar({
     return (
         <div className={cn(
             "sticky top-[63px] z-30 transition-all duration-300",
-            "bg-background border-b border-white/5 pt-3 pb-1 md:pt-4 md:pb-2",
+            "bg-background border-b border-foreground/5 pt-3 pb-1 md:pt-4 md:pb-2",
             className
         )}>
             <div className="px-4 sm:px-6 md:px-12">
@@ -45,20 +45,20 @@ export function ModuleFilterBar({
                                     onClick={() => onSelect(value)}
                                     className={cn(
                                         "relative px-6 h-11 rounded-full text-xs font-headline font-black transition-all duration-300 whitespace-nowrap border active:scale-95 uppercase tracking-[0.1em] flex items-center gap-2",
-                                        isActive
-                                            ? "bg-white text-black border-white shadow-[0_15px_35px_-10px_rgba(255,255,255,0.4)] scale-105"
-                                            : "bg-white/[0.08] text-white/60 border-white/10 hover:bg-white/15 hover:text-white hover:border-white/20"
-                                    )}
-                                >
-                                    <span>{label}</span>
-                                    {count !== undefined && (
-                                        <span className={cn(
-                                            "ml-1 px-2 py-0.5 rounded-md text-[11px] font-black leading-none",
-                                            isActive ? "bg-black/20 text-black/70" : "bg-white/15 text-white/50"
-                                        )}>
-                                            {count}
-                                        </span>
-                                    )}
+                                    isActive
+                                        ? "bg-primary text-white border-primary shadow-[0_10px_20px_-5px_rgba(var(--primary-rgb),0.3)] scale-105"
+                                        : "bg-background text-foreground/60 border-foreground/10 hover:bg-foreground/[0.03] hover:text-foreground hover:border-foreground/20"
+                                )}
+                            >
+                                <span>{label}</span>
+                                {count !== undefined && (
+                                    <span className={cn(
+                                        "ml-1 px-2 py-0.5 rounded-md text-[11px] font-black leading-none",
+                                        isActive ? "bg-white/20 text-white" : "bg-foreground/15 text-foreground/50"
+                                    )}>
+                                        {count}
+                                    </span>
+                                )}
                                 </button>
                             );
                         })}

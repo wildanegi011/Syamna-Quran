@@ -32,12 +32,12 @@ function HadithSkeleton() {
                 className="py-12"
             >
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="relative flex items-center p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.75rem] bg-surface-container-low/30 backdrop-blur-xl border border-white/[0.03] min-h-[80px] w-full h-full">
+                    <div key={i} className="relative flex items-center p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.75rem] bg-foreground/[0.03] backdrop-blur-xl border border-foreground/5 min-h-[80px] w-full h-full">
                         <div className="flex items-center gap-4 w-full">
-                            <div className="w-10 h-10 md:w-11 md:h-11 rounded-[0.85rem] md:rounded-[1rem] bg-surface-container-highest/50 shrink-0" />
+                            <div className="w-10 h-10 md:w-11 md:h-11 rounded-[0.85rem] md:rounded-[1rem] bg-foreground/5 shrink-0" />
                             <div className="flex-1 space-y-2">
-                                <div className="h-4 w-full rounded-md bg-on-surface/5" />
-                                <div className="h-4 w-[60%] rounded-md bg-on-surface/5" />
+                                <div className="h-4 w-full rounded-md bg-foreground/5" />
+                                <div className="h-4 w-[60%] rounded-md bg-foreground/5" />
                             </div>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export default function HadithCategoryDetailPage() {
                 isLoading={isLoading}
                 emptyState={
                     <div className="text-center py-20 w-full col-span-full">
-                        <p className="text-xl text-on-surface/40 font-headline font-black italic">
+                        <p className="text-xl text-foreground/40 font-headline font-black italic">
                             Hadist tidak ditemukan dengan filter ini.
                         </p>
                         <button

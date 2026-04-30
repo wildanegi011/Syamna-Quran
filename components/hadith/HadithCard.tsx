@@ -25,7 +25,7 @@ export function HadithCard({ hadith, index, onDetail }: HadithCardProps) {
             }}
             onClick={() => onDetail(hadith.id)}
         >
-            <div className="group relative flex items-center justify-between p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.75rem] bg-surface-container-low/60 backdrop-blur-xl border border-white/10 hover:bg-surface-container-highest/60 hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[80px] h-full">
+            <div className="group relative flex items-center justify-between p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.75rem] bg-foreground/[0.03] backdrop-blur-xl border border-foreground/10 hover:bg-foreground/[0.05] hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[80px] h-full">
                 {/* Visual Accent Layer */}
                 <div className="absolute inset-0 bg-linear-to-br from-primary/[0.02] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 
@@ -33,7 +33,7 @@ export function HadithCard({ hadith, index, onDetail }: HadithCardProps) {
                     {/* Logo Box */}
                     <div className="relative shrink-0">
                         <div className={cn(
-                            "w-10 h-10 md:w-11 md:h-11 rounded-[0.85rem] md:rounded-[1rem] bg-surface-container-highest flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-white/5",
+                            "w-10 h-10 md:w-11 md:h-11 rounded-[0.85rem] md:rounded-[1rem] bg-foreground/5 flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-foreground/5",
                             "group-hover:bg-primary group-hover:rotate-6 group-hover:border-primary/50"
                         )}>
                             <BookOpen className="w-5 h-5 md:w-5.5 md:h-5.5 text-primary group-hover:text-primary-foreground transition-colors duration-700" strokeWidth={1.5} />
@@ -42,7 +42,7 @@ export function HadithCard({ hadith, index, onDetail }: HadithCardProps) {
                     </div>
 
                     <div className="flex flex-col min-w-0 flex-1 justify-center">
-                        <h3 className="text-sm md:text-base font-headline font-bold text-on-surface/90 tracking-tight group-hover:text-on-surface transition-all duration-300 leading-snug line-clamp-2 md:line-clamp-3">
+                        <h3 className="text-sm md:text-base font-headline font-bold text-foreground/90 tracking-tight group-hover:text-foreground transition-all duration-300 leading-snug line-clamp-2 md:line-clamp-3">
                             {hadith.title}
                         </h3>
                     </div>
@@ -55,7 +55,7 @@ export function HadithCard({ hadith, index, onDetail }: HadithCardProps) {
                 </div>
 
                 {/* Decorative background number */}
-                <div className="absolute -right-3 -bottom-3 text-[60px] font-black text-on-surface/[0.01] group-hover:text-primary/[0.02] transition-all duration-700 pointer-events-none font-headline">
+                <div className="absolute -right-3 -bottom-3 text-[60px] font-black text-foreground/[0.01] group-hover:text-primary/[0.02] transition-all duration-700 pointer-events-none font-headline">
                     {index + 1}
                 </div>
             </div>

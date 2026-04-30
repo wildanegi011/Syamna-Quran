@@ -25,7 +25,7 @@ export function GoogleLoginButton() {
       variant="outline"
       onClick={handleLogin}
       disabled={isLoading}
-      className="w-full flex items-center justify-center gap-2 py-6 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+      className="w-full flex items-center justify-center gap-2 py-6 rounded-xl border-foreground/10 bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
     >
       {isLoading ? (
         <Loader2 className="w-5 h-5 animate-spin" />

@@ -50,6 +50,8 @@ interface MobileHeaderProps {
     activeData: any;
     handleAyahJump: (ayah: Ayah) => void;
     pagination?: any;
+    mode: 'reading' | 'listening';
+    setMode: (mode: 'reading' | 'listening') => void;
 }
 
 export const MobileHeader = ({
@@ -63,16 +65,18 @@ export const MobileHeader = ({
     scrollContainerRef,
     activeData,
     handleAyahJump,
-    pagination
+    pagination,
+    mode,
+    setMode
 }: MobileHeaderProps) => {
     const [isJumpInputOpen, setIsJumpInputOpen] = React.useState(false);
 
     return (
-        <div className="lg:hidden flex flex-col bg-[#0a0a0a]/80 backdrop-blur-3xl sticky top-0 z-50 shrink-0 border-b border-white/5">
+        <div className="lg:hidden flex flex-col bg-background/80 backdrop-blur-3xl sticky top-0 z-50 shrink-0 border-b border-foreground/5">
             <div className="flex items-center justify-between px-2 h-16">
                 <button
                     onClick={() => setRightPanelOpen(false)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white active:scale-95 transition-all"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-foreground/60 hover:text-foreground active:scale-95 transition-all"
                 >
                     <ChevronLeft className="w-6 h-6" />
                 </button>
@@ -86,18 +90,19 @@ export const MobileHeader = ({
                         transition={{ duration: 0.2 }}
                         className="flex flex-col items-center min-w-0"
                     >
-                        <h3 className="text-base font-black text-white truncate max-w-[200px] leading-tight">
+                        <h3 className="text-base font-black text-foreground truncate max-w-[200px] leading-tight">
                             {viewedJuz ? `Juz ${viewedJuz}` : viewedSurah?.namaLatin}
                         </h3>
+                        {/* Surah Subtitle Info */}
                         {!viewedJuz && viewedSurah && (
-                            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-white/40">
+                            <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-foreground/40">
                                 <span className="truncate max-w-[100px]">{viewedSurah.arti}</span>
-                                <span className="w-0.5 h-0.5 rounded-full bg-white/20 shrink-0" />
+                                <span className="w-0.5 h-0.5 rounded-full bg-foreground/20 shrink-0" />
                                 <span>{viewedSurah.jumlahAyat} Ayat</span>
                             </div>
                         )}
                         {viewedJuz && (
-                            <span className="text-[10px] font-black uppercase tracking-wider text-white/40">
+                            <span className="text-[11px] font-black uppercase tracking-wider text-foreground/40">
                                 Juz Al-Qur'an
                             </span>
                         )}
@@ -109,7 +114,7 @@ export const MobileHeader = ({
                         onClick={() => setIsJumpInputOpen(!isJumpInputOpen)}
                         className={cn(
                             "w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95",
-                            isJumpInputOpen ? "text-primary bg-primary/10" : "text-white/60 hover:text-white"
+                            isJumpInputOpen ? "text-primary bg-primary/10" : "text-foreground/60 hover:text-foreground"
                         )}
                     >
                         <Search className="w-5 h-5" />
@@ -117,19 +122,54 @@ export const MobileHeader = ({
 
                     <button
                         onClick={() => setIsSettingsOpen(true)}
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white active:scale-95 transition-all"
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-foreground/60 hover:text-foreground active:scale-95 transition-all"
                     >
                         <Settings className="w-5 h-5" />
                     </button>
                 </div>
             </div>
 
+            {/* Mode Switcher - Mobile */}
+            <div className="px-4 pb-2">
+                <div className="flex bg-foreground/[0.03] p-1 rounded-2xl border border-foreground/5 relative overflow-hidden">
+                    <motion.div
+                        className="absolute inset-1 bg-background border border-foreground/5 shadow-lg rounded-xl z-0"
+                        initial={false}
+                        animate={{
+                            x: mode === 'reading' ? '0%' : '100%',
+                            width: '50%'
+                        }}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                    />
+                    <button
+                        onClick={() => setMode('reading')}
+                        className={cn(
+                            "flex-1 py-2 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                            mode === 'reading' ? "text-primary" : "text-foreground/30"
+                        )}
+                    >
+                        <BookOpen className="w-3.5 h-3.5" />
+                        Membaca
+                    </button>
+                    <button
+                        onClick={() => setMode('listening')}
+                        className={cn(
+                            "flex-1 py-2 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                            mode === 'listening' ? "text-primary" : "text-foreground/30"
+                        )}
+                    >
+                        <Headphones className="w-3.5 h-3.5" />
+                        Mendengar
+                    </button>
+                </div>
+            </div>
+
             {/* Jump Input Drawer */}
             <Drawer open={isJumpInputOpen} onOpenChange={setIsJumpInputOpen}>
-                <DrawerContent className="bg-[#121212] border-white/10 p-0 text-white pb-10">
-                    <DrawerHeader className="border-b border-white/5 pb-4 px-6 text-left">
+                <DrawerContent className="bg-background border-foreground/10 p-0 text-foreground pb-10">
+                    <DrawerHeader className="border-b border-foreground/5 pb-4 px-6 text-left">
                         <DrawerTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary">Lompat ke Ayat</DrawerTitle>
-                        <DrawerDescription className="text-[10px] text-white/40">Cari dan pilih ayat untuk langsung menuju ke lokasinya</DrawerDescription>
+                        <DrawerDescription className="text-[10px] text-foreground/40">Cari dan pilih ayat untuk langsung menuju ke lokasinya</DrawerDescription>
                     </DrawerHeader>
                     <div className="p-6">
                         <AyahJumpInput
@@ -166,10 +206,10 @@ export const MobileHeader = ({
                                     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' });
                                 }}
                                 className={cn(
-                                    "shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
+                                    "shrink-0 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border",
                                     isActive
-                                        ? "bg-primary text-black border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
-                                        : "bg-white/5 text-white/40 border-white/5 hover:bg-white/10"
+                                        ? "bg-primary text-white border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
+                                        : "bg-foreground/5 text-foreground/40 border-foreground/5 hover:bg-foreground/10"
                                 )}
                             >
                                 {label}
@@ -192,6 +232,8 @@ interface DesktopHeaderProps {
     selectedReciterId: string;
     setReciterId: (id: string) => void;
     isFetching: boolean;
+    mode: 'reading' | 'listening';
+    setMode: (mode: 'reading' | 'listening') => void;
 }
 
 export const DesktopHeader = ({
@@ -203,7 +245,9 @@ export const DesktopHeader = ({
     reciters,
     selectedReciterId,
     setReciterId,
-    isFetching
+    isFetching,
+    mode,
+    setMode
 }: DesktopHeaderProps) => {
     return (
         <div className="p-4 sm:p-6 pb-4 flex flex-col gap-4 sm:gap-6 shrink-0 hidden lg:flex">
@@ -216,15 +260,15 @@ export const DesktopHeader = ({
                     transition={{ duration: 0.3 }}
                     className="flex flex-col gap-1.5 md:pt-0"
                 >
-                    <h3 className="text-2xl sm:text-3xl font-headline font-black text-white tracking-tighter leading-none">
+                    <h3 className="text-2xl sm:text-3xl font-headline font-black text-foreground tracking-tighter leading-none">
                         {viewedJuz ? `Juz ${viewedJuz}` : viewedSurah?.namaLatin}
                     </h3>
                     {!viewedJuz && (
                         <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.1em]">
-                            <span className="text-white/60">{viewedSurah?.arti}</span>
-                            <span className="w-1 h-1 rounded-full bg-white/10" />
-                            <span className="text-white/40">{viewedSurah?.jumlahAyat} Ayat</span>
-                            <span className="w-1 h-1 rounded-full bg-white/10" />
+                            <span className="text-foreground/60">{viewedSurah?.arti}</span>
+                            <span className="w-1 h-1 rounded-full bg-foreground/10" />
+                            <span className="text-foreground/40">{viewedSurah?.jumlahAyat} Ayat</span>
+                            <span className="w-1 h-1 rounded-full bg-foreground/10" />
                             <span className={cn(
                                 viewedSurah?.tempatTurun === "Madinah" ? "text-[#56B874]" : "text-[#638FE5]"
                             )}>
@@ -236,11 +280,11 @@ export const DesktopHeader = ({
                         <div className="flex flex-col gap-1.5 mt-1">
                             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.1em]">
                                 <span className="text-primary font-black">Juz Al-Qur'an</span>
-                                <span className="w-1 h-1 rounded-full bg-white/10" />
-                                <span className="text-white/40">{activeData?.ayat?.length || 0} Ayat</span>
+                                <span className="w-1 h-1 rounded-full bg-foreground/10" />
+                                <span className="text-foreground/40">{activeData?.ayat?.length || 0} Ayat</span>
                             </div>
                             {activeData && activeData.ayat && activeData.ayat.length > 0 && (
-                                <p className="text-[11px] font-medium text-white/50 leading-relaxed max-w-[90%]">
+                                <p className="text-[11px] font-medium text-foreground/50 leading-relaxed max-w-[90%]">
                                     Surat {activeData.ayat[0].surahInfo?.namaLatin} [{activeData.ayat[0].nomorAyat}] — Surat {activeData.ayat[activeData.ayat.length - 1].surahInfo?.namaLatin} [{activeData.ayat[activeData.ayat.length - 1].nomorAyat}]
                                 </p>
                             )}
@@ -248,12 +292,43 @@ export const DesktopHeader = ({
                     )}
                 </motion.div>
             </AnimatePresence>
-
+            {/* Mode Switcher - Desktop */}
+            <div className="flex bg-foreground/[0.03] p-1 rounded-2xl border border-foreground/5 relative overflow-hidden">
+                <motion.div
+                    className="absolute inset-1 bg-background border border-foreground/5 shadow-lg rounded-xl z-0"
+                    initial={false}
+                    animate={{
+                        x: mode === 'reading' ? '0%' : '100%',
+                        width: '50%'
+                    }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                />
+                <button
+                    onClick={() => setMode('reading')}
+                    className={cn(
+                        "flex-1 py-2.5 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                        mode === 'reading' ? "text-primary" : "text-foreground/30"
+                    )}
+                >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Membaca
+                </button>
+                <button
+                    onClick={() => setMode('listening')}
+                    className={cn(
+                        "flex-1 py-2.5 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                        mode === 'listening' ? "text-primary" : "text-foreground/30"
+                    )}
+                >
+                    <Headphones className="w-3.5 h-3.5" />
+                    Mendengar
+                </button>
+            </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
                 {!viewedJuz && (
                     <button
                         onClick={(e) => onOpenInfo(e)}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all active:scale-95 whitespace-nowrap"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-foreground/60 hover:text-foreground transition-all active:scale-95 whitespace-nowrap"
                     >
                         <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         Info Surat
@@ -263,7 +338,7 @@ export const DesktopHeader = ({
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <button
-                            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all active:scale-95 group/qori disabled:opacity-50 whitespace-nowrap"
+                            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-foreground/60 hover:text-foreground transition-all active:scale-95 group/qori disabled:opacity-50 whitespace-nowrap"
                             disabled={isFetching}
                         >
                             {isFetching ? (
@@ -275,7 +350,7 @@ export const DesktopHeader = ({
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-72 bg-[#0c0c0c]/95 backdrop-blur-3xl border border-white/10 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[1.5rem] overflow-hidden"
+                        className="w-72 bg-background/95 backdrop-blur-3xl border border-foreground/10 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[1.5rem] overflow-hidden"
                         align="start"
                         sideOffset={12}
                     >
@@ -283,7 +358,7 @@ export const DesktopHeader = ({
                             <Headphones className="w-3 h-3" />
                             Pilih Qori (Reciter)
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-white/5 mx-2 mb-1" />
+                        <DropdownMenuSeparator className="bg-foreground/5 mx-2 mb-1" />
                         <div className="max-h-[400px] overflow-y-auto custom-scrollbar px-1 py-1 space-y-1">
                             {reciters.map((qori) => (
                                 <DropdownMenuItem
@@ -292,8 +367,8 @@ export const DesktopHeader = ({
                                     className={cn(
                                         "flex items-center justify-between p-3 rounded-xl transition-all cursor-pointer outline-none",
                                         selectedReciterId === qori.identifier
-                                            ? "bg-primary/20 text-white"
-                                            : "hover:bg-white/5 text-white/60 hover:text-white focus:bg-white/10"
+                                            ? "bg-primary/20 text-foreground"
+                                            : "hover:bg-foreground/5 text-foreground/60 hover:text-foreground focus:bg-foreground/10"
                                     )}
                                 >
                                     <div className="flex flex-col min-w-0">

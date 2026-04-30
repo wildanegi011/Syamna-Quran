@@ -24,6 +24,7 @@ interface AyahRowProps {
 
 export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsirText, onShowTafsir }: AyahRowProps) {
     const { currentAyah, isPlaying, playAyah, togglePlay, currentSurah } = useAudioState();
+    const { mushafId } = useSettings();
 
     const isCurrent = currentAyah?.nomorAyat === ayah.nomorAyat && currentSurah?.nomor === surah.nomor;
 
@@ -50,13 +51,13 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.02 }}
             className={cn(
-                "group flex flex-col gap-4 md:gap-6 p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] transition-all duration-700 hover:bg-surface-container-highest/10 relative overflow-hidden border border-white/[0.02] scroll-mt-24 md:scroll-mt-40",
-                isCurrent && "bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.3)] ring-1 ring-white/5"
+                "group flex flex-col gap-4 md:gap-6 p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] transition-all duration-700 hover:bg-foreground/[0.03] relative overflow-hidden border border-foreground/[0.02] scroll-mt-24 md:scroll-mt-40",
+                isCurrent && "bg-foreground/[0.05] backdrop-blur-2xl border border-foreground/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] ring-1 ring-foreground/5"
             )}
         >
             {/* Background Glow Effect for Active Ayah */}
             {isCurrent && (
-                <div className="absolute inset-0 bg-linear-to-br from-white/5 via-transparent to-transparent pointer-events-none opacity-50" />
+                <div className="absolute inset-0 bg-linear-to-br from-foreground/5 via-transparent to-transparent pointer-events-none opacity-50" />
             )}
 
             {/* Top Row: Number & Arabic Text */}
@@ -64,8 +65,8 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
                 <div className="flex items-center gap-3 md:gap-6 shrink-0">
                     <div className="relative w-10 h-10 md:w-14 md:h-14 flex items-center justify-center">
                         <div className={cn(
-                            "w-9 h-9 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-surface-container-highest/20 flex flex-col items-center justify-center text-[10px] md:text-xs font-headline font-black transition-all duration-500",
-                            isCurrent ? "bg-primary text-primary-foreground shadow-lg" : "text-on-surface/30 group-hover:opacity-0",
+                            "w-9 h-9 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-foreground/10 flex flex-col items-center justify-center text-[10px] md:text-xs font-headline font-black transition-all duration-500",
+                            isCurrent ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/30 group-hover:opacity-0",
                             isCurrent && isPlaying && "opacity-0"
                         )}>
                             <span className={cn(ayah.surahInfo ? "text-[8px] md:text-[10px]" : "text-xs")}>{ayah.nomorAyat}</span>
@@ -101,8 +102,9 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
 
                 <div
                     className={cn(
-                        "flex-1 text-right font-arabic leading-[2] transition-all duration-1000",
-                        isCurrent ? "text-on-surface text-3xl md:text-4xl drop-shadow-[0_2px_10px_rgba(255,255,255,0.05)] opacity-100" : "text-on-surface/80 text-3xl md:text-4xl hover:text-on-surface"
+                        "flex-1 text-right leading-[2] transition-all duration-1000",
+                        [3, 6, 7].includes(mushafId) ? "font-indopak text-4xl md:text-5xl" : "font-arabic text-3xl md:text-4xl",
+                        isCurrent ? "text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.05)] opacity-100" : "text-foreground/80 hover:text-foreground"
                     )}
                     dir="rtl"
                     dangerouslySetInnerHTML={{ __html: parseTajweed(ayah.teksTajweed || ayah.teksArab) }}
@@ -115,13 +117,13 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
                     {/* Latin Transliteration (Small & Subdue) */}
                     <p className={cn(
                         "text-xs font-label font-bold italic tracking-wide transition-colors",
-                        isCurrent ? "text-primary/60" : "text-on-surface/20"
+                        isCurrent ? "text-primary/60" : "text-foreground/20"
                     )} dangerouslySetInnerHTML={{ __html: ayah.teksLatin }} />
 
                     {/* Translation (Main Reading) */}
                     <p className={cn(
                         "text-base md:text-lg font-body leading-relaxed transition-all duration-700 max-w-4xl",
-                        isCurrent ? "text-on-surface opacity-100" : "text-on-surface/60 font-medium opacity-80"
+                        isCurrent ? "text-foreground opacity-100" : "text-foreground/60 font-medium opacity-80"
                     )}>
                         {ayah.teksIndonesia}
                     </p>
@@ -134,7 +136,7 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="p-2 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-white h-9 w-9 md:h-11 md:w-11 cursor-pointer"
+                                className="p-2 rounded-full hover:bg-foreground/10 transition-colors text-muted-foreground hover:text-foreground h-9 w-9 md:h-11 md:w-11 cursor-pointer"
                                 onClick={handleTafsirClick}
                             >
                                 <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
@@ -150,7 +152,7 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className={cn("p-2 rounded-full hover:bg-white/10 transition-colors h-9 w-9 md:h-11 md:w-11 cursor-pointer", isCurrent ? "text-primary" : "text-muted-foreground")}
+                                className={cn("p-2 rounded-full hover:bg-foreground/10 transition-colors h-9 w-9 md:h-11 md:w-11 cursor-pointer", isCurrent ? "text-primary" : "text-muted-foreground")}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     // Add favorite logic here
@@ -169,7 +171,7 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="p-2 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-white h-9 w-9 md:h-11 md:w-11 cursor-pointer"
+                                className="p-2 rounded-full hover:bg-foreground/10 transition-colors text-muted-foreground hover:text-foreground h-9 w-9 md:h-11 md:w-11 cursor-pointer"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     // Add share logic here

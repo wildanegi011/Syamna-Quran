@@ -41,7 +41,7 @@ export function DoaCard({ doa, index, onDetail }: DoaCardProps) {
                 stiffness: 100
             }}
             onClick={() => onDetail(doa.id)}
-            className="group relative flex items-center justify-between p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.75rem] bg-surface-container-low/60 backdrop-blur-xl border border-white/10 hover:bg-surface-container-highest/60 hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[100px]"
+            className="group relative flex items-center justify-between p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.75rem] bg-foreground/[0.03] backdrop-blur-xl border border-foreground/10 hover:bg-foreground/[0.05] hover:border-primary/20 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] transition-all duration-500 cursor-pointer overflow-hidden min-h-[100px]"
         >
             {/* Visual Accent Layer */}
             <div className="absolute inset-0 bg-linear-to-br from-primary/[0.02] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -50,7 +50,7 @@ export function DoaCard({ doa, index, onDetail }: DoaCardProps) {
                 {/* Logo Box */}
                 <div className="relative shrink-0">
                     <div className={cn(
-                        "w-10 h-10 md:w-11 md:h-11 rounded-[0.85rem] md:rounded-[1rem] bg-surface-container-highest flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-white/5",
+                        "w-10 h-10 md:w-11 md:h-11 rounded-[0.85rem] md:rounded-[1rem] bg-foreground/5 flex items-center justify-center transition-all duration-700 shadow-inner overflow-hidden border border-foreground/5",
                         "group-hover:bg-primary group-hover:rotate-6 group-hover:border-primary/50"
                     )}>
                         <GroupIcon
@@ -70,7 +70,7 @@ export function DoaCard({ doa, index, onDetail }: DoaCardProps) {
                             {doa.grup}
                         </span>
                     </div>
-                    <h3 className="text-sm md:text-base font-headline font-bold text-on-surface/90 tracking-tight group-hover:text-on-surface transition-all duration-300 leading-snug line-clamp-2">
+                    <h3 className="text-sm md:text-base font-headline font-bold text-foreground/90 tracking-tight group-hover:text-foreground transition-all duration-300 leading-snug line-clamp-2">
                         {doa.nama}
                     </h3>
                 </div>

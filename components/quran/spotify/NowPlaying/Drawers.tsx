@@ -9,13 +9,16 @@ import {
     BookOpen, 
     ChevronRight, 
     Play, 
-    Heart, 
+    Bookmark, 
     Copy, 
     CheckCircle2,
-    Book
+    Book,
+    Loader2
 } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTafsirResources } from '@/hooks/use-quran';
+import { useQuranFoundation } from '@/hooks/use-quran-foundation';
+import { useQuranAuth } from '@/contexts/QuranAuthContext';
 import { cn } from '@/lib/utils';
 import { Ayah, SurahSummary, Reciters } from '@/lib/types';
 import {
@@ -66,7 +69,7 @@ export const SettingsDrawer = ({
     onOpenTajweed,
     viewedJuz
 }: SettingsDrawerProps) => {
-    const { tafsirId, setTafsirId } = useSettings();
+    const { tafsirId, setTafsirId, mushafId, setMushafId } = useSettings();
     const { data: tafsirResources, isLoading: isTafsirLoading } = useTafsirResources();
 
     // Sort tafsirs with Indonesian first, show all
@@ -91,24 +94,24 @@ export const SettingsDrawer = ({
 
     return (
         <Drawer open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <DrawerContent className="bg-[#121212] border-white/10 p-0 text-white pb-10">
-                <DrawerHeader className="border-b border-white/5 pb-4">
+            <DrawerContent className="bg-background border-foreground/10 p-0 text-foreground pb-10">
+                <DrawerHeader className="border-b border-foreground/5 pb-4">
                     <DrawerTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary">Pengaturan Pemutar</DrawerTitle>
-                    <DrawerDescription className="text-[10px] text-white/40">Sesuaikan pengalaman mendengarkan Anda</DrawerDescription>
+                    <DrawerDescription className="text-[10px] text-foreground/40">Sesuaikan pengalaman mendengarkan Anda</DrawerDescription>
                 </DrawerHeader>
 
                 <div className="overflow-y-auto max-h-[70vh] custom-scrollbar px-6 py-4">
                     <Accordion type="multiple" defaultValue={["reciter"]} className="w-full space-y-2">
                         {/* Qori Section */}
-                        <AccordionItem value="reciter" className="border-none bg-white/[0.03] rounded-2xl overflow-hidden px-4">
+                        <AccordionItem value="reciter" className="border-none bg-foreground/[0.03] rounded-2xl overflow-hidden px-4">
                             <AccordionTrigger className="hover:no-underline py-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                         <Headphones className="w-4 h-4" />
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-white/90">Pilih Qori</p>
-                                        <p className="text-[10px] text-white/40 font-medium">Lantunan suara pilihan</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Pilih Qori</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">Lantunan suara pilihan</p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
@@ -121,8 +124,8 @@ export const SettingsDrawer = ({
                                             className={cn(
                                                 "flex items-center justify-between p-4 rounded-xl transition-all",
                                                 selectedReciterId === qori.identifier
-                                                    ? "bg-primary/20 text-white border border-primary/20"
-                                                    : "bg-white/5 text-white/60 hover:bg-white/10"
+                                                    ? "bg-primary/20 text-foreground border border-primary/20"
+                                                    : "bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
                                             )}
                                         >
                                             <span className="font-bold text-sm">{qori.englishName}</span>
@@ -134,15 +137,15 @@ export const SettingsDrawer = ({
                         </AccordionItem>
 
                         {/* Tafsir Section */}
-                        <AccordionItem value="tafsir" className="border-none bg-white/[0.03] rounded-2xl overflow-hidden px-4">
+                        <AccordionItem value="tafsir" className="border-none bg-foreground/[0.03] rounded-2xl overflow-hidden px-4">
                             <AccordionTrigger className="hover:no-underline py-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                         <BookOpen className="w-4 h-4" />
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-white/90">Pilih Tafsir</p>
-                                        <p className="text-[10px] text-white/40 font-medium">Penjelasan makna ayat</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Pilih Tafsir</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">Penjelasan makna ayat</p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
@@ -151,7 +154,7 @@ export const SettingsDrawer = ({
                                     {isTafsirLoading ? (
                                         <div className="space-y-2">
                                             {[1, 2].map(i => (
-                                                <div key={i} className="h-16 w-full animate-pulse bg-white/5 rounded-2xl" />
+                                                <div key={i} className="h-16 w-full animate-pulse bg-foreground/5 rounded-2xl" />
                                             ))}
                                         </div>
                                     ) : (
@@ -162,8 +165,8 @@ export const SettingsDrawer = ({
                                                 className={cn(
                                                     "flex items-center justify-between p-4 rounded-xl transition-all text-left",
                                                     tafsirId === t.id
-                                                        ? "bg-primary/20 text-white border border-primary/20"
-                                                        : "bg-white/5 text-white/60 hover:bg-white/10"
+                                                        ? "bg-primary/20 text-foreground border border-primary/20"
+                                                        : "bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
                                                 )}
                                             >
                                                 <div className="flex flex-col gap-0.5">
@@ -181,15 +184,15 @@ export const SettingsDrawer = ({
                         </AccordionItem>
 
                         {/* Tajweed Section */}
-                        <AccordionItem value="tajweed" className="border-none bg-white/[0.03] rounded-2xl overflow-hidden px-4">
+                        <AccordionItem value="tajweed" className="border-none bg-foreground/[0.03] rounded-2xl overflow-hidden px-4">
                             <AccordionTrigger className="hover:no-underline py-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                         <Sparkles className="w-4 h-4" />
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-white/90">Tajwid</p>
-                                        <p className="text-[10px] text-white/40 font-medium">Panduan hukum bacaan</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Tajwid</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">Panduan hukum bacaan</p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
@@ -213,12 +216,59 @@ export const SettingsDrawer = ({
                                 </button>
                             </AccordionContent>
                         </AccordionItem>
+                        
+                        {/* Mushaf Section */}
+                        <AccordionItem value="mushaf" className="border-none bg-foreground/[0.03] rounded-2xl overflow-hidden px-4">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                        <Book className="w-4 h-4" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Jenis Mushaf</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">Laporan Aktivitas QF</p>
+                                    </div>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-6">
+                                <div className="grid grid-cols-1 gap-2 pt-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                    {[
+                                        { id: 1, name: 'QCF V2', desc: 'Standard Digital V2' },
+                                        { id: 2, name: 'QCF V1', desc: 'Standard Digital V1' },
+                                        { id: 3, name: 'Indopak', desc: 'Skrip Asia Selatan' },
+                                        { id: 4, name: 'Uthmani Hafs', desc: 'Standar Internasional' },
+                                        { id: 5, name: 'KFGQPCHAFS', desc: 'Mushaf Madinah' },
+                                        { id: 6, name: 'Indopak 15 Lines', desc: 'Standar Indonesia' },
+                                        { id: 7, name: 'Indopak 16 Lines', desc: 'Standard Asia' },
+                                        { id: 11, name: 'Tajweed', desc: 'Berwarna dengan hukum Tajwid' },
+                                        { id: 19, name: 'QCF Tajweed V4', desc: 'Standard Digital Tajweed' },
+                                    ].map((m) => (
+                                        <button
+                                            key={m.id}
+                                            onClick={() => setMushafId(m.id)}
+                                            className={cn(
+                                                "flex items-center justify-between p-4 rounded-xl transition-all text-left",
+                                                mushafId === m.id
+                                                    ? "bg-primary/20 text-foreground border border-primary/20"
+                                                    : "bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
+                                            )}
+                                        >
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="font-bold text-sm">{m.name}</span>
+                                                <span className="text-[10px] opacity-60 font-medium uppercase tracking-wider">{m.desc}</span>
+                                            </div>
+                                            {mushafId === m.id && <Check className="w-4 h-4 text-primary" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
                     </Accordion>
                 </div>
 
-                <DrawerFooter className="border-t border-white/5 pt-4 px-6">
+                <DrawerFooter className="border-t border-foreground/5 pt-4 px-6">
                     <DrawerClose asChild>
-                        <Button variant="ghost" className="w-full h-12 rounded-xl text-white/60 font-black uppercase tracking-widest text-[10px] hover:bg-white/5">
+                        <Button variant="ghost" className="w-full h-12 rounded-xl text-foreground/60 font-black uppercase tracking-widest text-[10px] hover:bg-foreground/5">
                             Tutup Pengaturan
                         </Button>
                     </DrawerClose>
@@ -236,10 +286,9 @@ interface ActionDrawerProps {
     viewedSurah: SurahSummary | null;
     handleAyahPlay: (ayah: Ayah) => void;
     handleTafsirClick: (e: React.MouseEvent, ayah: Ayah) => void;
-    toggleFavorite: (surahId: number, ayahId: number) => void;
-    isFavorite: (surahId: number, ayahId: number) => boolean;
     isCopied: boolean;
     handleCopyAyah: (e: React.MouseEvent, ayah: Ayah) => void;
+    mode: 'reading' | 'listening';
 }
 
 export const ActionDrawer = ({
@@ -250,45 +299,57 @@ export const ActionDrawer = ({
     viewedSurah,
     handleAyahPlay,
     handleTafsirClick,
-    toggleFavorite,
-    isFavorite,
     isCopied,
-    handleCopyAyah
+    handleCopyAyah,
+    mode
 }: ActionDrawerProps) => {
+    const { readingBookmark, toggleReadingBookmark } = useQuranFoundation();
+    const { isConnected, connectQuranAccount } = useQuranAuth();
+    const [isConnecting, setIsConnecting] = React.useState(false);
+
+    // Reset connecting state when menu closes
+    React.useEffect(() => {
+        if (!isMenuOpen) {
+            setIsConnecting(false);
+        }
+    }, [isMenuOpen]);
+
     return (
         <Drawer open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <DrawerContent className="bg-[#121212] border-white/10 p-0 text-white pb-10">
-                <DrawerHeader className="border-b border-white/5 pb-4 px-6">
+            <DrawerContent className="bg-background border-foreground/10 p-0 text-foreground pb-10">
+                <DrawerHeader className="border-b border-foreground/5 pb-4 px-6">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Aksi Ayat</span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Ayat {selectedAyahMenu?.nomorAyat}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">Ayat {selectedAyahMenu?.nomorAyat}</span>
                     </div>
-                    <DrawerTitle className="text-lg font-headline font-black text-white leading-tight">
+                    <DrawerTitle className="text-lg font-headline font-black text-foreground leading-tight">
                         {viewedJuz ? selectedAyahMenu?.surahInfo?.namaLatin : viewedSurah?.namaLatin}
                     </DrawerTitle>
                 </DrawerHeader>
                 
                 <div className="p-4 space-y-1">
-                    <button
-                        onClick={() => {
-                            if (selectedAyahMenu) {
-                                handleAyahPlay(selectedAyahMenu);
-                                setIsMenuOpen(false);
-                            }
-                        }}
-                        className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-all group"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                <Play className="w-5 h-5 fill-current ml-0.5" />
+                    {mode !== 'reading' && (
+                        <button
+                            onClick={() => {
+                                if (selectedAyahMenu) {
+                                    handleAyahPlay(selectedAyahMenu);
+                                    setIsMenuOpen(false);
+                                }
+                            }}
+                            className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-foreground/5 active:bg-foreground/10 transition-all group"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                                </div>
+                                <div className="text-left">
+                                    <p className="font-bold text-sm text-foreground">Putar Ayat</p>
+                                    <p className="text-[10px] text-foreground/40">Dengarkan lantunan audio</p>
+                                </div>
                             </div>
-                            <div className="text-left">
-                                <p className="font-bold text-sm text-white">Putar Ayat</p>
-                                <p className="text-[10px] text-white/40">Dengarkan lantunan audio</p>
-                            </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40" />
-                    </button>
+                            <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-foreground/40" />
+                        </button>
+                    )}
 
                     <button
                         onClick={(e) => {
@@ -297,45 +358,63 @@ export const ActionDrawer = ({
                                 setIsMenuOpen(false);
                             }
                         }}
-                        className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-all group"
+                        className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-foreground/5 active:bg-foreground/10 transition-all group"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60">
+                            <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/60">
                                 <BookOpen className="w-5 h-5" />
                             </div>
                             <div className="text-left">
-                                <p className="font-bold text-sm text-white">Tafsir Ayat</p>
-                                <p className="text-[10px] text-white/40">Baca penjelasan dan hukum</p>
+                                <p className="font-bold text-sm text-foreground">Tafsir Ayat</p>
+                                <p className="text-[10px] text-foreground/40">Baca penjelasan dan hukum</p>
                             </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40" />
+                        <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-foreground/40" />
                     </button>
 
                     <button
                         onClick={() => {
                             if (selectedAyahMenu) {
-                                toggleFavorite(selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor || 0, selectedAyahMenu.nomorAyat);
+                                if (!isConnected) {
+                                    setIsConnecting(true);
+                                    connectQuranAccount();
+                                    return;
+                                }
+                                toggleReadingBookmark.mutate({
+                                    surahId: selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor || 0,
+                                    ayahId: selectedAyahMenu.nomorAyat
+                                });
                             }
                         }}
-                        className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-all group"
+                        disabled={toggleReadingBookmark.isPending || isConnecting}
+                        className={cn(
+                            "w-full flex items-center justify-between p-4 rounded-2xl hover:bg-foreground/5 active:bg-foreground/10 transition-all group",
+                            (toggleReadingBookmark.isPending || isConnecting) && "opacity-70 pointer-events-none"
+                        )}
                     >
                         <div className="flex items-center gap-4">
                             <div className={cn(
                                 "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                                selectedAyahMenu && isFavorite(selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor || 0, selectedAyahMenu.nomorAyat)
+                                selectedAyahMenu && readingBookmark.data?.key === (selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor) && readingBookmark.data?.verseNumber === selectedAyahMenu.nomorAyat
                                     ? "bg-primary/20 text-primary"
-                                    : "bg-white/5 text-white/60"
+                                    : "bg-foreground/5 text-foreground/60"
                             )}>
-                                <Heart className={cn("w-5 h-5", selectedAyahMenu && isFavorite(selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor || 0, selectedAyahMenu.nomorAyat) && "fill-current")} />
+                                {toggleReadingBookmark.isPending || isConnecting ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Bookmark className={cn("w-5 h-5", selectedAyahMenu && readingBookmark.data?.key === (selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor) && readingBookmark.data?.verseNumber === selectedAyahMenu.nomorAyat && "fill-current")} />
+                                )}
                             </div>
                             <div className="text-left">
-                                <p className="font-bold text-sm text-white">
-                                    {selectedAyahMenu && isFavorite(selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor || 0, selectedAyahMenu.nomorAyat) ? 'Hapus Favorit' : 'Tambah Favorit'}
+                                <p className="font-bold text-sm text-foreground">
+                                    {toggleReadingBookmark.isPending || isConnecting ? 'Memproses...' : (selectedAyahMenu && readingBookmark.data?.key === (selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor) && readingBookmark.data?.verseNumber === selectedAyahMenu.nomorAyat ? 'Hapus Terakhir Baca' : 'Jadikan Terakhir Baca')}
                                 </p>
-                                <p className="text-[10px] text-white/40">Simpan ke bookmark Anda</p>
+                                <p className="text-[10px] text-foreground/40">
+                                    {toggleReadingBookmark.isPending || isConnecting ? 'Sedang memperbarui bookmark...' : 'Simpan ayat untuk dilanjutkan nanti'}
+                                </p>
                             </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40" />
+                        <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-foreground/40" />
                     </button>
 
                     <button
@@ -344,34 +423,34 @@ export const ActionDrawer = ({
                                 handleCopyAyah(e, selectedAyahMenu);
                             }
                         }}
-                        className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 active:bg-white/10 transition-all group"
+                        className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-foreground/5 active:bg-foreground/10 transition-all group"
                     >
                         <div className="flex items-center gap-4">
                             <div className={cn(
                                 "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
-                                isCopied ? "bg-[#56B874]/20 text-[#56B874]" : "bg-white/5 text-white/60"
+                                isCopied ? "bg-[#56B874]/20 text-[#56B874]" : "bg-foreground/5 text-foreground/60"
                             )}>
                                 {isCopied ? <CheckCircle2 className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                             </div>
                             <div className="text-left">
                                 <p className={cn(
                                     "font-bold text-sm transition-colors",
-                                    isCopied ? "text-[#56B874]" : "text-white"
+                                    isCopied ? "text-[#56B874]" : "text-foreground"
                                 )}>
                                     {isCopied ? 'Berhasil Salin' : 'Salin Ayat'}
                                 </p>
-                                <p className="text-[10px] text-white/40">
+                                <p className="text-[10px] text-foreground/40">
                                     {isCopied ? 'Teks telah disalin ke clipboard' : 'Salin teks Arab dan terjemah'}
                                 </p>
                             </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/40" />
+                        <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-foreground/40" />
                     </button>
                 </div>
 
                 <DrawerFooter className="px-6 pt-2">
                     <DrawerClose asChild>
-                        <Button variant="ghost" className="w-full h-12 rounded-xl text-white/40 font-black uppercase tracking-widest text-[10px] hover:bg-white/5">
+                        <Button variant="ghost" className="w-full h-12 rounded-xl text-foreground/40 font-black uppercase tracking-widest text-[10px] hover:bg-foreground/5">
                             Tutup
                         </Button>
                     </DrawerClose>

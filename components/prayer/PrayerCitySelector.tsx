@@ -30,7 +30,7 @@ export function PrayerCitySelector({ type }: { type?: "province" | "city" }) {
     const { data: cities, isLoading: loadingCities } = useCities(location?.province ?? null);
 
     if (loadingProvinces || !location) {
-        return <Skeleton className="h-10 w-full rounded-xl bg-white/5" />;
+        return <Skeleton className="h-10 w-full rounded-xl bg-foreground/5" />;
     }
 
     const renderProvince = () => (
@@ -40,10 +40,10 @@ export function PrayerCitySelector({ type }: { type?: "province" | "city" }) {
                     variant="outline"
                     role="combobox"
                     aria-expanded={openProvince}
-                    className="w-full h-12 justify-between bg-white/5 border-white/[0.05] rounded-xl text-white hover:bg-white/[0.08] hover:text-white transition-all duration-300 font-body text-xs px-4"
+                    className="w-full h-12 justify-between bg-foreground/5 border-foreground/5 rounded-xl text-foreground hover:bg-foreground/[0.08] hover:text-foreground transition-all duration-300 font-body text-xs px-4"
                 >
                     <div className="flex items-center gap-3">
-                        <MapPin className={cn("w-4 h-4 transition-colors", location.province ? "text-primary" : "text-white/20")} />
+                        <MapPin className={cn("w-4 h-4 transition-colors", location.province ? "text-primary" : "text-foreground/20")} />
                         <span className={cn(location.province ? "opacity-100" : "opacity-40")}>
                             {location.province || "Cari Provinsi..."}
                         </span>
@@ -51,11 +51,11 @@ export function PrayerCitySelector({ type }: { type?: "province" | "city" }) {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-20" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-surface-container-low/95 backdrop-blur-3xl border-white/10 shadow-2xl rounded-2xl overflow-hidden" align="start">
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-background/95 backdrop-blur-3xl border-foreground/10 shadow-2xl rounded-2xl overflow-hidden" align="start">
                 <Command className="bg-transparent">
                     <CommandInput placeholder="Cari provinsi..." className="h-11 font-body" />
                     <CommandList className="max-h-[300px] scrollbar-hide">
-                        <CommandEmpty className="py-6 text-center text-xs text-on-surface/40">Provinsi tidak ditemukan.</CommandEmpty>
+                        <CommandEmpty className="py-6 text-center text-xs text-foreground/40">Provinsi tidak ditemukan.</CommandEmpty>
                         <CommandGroup>
                             {provinces?.map((p) => (
                                 <CommandItem
@@ -91,10 +91,10 @@ export function PrayerCitySelector({ type }: { type?: "province" | "city" }) {
                     role="combobox"
                     aria-expanded={openCity}
                     disabled={!location.province || loadingCities}
-                    className="w-full h-12 justify-between bg-white/5 border-white/[0.05] rounded-xl text-white hover:bg-white/[0.08] hover:text-white transition-all duration-300 font-body text-xs px-4 disabled:opacity-30"
+                    className="w-full h-12 justify-between bg-foreground/5 border-foreground/5 rounded-xl text-foreground hover:bg-foreground/[0.08] hover:text-foreground transition-all duration-300 font-body text-xs px-4 disabled:opacity-30"
                 >
                     <div className="flex items-center gap-3">
-                        <MapPin className={cn("w-4 h-4 transition-colors", location.city ? "text-primary" : "text-white/20")} />
+                        <MapPin className={cn("w-4 h-4 transition-colors", location.city ? "text-primary" : "text-foreground/20")} />
                         <span className={cn(location.city ? "opacity-100" : "opacity-40")}>
                             {loadingCities ? "Memuat..." : (location.city || (location.province ? "Cari Kota..." : "Pilih Provinsi Dulu"))}
                         </span>
@@ -102,11 +102,11 @@ export function PrayerCitySelector({ type }: { type?: "province" | "city" }) {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-20" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-surface-container-low/95 backdrop-blur-3xl border-white/10 shadow-2xl rounded-2xl overflow-hidden" align="start">
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-background/95 backdrop-blur-3xl border-foreground/10 shadow-2xl rounded-2xl overflow-hidden" align="start">
                 <Command className="bg-transparent">
                     <CommandInput placeholder="Cari kabupaten/kota..." className="h-11 font-body" />
                     <CommandList className="max-h-[300px] scrollbar-hide">
-                        <CommandEmpty className="py-6 text-center text-xs text-on-surface/40">Kota tidak ditemukan.</CommandEmpty>
+                        <CommandEmpty className="py-6 text-center text-xs text-foreground/40">Kota tidak ditemukan.</CommandEmpty>
                         <CommandGroup>
                             {cities?.map((c) => (
                                 <CommandItem

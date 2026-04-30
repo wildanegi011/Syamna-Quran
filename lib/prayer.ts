@@ -28,3 +28,9 @@ export async function getPrayerSchedule(
   if (result.code !== 200) throw new Error(result.message);
   return result.data;
 }
+
+import { fetchReverseGeocode } from "./api/prayer";
+
+export async function getReverseGeocode(lat: number, lon: number) {
+  return await fetchReverseGeocode(lat, lon);
+}

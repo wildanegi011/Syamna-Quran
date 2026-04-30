@@ -39,7 +39,7 @@ export function SidebarProgress() {
                 onValueChange={(val) => seek(val[0])}
                 className="w-full py-1 group cursor-pointer"
             />
-            <div className="hidden lg:flex justify-between items-center text-[10px] text-white/40 font-black tabular-nums tracking-widest uppercase">
+            <div className="hidden lg:flex justify-between items-center text-[10px] text-foreground/40 font-black tabular-nums tracking-widest uppercase">
                 <span>{formatTime(progress * duration / 100)}</span>
                 <span>{formatTime(duration)}</span>
             </div>
@@ -58,20 +58,20 @@ export function SidebarControls() {
                 onClick={toggleShuffle}
                 className={cn(
                     "w-8 h-8 rounded-full transition-colors relative",
-                    isShuffle ? "text-primary bg-primary/5" : "text-white/20 hover:text-white"
+                    isShuffle ? "text-primary bg-primary/5" : "text-foreground/20 hover:text-foreground"
                 )}
             >
                 <Shuffle className="w-3.5 h-3.5" />
             </Button>
 
-            <Button variant="ghost" size="icon" onClick={prevAyah} className="w-8 h-8 rounded-full text-white/40 hover:text-white transition-all hover:scale-110 active:scale-95">
+            <Button variant="ghost" size="icon" onClick={prevAyah} className="w-8 h-8 rounded-full text-foreground/40 hover:text-foreground transition-all hover:scale-110 active:scale-95">
                 <SkipBack className="w-5 h-5 fill-current" />
             </Button>
 
-            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-full border border-white/10">
+            <div className="flex items-center gap-2 bg-foreground/5 p-1 rounded-full border border-foreground/10">
                 <Button
                     onClick={togglePlay}
-                    className="w-10 h-10 rounded-full bg-white text-black hover:scale-105 transition-transform p-0 flex items-center justify-center shrink-0 shadow-lg"
+                    className="w-10 h-10 rounded-full bg-primary text-white hover:scale-105 transition-transform p-0 flex items-center justify-center shrink-0 shadow-[0_10px_20px_-5px_rgba(var(--primary-rgb),0.5)]"
                 >
                     {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
                 </Button>
@@ -80,14 +80,14 @@ export function SidebarControls() {
                     variant="ghost"
                     size="icon"
                     onClick={stopAudio}
-                    className="w-9 h-9 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                    className="w-9 h-9 rounded-full text-foreground/40 hover:text-foreground hover:bg-foreground/10 transition-all"
                     title="Stop"
                 >
                     <Square className="w-4 h-4 fill-current" />
                 </Button>
             </div>
 
-            <Button variant="ghost" size="icon" onClick={nextAyah} className="w-8 h-8 rounded-full text-white/40 hover:text-white transition-all hover:scale-110 active:scale-95">
+            <Button variant="ghost" size="icon" onClick={nextAyah} className="w-8 h-8 rounded-full text-foreground/40 hover:text-foreground transition-all hover:scale-110 active:scale-95">
                 <SkipForward className="w-5 h-5 fill-current" />
             </Button>
 
@@ -97,7 +97,7 @@ export function SidebarControls() {
                 onClick={toggleRepeatMode}
                 className={cn(
                     "w-8 h-8 rounded-full transition-colors relative",
-                    repeatMode !== 'off' ? "text-primary bg-primary/5" : "text-white/20 hover:text-white"
+                    repeatMode !== 'off' ? "text-primary bg-primary/5" : "text-foreground/20 hover:text-foreground"
                 )}
             >
                 {repeatMode === 'one' ? <Repeat1 className="w-3.5 h-3.5" /> : <Repeat className="w-3.5 h-3.5" />}
@@ -123,8 +123,8 @@ export function SidebarVolume() {
     };
 
     return (
-        <div className="flex items-center gap-2 group px-2 py-1.5 rounded-full bg-white/5 border border-white/5">
-            <button onClick={handleMuteToggle} className="text-white/40 group-hover:text-white transition-colors">
+        <div className="flex items-center gap-2 group px-2 py-1.5 rounded-full bg-foreground/5 border border-foreground/5">
+            <button onClick={handleMuteToggle} className="text-foreground/40 group-hover:text-foreground transition-colors">
                 {isMuted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
             </button>
             <Slider
@@ -146,10 +146,10 @@ export function SidebarActiveInfo() {
 
     if (!currentSurah || !currentAyah) return (
         <div className="flex items-center gap-3 animate-pulse opacity-20">
-            <div className="w-8 h-8 rounded-lg bg-white/10" />
+            <div className="w-8 h-8 rounded-lg bg-foreground/10" />
             <div className="space-y-1.5">
-                <div className="w-16 h-2 bg-white/20 rounded" />
-                <div className="w-10 h-1.5 bg-white/10 rounded" />
+                <div className="w-16 h-2 bg-foreground/20 rounded" />
+                <div className="w-10 h-1.5 bg-foreground/10 rounded" />
             </div>
         </div>
     );
@@ -158,13 +158,13 @@ export function SidebarActiveInfo() {
         <div className="w-full lg:w-auto">
             {/* Mobile View: Centered, Single Line */}
             <div className="flex lg:hidden items-center justify-center gap-2 group text-center w-full px-4">
-                <span className="text-xs font-black text-white truncate tracking-tight">
+                <span className="text-xs font-black text-foreground truncate tracking-tight">
                     {currentJuz ? `Juz ${currentJuz}` : currentSurah.namaLatin}
                 </span>
                 <span className="text-[10px] font-black text-primary/40 leading-none">•</span>
-                <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest truncate">
+                <span className="text-[11px] font-bold text-primary uppercase tracking-widest truncate">
                     {currentJuz ? currentSurah.namaLatin : `Ayat ${currentAyah.nomorAyat}`}
-                    {currentJuz && <span className="mx-1 text-white/20">•</span>}
+                    {currentJuz && <span className="mx-1 text-foreground/20 font-black">•</span>}
                     {currentJuz && `Ayat ${currentAyah.nomorAyat}`}
                 </span>
             </div>
@@ -172,7 +172,7 @@ export function SidebarActiveInfo() {
             {/* Desktop View: Left Aligned, Stacked */}
             <div className="hidden lg:flex flex-col items-start min-w-0 group text-left">
                 <div className="flex items-center gap-1.5 overflow-hidden">
-                    <span className="text-xs font-black text-white truncate tracking-tight">
+                    <span className="text-xs font-black text-foreground truncate tracking-tight">
                         {currentJuz ? `Juz ${currentJuz}` : currentSurah.namaLatin}
                     </span>
                     {isUsingFallback && (
@@ -181,9 +181,9 @@ export function SidebarActiveInfo() {
                         </span>
                     )}
                 </div>
-                <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest mt-0.5 truncate max-w-full">
+                <span className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5 truncate max-w-full">
                     {currentJuz ? currentSurah.namaLatin : `Ayat ${currentAyah.nomorAyat}`}
-                    {currentJuz && <span className="mx-1 text-white/20">•</span>}
+                    {currentJuz && <span className="mx-1 text-foreground/20 font-black">•</span>}
                     {currentJuz && `Ayat ${currentAyah.nomorAyat}`}
                 </span>
             </div>

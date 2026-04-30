@@ -21,7 +21,7 @@ export interface SurahSummary {
 }
 
 export interface AppModule {
-    id: string;
+    id: number;
     title: string;
     description: string;
     icon: string;

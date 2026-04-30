@@ -15,6 +15,7 @@ import { useSearch } from '@/contexts/SearchContext';
 import { NowPlayingPanel } from './NowPlayingPanel';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TajweedLegend } from '../TajweedLegend';
+import { DailyGoalSetter } from './DailyGoalSetter';
 
 export function SpotifyLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -89,18 +90,21 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
     ];
 
     return (
-        <div className="flex flex-col h-screen w-full bg-background text-on-surface overflow-hidden p-0 m-0 relative">
+        <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden p-0 m-0 relative">
             {/* Ambient Background layer */}
             <div className="fixed inset-0 z-0 text-primary">
                 <AmbientBackground className="opacity-10 mix-blend-screen" />
             </div>
+
+            {/* Interactive Goal Setter (Onboarding) */}
+            <DailyGoalSetter />
 
             {/* Main Application Structure */}
             <div className="flex flex-1 overflow-hidden p-0 relative z-10">
                 {/* Desktop Sidebar (Left side) */}
                 {!isLandingPage && (
                     <aside className={cn(
-                        "hidden md:flex flex-col h-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] border-r border-white/5 bg-[#020617]/40 backdrop-blur-3xl z-30 overflow-hidden shrink-0",
+                        "hidden md:flex flex-col h-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] border-r border-foreground/5 bg-foreground/[0.02] backdrop-blur-3xl z-30 overflow-hidden shrink-0",
                         isCollapsed ? "w-0 opacity-0 border-none" : "w-[280px]"
                     )}>
                         <QuranSidebar
@@ -126,7 +130,7 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
                                 animate={{ x: 0 }}
                                 exit={{ x: "-100%" }}
                                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                className="fixed left-0 top-0 bottom-0 w-[85%] max-w-sm z-[160] bg-[#020617]/95 backdrop-blur-3xl border-r border-white/5 shadow-2xl flex flex-col"
+                                className="fixed left-0 top-0 bottom-0 w-[85%] max-w-sm z-[160] bg-background/95 backdrop-blur-3xl border-r border-foreground/5 shadow-2xl flex flex-col"
                             >
                                 <QuranSidebar
                                     isCollapsed={false}
@@ -198,7 +202,7 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
                             <button
                                 onClick={() => setRightPanelOpen(true)}
                                 className={cn(
-                                    "fixed right-0 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center justify-center w-7 h-20 rounded-l-2xl bg-gradient-to-l from-primary/20 to-primary/5 hover:from-primary/30 hover:to-primary/10 border-l border-y border-primary/25 hover:border-primary/40 backdrop-blur-xl text-primary/60 hover:text-primary transition-all duration-300 group/open-side shadow-lg shadow-black/20",
+                                    "fixed right-0 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center justify-center w-7 h-20 rounded-l-2xl bg-gradient-to-l from-primary/20 to-primary/5 hover:from-primary/30 hover:to-primary/10 border-l border-y border-primary/25 hover:border-primary/40 backdrop-blur-xl text-primary/60 hover:text-primary transition-all duration-300 group/open-side shadow-lg",
                                     isRightPanelOpen ? "opacity-0 pointer-events-none translate-x-4" : "opacity-100 translate-x-0"
                                 )}
                                 title="Buka Panel Baca"

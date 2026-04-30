@@ -31,6 +31,7 @@ function findScrollParent(el: HTMLElement): HTMLElement | null {
     return null;
 }
 
+// Quran Reading & Listening Mode Panel - Final Sync
 export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void }) {
     // UI States
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -52,11 +53,13 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
         selectedReciterId,
         setReciterId,
         playAyah,
-        toggleFavorite,
-        isFavorite,
         currentSurah: playingSurah,
         setRightPanelOpen,
         isRightPanelOpen,
+        quranMode,
+        setQuranMode,
+        jumpTargetAyah,
+        setJumpTargetAyah
     } = useAudioState();
     const { tafsirId } = useSettings();
 
@@ -101,17 +104,29 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
     const isJumping = !!targetAyahNum;
 
     // Detect if the currently displayed data belongs to a previous surah/juz (stale due to keepPreviousData)
-    const isDataStale = !isLoading && isFetching && (
-        viewedJuz
-            ? (activeData?.nomor !== viewedJuz)
-            : (activeData?.nomor !== viewedSurah?.nomor)
-    );
+    const isDataStale = viewedJuz
+        ? (activeData?.nomor !== viewedJuz)
+        : (activeData?.nomor !== viewedSurah?.nomor);
 
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
+    // Watch for external jump triggers (from ReadingJourney etc)
+    React.useEffect(() => {
+        if (jumpTargetAyah) {
+            const target = jumpTargetAyah;
+            // Clear the global trigger immediately
+            setJumpTargetAyah(null);
+
+            // Set the local target after a tiny delay to ensure panel mount/update is solid
+            setTimeout(() => {
+                setTargetAyahNum(target);
+            }, 100);
+        }
+    }, [jumpTargetAyah, setJumpTargetAyah]);
+
     // Effect to handle sequential jump fetching
     React.useEffect(() => {
-        if (!targetAyahNum || !activeData?.ayat || isFetchingNextPage) return;
+        if (!targetAyahNum || !activeData?.ayat || isFetchingNextPage || isDataStale || isLoading) return;
 
         const found = activeData.ayat.find((a: Ayah) => a.nomorAyat === targetAyahNum);
         if (found) {
@@ -160,7 +175,8 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
     // Handlers
     const handleAyahJump = (ayah: Ayah) => {
         const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-        const delay = isMobile ? 400 : 150;
+        // Increase delay significantly for initial jump to account for panel opening animation
+        const delay = isMobile ? 600 : 400;
 
         // If ayah only contains nomorAyat (virtual result), we need to fetch it first
         if (Object.keys(ayah).length === 1 && ayah.nomorAyat) {
@@ -241,8 +257,8 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
             <div
                 className={cn(
                     "flex flex-col h-full w-full",
-                    "lg:border-l lg:border-white/10",
-                    "bg-[#0a0a0a] lg:bg-[#121212]/95 lg:backdrop-blur-3xl"
+                    "lg:border-l lg:border-foreground/10",
+                    "bg-background lg:bg-background/95 lg:backdrop-blur-3xl"
                 )}
             >
                 <MobileHeader
@@ -257,6 +273,8 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                     activeData={activeData}
                     handleAyahJump={handleAyahJump}
                     pagination={pagination}
+                    mode={quranMode}
+                    setMode={setQuranMode}
                 />
 
                 {isFetching && (
@@ -283,12 +301,12 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                     {!viewedSurah && !viewedJuz ? (
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-6 opacity-30 pt-24">
-                            <div className="w-20 h-20 rounded-[2rem] bg-white/5 flex items-center justify-center border border-white/10">
-                                <Music2 className="w-10 h-10 text-white" />
+                            <div className="w-20 h-20 rounded-[2rem] bg-foreground/5 flex items-center justify-center border border-foreground/10">
+                                <Music2 className="w-10 h-10 text-foreground" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-headline font-black text-white">Belum Ada Putaran</h3>
-                                <p className="text-xs font-medium text-white/60 leading-relaxed max-w-[200px]">Pilih salah satu Surah atau Juz untuk mulai mendengarkan lantunan ayat suci Al-Qur'an.</p>
+                                <h3 className="text-xl font-headline font-black text-foreground">Belum Ada Putaran</h3>
+                                <p className="text-xs font-medium text-foreground/60 leading-relaxed max-w-[200px]">Pilih salah satu Surah atau Juz untuk mulai mendengarkan lantunan ayat suci Al-Qur'an.</p>
                             </div>
                         </div>
                     ) : (
@@ -303,6 +321,8 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                                 selectedReciterId={selectedReciterId}
                                 setReciterId={setReciterId}
                                 isFetching={isFetching}
+                                mode={quranMode}
+                                setMode={setQuranMode}
                             />
 
                             <AyahList
@@ -315,8 +335,6 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                                 currentAyah={currentAyah}
                                 playingSurah={playingSurah}
                                 isPlaying={isPlaying}
-                                isFavorite={isFavorite}
-                                toggleFavorite={toggleFavorite}
                                 handleAyahPlay={handleAyahPlay}
                                 handleTafsirClick={handleTafsirClick}
                                 handleCopyAyah={handleCopyAyah}
@@ -328,13 +346,14 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                                 fetchNextPage={fetchNextPage}
                                 pagination={pagination}
                                 isJumping={!!targetAyahNum}
+                                mode={quranMode}
                             />
                         </div>
                     )}
                 </div>
 
-                {currentAyah && (
-                    <div className="mt-auto bg-[#121212]/95 backdrop-blur-xl border-t border-white/5 z-50 shadow-[0_-20px_40px_rgba(0,0,0,0.6)] flex flex-col relative">
+                {currentAyah && quranMode === 'listening' && (
+                    <div className="mt-auto bg-background/95 backdrop-blur-xl border-t border-foreground/5 z-50 shadow-[0_-20px_40px_rgba(0,0,0,0.1)] flex flex-col relative">
                         {/* Progress bar at the very top for mobile, slightly inset for desktop */}
                         <div className="absolute top-0 left-0 right-0 lg:px-6">
                             <SidebarProgress />
@@ -378,10 +397,9 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                 viewedSurah={viewedSurah}
                 handleAyahPlay={handleAyahPlay}
                 handleTafsirClick={handleTafsirClick}
-                toggleFavorite={toggleFavorite}
-                isFavorite={isFavorite}
                 isCopied={isCopied}
                 handleCopyAyah={handleCopyAyah}
+                mode={quranMode}
             />
 
             <AyahTafsir

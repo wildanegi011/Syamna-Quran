@@ -47,9 +47,15 @@ export async function fetchChapters() {
  * Fetches a page of verses for a specific surah from internal API.
  * Supports pagination via `page` parameter.
  */
-export async function fetchSurahVerses(nomor: number, reciterId: string, translationId: number = 33, page: number = 1, perPage: number = 50) {
+export async function fetchSurahVerses(nomor: number, reciterId: string, translationId: number = 33, page: number = 1, perPage: number = 50, mushafId?: number) {
+    // Determine fields based on mushafId
+    let fields = 'text_uthmani,text_uthmani_tajweed';
+    if ([3, 6, 7].includes(mushafId || 0)) {
+        fields += ',text_indopak';
+    }
+
     const response = await fetch(
-        `/api/quran/verses/by_chapter/${nomor}?language=id&per_page=${perPage}&page=${page}&translations=${translationId}&audio=${reciterId}&fields=text_uthmani,text_uthmani_tajweed`
+        `/api/quran/verses/by_chapter/${nomor}?language=id&per_page=${perPage}&page=${page}&translations=${translationId}&audio=${reciterId}&fields=${fields}`
     );
     if (!response.ok) {
         throw new Error(`Failed to fetch verses for surah ${nomor} from Quran Foundation`);
@@ -61,9 +67,15 @@ export async function fetchSurahVerses(nomor: number, reciterId: string, transla
  * Fetches a page of verses for a specific juz from internal API.
  * Supports pagination via `page` parameter.
  */
-export async function fetchJuzVerses(nomor: number, reciterId: string, translationId: number = 33, page: number = 1, perPage: number = 50) {
+export async function fetchJuzVerses(nomor: number, reciterId: string, translationId: number = 33, page: number = 1, perPage: number = 50, mushafId?: number) {
+    // Determine fields based on mushafId
+    let fields = 'text_uthmani,text_uthmani_tajweed';
+    if ([3, 6, 7].includes(mushafId || 0)) {
+        fields += ',text_indopak';
+    }
+
     const response = await fetch(
-        `/api/quran/verses/by_juz/${nomor}?language=id&per_page=${perPage}&page=${page}&translations=${translationId}&audio=${reciterId}&fields=text_uthmani,text_uthmani_tajweed`
+        `/api/quran/verses/by_juz/${nomor}?language=id&per_page=${perPage}&page=${page}&translations=${translationId}&audio=${reciterId}&fields=${fields}`
     );
     if (!response.ok) {
         throw new Error(`Failed to fetch verses for juz ${nomor} from Quran Foundation`);
@@ -83,11 +95,11 @@ export async function fetchSurahTafsirFromQF(nomor: number, tafsirId: number) {
 }
 
 /**
- * @deprecated Use fetchSurahTafsirFromQF
+ * Fetches Indonesian tafsir for a specific surah from internal API.
  */
-export async function fetchTafsir(nomor: number) {
+export async function fetchIndonesianTafsir(nomor: number) {
     const response = await fetch(`/api/tafsir/${nomor}`);
-    if (!response.ok) throw new Error(`Failed to fetch tafsir for surah ${nomor}`);
+    if (!response.ok) throw new Error(`Failed to fetch Indonesian tafsir for surah ${nomor}`);
     return await response.json();
 }
 

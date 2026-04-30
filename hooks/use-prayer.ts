@@ -1,15 +1,22 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-
-import { getProvinces, getCities, getPrayerSchedule } from "@/lib/prayer";
-import { useState, useEffect } from "react";
+import { getProvinces, getCities, getPrayerSchedule, getReverseGeocode } from "@/lib/prayer";
+import { useState, useEffect, useCallback } from "react";
 
 const STORAGE_KEY = "syamna-prayer-location";
 
+export const prayerKeys = {
+    all: ['prayer'] as const,
+    provinces: () => [...prayerKeys.all, 'provinces'] as const,
+    cities: (province: string | null) => [...prayerKeys.all, 'cities', province] as const,
+    schedule: (province: string | null, city: string | null, month?: number, year?: number) => [...prayerKeys.all, 'schedule', province, city, month, year] as const,
+    location: () => [...prayerKeys.all, 'selected-location'] as const,
+};
+
 export function useProvinces() {
     return useQuery({
-        queryKey: ["provinces"],
+        queryKey: prayerKeys.provinces(),
         queryFn: getProvinces,
         staleTime: Infinity,
     });
@@ -17,7 +24,7 @@ export function useProvinces() {
 
 export function useCities(province: string | null) {
     return useQuery({
-        queryKey: ["cities", province],
+        queryKey: prayerKeys.cities(province),
         queryFn: () => getCities(province!),
         enabled: !!province,
         staleTime: Infinity,
@@ -26,7 +33,7 @@ export function useCities(province: string | null) {
 
 export function usePrayerSchedule(province: string | null, city: string | null, month?: number, year?: number) {
     return useQuery({
-        queryKey: ["prayer-schedule", province, city, month, year],
+        queryKey: prayerKeys.schedule(province, city, month, year),
         queryFn: () => getPrayerSchedule(province!, city!, month, year),
         enabled: !!province && !!city,
         staleTime: 1000 * 60 * 60, // 1 hour
@@ -44,9 +51,8 @@ export interface LocationData {
 export function useSelectedLocation() {
     const queryClient = useQueryClient();
     
-    // Use React Query as a global state manager for location
     const { data: location, isLoading } = useQuery<LocationData | null>({
-        queryKey: ["selected-location"],
+        queryKey: prayerKeys.location(),
         queryFn: () => {
             if (typeof window === "undefined") return null;
             const stored = localStorage.getItem(STORAGE_KEY);
@@ -57,24 +63,22 @@ export function useSelectedLocation() {
 
     const [isDetecting, setIsDetecting] = useState(false);
 
-    const saveLocation = (province: string, city: string, source: LocationSource = 'manual') => {
+    const saveLocation = useCallback((province: string, city: string, source: LocationSource = 'manual') => {
         const newLocation: LocationData = { province, city, source };
         if (typeof window !== "undefined") {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newLocation));
         }
-        // Update the global cache instantly
-        queryClient.setQueryData(["selected-location"], newLocation);
-    };
+        queryClient.setQueryData(prayerKeys.location(), newLocation);
+    }, [queryClient]);
 
-    const detectLocation = async () => {
+    const detectLocation = useCallback(async () => {
         setIsDetecting(true);
         try {
             if (typeof window !== "undefined" && "geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async (position) => {
                     const { latitude, longitude } = position.coords;
                     try {
-                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`);
-                        const data = await response.json();
+                        const data = await getReverseGeocode(latitude, longitude);
 
                         const detectedCity = data.address.city || data.address.town || data.address.city_district || data.address.county || "";
                         const detectedProvince = data.address.state || "";
@@ -111,19 +115,18 @@ export function useSelectedLocation() {
             console.error("Auto detect failed", e);
             setIsDetecting(false);
         }
-    };
+    }, [location, saveLocation]);
 
-    // Initial load logic moved to useEffect to avoid hydration issues
     useEffect(() => {
         if (!location && !isLoading) {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
-                queryClient.setQueryData(["selected-location"], JSON.parse(stored));
+                queryClient.setQueryData(prayerKeys.location(), JSON.parse(stored));
             } else {
                 detectLocation();
             }
         }
-    }, [location, isLoading, queryClient]);
+    }, [location, isLoading, queryClient, detectLocation]);
 
     return { 
         location: location ?? null, 
@@ -143,13 +146,9 @@ export function useNextPrayer(province: string | null, city: string | null, mont
         const timer = setInterval(() => {
             const now = new Date();
             const todayDate = now.getDate();
-            
-            // If the selected month/year is not the current one, the notion of "today" in that schedule
-            // reflects the same day of the month as currently, but in the selected month context.
             const todaySchedule = schedule.jadwal.find(s => s.tanggal === todayDate);
 
             if (!todaySchedule) {
-                // Return last day of month if current date exceeds days in schedule
                 const lastDay = schedule.jadwal[schedule.jadwal.length - 1];
                 setNextPrayer({ name: "End of Month", time: lastDay.isya, countdown: "Pilih Hari Lain" });
                 return;
@@ -168,11 +167,8 @@ export function useNextPrayer(province: string | null, city: string | null, mont
             for (const prayer of prayerTimes) {
                 const [hours, minutes] = prayer.time.split(":").map(Number);
                 const prayerDate = new Date();
-                
-                // Set context date to the selected month/year if applicable
                 if (month) prayerDate.setMonth(month - 1);
                 if (year) prayerDate.setFullYear(year);
-                
                 prayerDate.setHours(hours, minutes, 0, 0);
 
                 if (prayerDate > now) {

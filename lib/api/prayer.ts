@@ -42,3 +42,12 @@ export async function fetchPrayerSchedule(
   if (!response.ok) throw new Error("Failed to fetch prayer schedule");
   return await response.json();
 }
+
+/**
+ * Performs reverse geocoding to get city and province from coordinates.
+ */
+export async function fetchReverseGeocode(lat: number, lon: number) {
+  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
+  if (!response.ok) throw new Error("Failed to reverse geocode");
+  return await response.json();
+}

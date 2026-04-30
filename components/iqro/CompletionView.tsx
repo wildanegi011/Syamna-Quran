@@ -17,10 +17,10 @@ export function CompletionView({ levelId, onRepeat }: CompletionViewProps) {
         <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-white/40 dark:bg-white/5 backdrop-blur-3xl rounded-[3rem] md:rounded-[5rem] p-12 md:p-24 text-center border border-white/40 dark:border-white/10 shadow-2xl max-w-sm md:max-w-2xl mx-auto relative overflow-hidden"
+            className="bg-foreground/[0.03] backdrop-blur-3xl rounded-[3rem] md:rounded-[5rem] p-12 md:p-24 text-center border border-foreground/10 shadow-2xl max-w-sm md:max-w-2xl mx-auto relative overflow-hidden"
         >
             <div className="absolute top-0 left-0 w-full h-4 bg-linear-to-r from-primary/30 via-primary to-primary/30" />
-            <div className="mb-10 md:mb-16 inline-flex items-center justify-center w-28 h-28 md:w-40 md:h-40 rounded-[2.5rem] md:rounded-[3.5rem] bg-primary text-white shadow-[0_30px_60px_rgba(var(--primary),0.4)] rotate-6 hover:rotate-0 transition-all duration-700">
+            <div className="mb-10 md:mb-16 inline-flex items-center justify-center w-28 h-28 md:w-40 md:h-40 rounded-[2.5rem] md:rounded-[3.5rem] bg-primary text-primary-foreground shadow-[0_30px_60px_rgba(var(--primary),0.4)] rotate-6 hover:rotate-0 transition-all duration-700">
                 <CheckCircle2 className="w-14 h-14 md:w-24 md:h-24" />
             </div>
             <h2 className="text-3xl md:text-5xl font-black mb-4 md:mb-6 tracking-tighter">Maa Syaa Allah! 🌟</h2>

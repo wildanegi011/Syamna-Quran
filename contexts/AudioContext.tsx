@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { Ayah, SurahSummary } from '@/lib/types';
 import { getSurahDetail, getAllSurahs } from '@/lib/quran';
+import { CONFIG } from '@/lib/api-config';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useQuranFoundation } from '@/hooks/use-quran-foundation';
 
 interface AudioStateContextType {
     currentAyah: Ayah | null;
@@ -27,10 +30,7 @@ interface AudioStateContextType {
     toggleShuffle: () => void;
     isRightPanelOpen: boolean;
     setRightPanelOpen: (val: boolean) => void;
-    playSurah: (surahNumber: number) => Promise<void>;
-    favorites: string[];
-    toggleFavorite: (surahId: number, ayahId: number) => void;
-    isFavorite: (surahId: number, ayahId: number) => boolean;
+    playSurah: (surahNumber: number, startAyah?: number) => Promise<void>;
     setCurrentSurah: (surah: SurahSummary | null, keepJuz?: boolean) => void;
     currentJuz: number | null;
     setCurrentJuz: (juz: number | null) => void;
@@ -39,6 +39,10 @@ interface AudioStateContextType {
     viewedJuz: number | null;
     setViewedJuz: (juz: number | null) => void;
     isUsingFallback: boolean;
+    quranMode: 'reading' | 'listening';
+    setQuranMode: (mode: 'reading' | 'listening') => void;
+    jumpTargetAyah: number | null;
+    setJumpTargetAyah: (ayah: number | null) => void;
 }
 
 interface AudioProgressContextType {
@@ -72,19 +76,38 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off');
     const [isShuffle, setIsShuffle] = useState(false);
     const [isRightPanelOpen, setRightPanelOpen] = useState(false);
-    const [favorites, setFavorites] = useState<string[]>([]);
     const [currentJuz, setCurrentJuzState] = useState<number | null>(null);
     const [viewedSurah, setViewedSurahState] = useState<SurahSummary | null>(null);
     const [viewedJuz, setViewedJuzState] = useState<number | null>(null);
+    const [quranMode, setQuranModeState] = useState<'reading' | 'listening'>('reading');
+    const { mushafId } = useSettings();
+    const { logActivity, isConnected } = useQuranFoundation();
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const playPromiseRef = useRef<Promise<void> | null>(null);
     const fallbackSourcesRef = useRef<string[]>([]);
     const fallbackIndexRef = useRef<number>(0);
     const [isUsingFallback, setIsUsingFallback] = useState(false);
+    const [jumpTargetAyah, setJumpTargetAyah] = useState<number | null>(null);
+
+    const setQuranMode = useCallback((mode: 'reading' | 'listening') => {
+        setQuranModeState(mode);
+        if (mode === 'reading') {
+            // Stop audio without closing the panel
+            setIsPlaying(false);
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            // We don't clear src or currentAyah anymore to prevent NotSupportedError when switching back
+        }
+        localStorage.setItem('syamna_quran_mode', mode);
+    }, []);
 
     // Load initial settings
     useEffect(() => {
+        const savedMode = localStorage.getItem('syamna_quran_mode') as 'reading' | 'listening';
+        if (savedMode) setQuranModeState(savedMode);
+
         const savedReciter = localStorage.getItem('syamna_quran_reciter');
         if (savedReciter) {
             // If the user has a legacy Aladhan ID (like 'ar.abdulsamad') or old 01 string, reset to default Mishary (7)
@@ -100,8 +123,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (savedRepeatMode) setRepeatMode(savedRepeatMode as any);
         const savedShuffle = localStorage.getItem('syamna_quran_shuffle');
         if (savedShuffle) setIsShuffle(savedShuffle === 'true');
-        const savedFavorites = localStorage.getItem('syamna_quran_favorites');
-        if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
 
         const savedNowPlaying = localStorage.getItem('syamna_now_playing');
         if (savedNowPlaying) setCurrentSurah(JSON.parse(savedNowPlaying));
@@ -121,7 +142,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (juzId) {
             setViewedJuzState(juzId);
             localStorage.setItem('syamna_viewed_juz', String(juzId));
-            
+
             // Still update the viewed surah state internally for metadata fallback, 
             // but we don't clear the viewedJuzState.
             setViewedSurahState(surah);
@@ -129,7 +150,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         } else {
             setViewedSurahState(surah);
             localStorage.setItem('syamna_viewed_surah', JSON.stringify(surah));
-            
+
             setViewedJuzState(null);
             localStorage.removeItem('syamna_viewed_juz');
         }
@@ -166,15 +187,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         });
     }, [queue]);
 
-    const toggleFavorite = useCallback((surahId: number, ayahId: number) => {
-        const key = `${surahId}-${ayahId}`;
-        setFavorites(prev => {
-            const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
-            localStorage.setItem('syamna_quran_favorites', JSON.stringify(next));
-            return next;
-        });
-    }, []);
-
     const setCurrentJuz = useCallback((juz: number | null) => {
         setCurrentJuzState(juz);
         if (juz) localStorage.setItem('syamna_current_juz', String(juz));
@@ -203,10 +215,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const isFavorite = useCallback((surahId: number, ayahId: number) => {
-        return favorites.includes(`${surahId}-${ayahId}`);
-    }, [favorites]);
-
     const lastUpdateRef = useRef<number>(0);
 
     useEffect(() => {
@@ -230,11 +238,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
         const handleAudioError = async () => {
             if (!audioRef.current) return;
-            
+
             // If the source is empty or just the window URL, it's not a real playback error
             const src = audioRef.current.src;
             if (!src || src === window.location.href || src === "about:blank") return;
-            
+
             // If we have no sources to fallback to, we are likely in a stopped state
             if (fallbackSourcesRef.current.length === 0) return;
 
@@ -245,12 +253,12 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             if (fallbackIndexRef.current < fallbackSourcesRef.current.length) {
                 const nextSrc = fallbackSourcesRef.current[fallbackIndexRef.current];
                 console.info(`Attempting fallback source ${fallbackIndexRef.current + 1}/${fallbackSourcesRef.current.length}: ${nextSrc}`);
-                
+
                 setIsUsingFallback(true);
                 audioRef.current.pause();
                 audioRef.current.src = nextSrc;
                 audioRef.current.load();
-                
+
                 try {
                     await safePlay();
                 } catch (e) {
@@ -272,7 +280,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             audio.removeEventListener('timeupdate', handleTimeUpdate);
             audio.removeEventListener('error', handleAudioError);
             audio.pause();
-            audio.src = "";
         };
     }, []);
 
@@ -293,8 +300,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const playAyah = useCallback(async (ayah: Ayah, surah: SurahSummary, newQueue?: Ayah[], juzId?: number | null) => {
+        if (quranMode === 'reading') return;
         if (!audioRef.current) return;
-        
+
         // Handle Juz context synchronization
         const activeJuzId = juzId !== undefined ? juzId : currentJuz;
         if (juzId !== undefined) {
@@ -302,19 +310,19 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             if (juzId) localStorage.setItem('syamna_current_juz', String(juzId));
             else localStorage.removeItem('syamna_current_juz');
         }
-        
+
         // Reset fallback logic
         setIsUsingFallback(false);
         fallbackIndexRef.current = 0;
-        
+
         // Build potential sources list
         const sources: string[] = [];
-        
+
         // 1. Primary from API (Quran Foundation)
         if (ayah.audio[selectedReciterId]?.url) {
             sources.push(ayah.audio[selectedReciterId].url);
         }
-        
+
         // 3. Ultimate Universal Fallback (Predictable Static URL for Mishary Al-Afasy)
         // This ensures audio ALWAYS plays even if the API object is incomplete
         if (sources.length === 0 || (!sources.includes(ayah.audio['7']?.url) && selectedReciterId !== '7')) {
@@ -323,10 +331,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             const staticUrl = `https://verses.quran.com/Alafasy/mp3/${sNum}${aNum}.mp3`;
             if (!sources.includes(staticUrl)) sources.push(staticUrl);
         }
-        
+
         // Remove duplicates
         fallbackSourcesRef.current = [...new Set(sources)];
-        
+
         if (fallbackSourcesRef.current.length === 0) {
             // This should practically never happen now
             console.error("No audio sources available for this ayah.");
@@ -349,30 +357,34 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         setCurrentAyah(ayah);
         setCurrentSurah(surah);
         setIsPlaying(true);
-        
+
         // Sync view with playback
         syncView(ayah, surah, activeJuzId);
-        
+
         if (newQueue) {
             setQueue(newQueue);
             if (isShuffle) setShuffledQueue([...newQueue].sort(() => Math.random() - 0.5));
         }
-        
-        await safePlay();
-    }, [currentAyah, currentSurah, selectedReciterId, safePlay, isShuffle, syncView, currentJuz]);
 
-    const playSurah = useCallback(async (surahNumber: number) => {
+        await safePlay();
+    }, [currentAyah, currentSurah, selectedReciterId, safePlay, isShuffle, syncView, currentJuz, quranMode]);
+
+    const playSurah = useCallback(async (surahNumber: number, startAyah?: number) => {
+        if (quranMode === 'reading') return;
         try {
             const detail = await getSurahDetail(surahNumber, selectedReciterId);
             if (detail && detail.ayat.length > 0) {
                 setCurrentJuz(null); // Clear Juz when playing a specific surah
-                await playAyah(detail.ayat[0], detail, detail.ayat, null);
+                const ayahToPlay = startAyah 
+                    ? detail.ayat.find(a => a.nomorAyat === startAyah) || detail.ayat[0]
+                    : detail.ayat[0];
+                await playAyah(ayahToPlay, detail, detail.ayat, null);
                 setRightPanelOpen(true);
             }
         } catch (error) {
             console.error("Failed to play surah:", error);
         }
-    }, [selectedReciterId, playAyah]);
+    }, [selectedReciterId, playAyah, quranMode]);
 
     const togglePlay = useCallback(async () => {
         if (!audioRef.current) return;
@@ -397,7 +409,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             setIsPlaying(true);
             await safePlay();
         }
-    }, [isPlaying, currentAyah, viewedSurah, viewedJuz, playSurah, safePlay]);
+    }, [isPlaying, currentAyah, viewedSurah, viewedJuz, playSurah, safePlay, quranMode]);
 
     const stopAudio = useCallback(() => {
         setIsPlaying(false);
@@ -520,9 +532,26 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!audioRef.current) return;
-        const handleEnded = () => {
+        const handleEnded = async () => {
             if (!audioRef.current || !audioRef.current.src || audioRef.current.src === window.location.href) return;
-            
+
+            // Log activity to Quran Foundation API if user is connected
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const surahNum = currentAyah?.surahInfo?.nomor || currentSurah?.nomor;
+                const ayahNum = currentAyah?.nomorAyat;
+
+                if (surahNum && ayahNum && isConnected) {
+                    logActivity.mutate({
+                        date: today,
+                        type: "QURAN",
+                        seconds: Math.round(audioRef.current.duration || 0),
+                        ranges: [`${surahNum}:${ayahNum}-${surahNum}:${ayahNum}`],
+                        mushafId: mushafId || CONFIG.QURAN_FOUNDATION_MUSHAF_ID
+                    });
+                }
+            } catch (e) { }
+
             if (repeatMode === 'one') {
                 if (audioRef.current) {
                     audioRef.current.currentTime = 0;
@@ -536,7 +565,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const audio = audioRef.current;
         audio.addEventListener('ended', handleEnded);
         return () => audio.removeEventListener('ended', handleEnded);
-    }, [currentAyah, nextAyah, autoNext, repeatMode, safePlay]);
+    }, [currentAyah, currentSurah, nextAyah, autoNext, repeatMode, safePlay]);
 
     // Memoized Context Values
     const stateValue = React.useMemo(() => ({
@@ -548,7 +577,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         isShuffle, toggleShuffle,
         isRightPanelOpen, setRightPanelOpen,
         playSurah,
-        favorites, toggleFavorite, isFavorite,
         setCurrentSurah: (surah: SurahSummary | null, keepJuz: boolean = false) => {
             setCurrentSurah(surah);
             if (!keepJuz) setCurrentJuz(null);
@@ -562,7 +590,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         setViewedSurah,
         viewedJuz,
         setViewedJuz,
-        isUsingFallback
+        isUsingFallback,
+        quranMode,
+        setQuranMode,
+        jumpTargetAyah,
+        setJumpTargetAyah
     }), [
         currentAyah, currentSurah, isPlaying, volume, queue,
         playAyah, togglePlay, stopAudio, nextAyah, prevAyah, setVolume, seek,
@@ -572,7 +604,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         isShuffle, toggleShuffle,
         isRightPanelOpen, setRightPanelOpen,
         playSurah,
-        favorites, toggleFavorite, isFavorite,
         setCurrentSurah,
         currentJuz,
         setCurrentJuz,
@@ -580,7 +611,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         setViewedSurah,
         viewedJuz,
         setViewedJuz,
-        isUsingFallback
+        isUsingFallback,
+        quranMode,
+        setQuranMode,
+        jumpTargetAyah
     ]);
 
     const progressValue = React.useMemo(() => ({

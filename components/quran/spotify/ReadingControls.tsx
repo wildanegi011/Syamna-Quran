@@ -28,7 +28,7 @@ export function ReadingControls({
     isCurrentPlaylist
 }: ReadingControlsProps) {
     return (
-        <div className="bg-background/95 backdrop-blur-md px-4 md:px-12 py-4 md:py-8 sticky top-0 z-40 border-b border-white/5 shadow-2xl transition-all duration-300">
+        <div className="bg-background/95 backdrop-blur-md px-4 md:px-12 py-4 md:py-8 sticky top-0 z-40 border-b border-foreground/5 shadow-2xl transition-all duration-300">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
                 <div className="flex items-center justify-between w-full md:w-auto gap-10">
                     <div className="flex items-center gap-4 md:gap-6">
@@ -44,7 +44,7 @@ export function ReadingControls({
                         </Button>
 
                         <div className="flex flex-col">
-                            <span className="text-sm md:text-xl font-headline font-black text-on-surface leading-none mb-1 md:mb-2 italic tracking-tight">
+                            <span className="text-sm md:text-xl font-headline font-black text-foreground leading-none mb-1 md:mb-2 italic tracking-tight">
                                 {title}
                             </span>
                             <div className="flex items-center gap-2">
@@ -52,7 +52,7 @@ export function ReadingControls({
                                     "text-[8px] md:text-[10px] font-headline font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md",
                                     isCurrentPlaylist && isPlaying
                                         ? "bg-primary/20 text-primary animate-pulse"
-                                        : "bg-surface-container-highest text-on-surface/40"
+                                        : "bg-foreground/10 text-foreground/40"
                                 )}>
                                     {isCurrentPlaylist && isPlaying ? "Streaming" : subtitle}
                                 </span>
@@ -73,10 +73,10 @@ export function ReadingControls({
                         <span>Panduan Tajwid</span>
                     </Button>
 
-                    <div className="flex items-center gap-3 md:gap-4 p-1 bg-surface-container-low rounded-full border border-white/5">
+                    <div className="flex items-center gap-3 md:gap-4 p-1 bg-foreground/[0.03] rounded-full border border-foreground/5">
                         <ReciterSelect />
                     </div>
-                    <div className="flex items-center gap-3 md:gap-4 p-1 bg-surface-container-low rounded-full border border-white/5">
+                    <div className="flex items-center gap-3 md:gap-4 p-1 bg-foreground/[0.03] rounded-full border border-foreground/5">
                         <AyahSelect ayahs={ayahs} />
                     </div>
                 </div>
