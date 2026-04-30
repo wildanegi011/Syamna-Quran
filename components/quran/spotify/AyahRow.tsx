@@ -12,6 +12,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { parseTajweed } from '@/lib/utils/tajweed';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface AyahRowProps {
     ayah: Ayah;
