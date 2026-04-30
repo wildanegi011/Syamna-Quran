@@ -103,8 +103,7 @@ function MobileControls() {
 }
 
 function TrackInfo() {
-    const { currentAyah, currentSurah, toggleFavorite, isFavorite, setRightPanelOpen } = useAudioState();
-    const heartActive = currentSurah ? isFavorite(currentSurah.nomor, currentAyah!.nomorAyat) : false;
+    const { currentAyah, currentSurah, setRightPanelOpen } = useAudioState();
 
     return (
         <div className="flex items-center gap-3 md:gap-4 flex-1 md:flex-none md:w-[30%] min-w-0">
@@ -122,27 +121,6 @@ function TrackInfo() {
                     Ayat {currentAyah?.nomorAyat}
                 </span>
             </div>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            currentSurah && toggleFavorite(currentSurah.nomor, currentAyah!.nomorAyat);
-                        }}
-                        className={cn(
-                            "transition-all duration-300 hidden sm:flex shrink-0",
-                            heartActive ? "text-primary hover:text-primary/80 scale-110" : "text-foreground/20 hover:text-primary/60"
-                        )}
-                    >
-                        <Heart className={cn("w-5 h-5", heartActive && "fill-current")} />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={18}>
-                    <p>{heartActive ? 'Hapus dari Favorit' : 'Tambah ke Favorit'}</p>
-                </TooltipContent>
-            </Tooltip>
         </div>
     );
 }

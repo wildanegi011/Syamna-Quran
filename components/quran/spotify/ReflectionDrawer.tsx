@@ -16,31 +16,27 @@ interface ReflectionDrawerProps {
 }
 
 export function ReflectionDrawer({ isOpen, onClose, ayah, surahNumber }: ReflectionDrawerProps) {
-    const { allNotes, saveNote, isConnected } = useQuranFoundation();
+    const { isConnected } = useQuranFoundation();
     const [noteBody, setNoteBody] = useState("");
 
     // Find existing note for this ayah
-    const existingNote = allNotes.data?.find(
-        n => n.chapter_id === surahNumber && n.verse_number === ayah?.nomorAyat
-    );
+    const existingNote = null; // allNotes.data?.find(
+    //    n => n.chapter_id === surahNumber && n.verse_number === ayah?.nomorAyat
+    // );
 
     useEffect(() => {
-        if (existingNote) {
-            setNoteBody(existingNote.body);
-        } else {
-            setNoteBody("");
-        }
-    }, [existingNote, isOpen]);
+        setNoteBody("");
+    }, [isOpen]);
 
     const handleSave = async () => {
         if (!ayah || !noteBody.trim()) return;
         
         try {
-            await saveNote.mutateAsync({
-                chapter_id: surahNumber,
-                verse_number: ayah.nomorAyat,
-                body: noteBody
-            });
+            // await saveNote.mutateAsync({
+            //    chapter_id: surahNumber,
+            //    verse_number: ayah.nomorAyat,
+            //    body: noteBody
+            // });
             onClose();
         } catch (error) {
             console.error("Failed to save reflection:", error);
@@ -134,10 +130,10 @@ export function ReflectionDrawer({ isOpen, onClose, ayah, surahNumber }: Reflect
                                 <div className="p-6 border-t border-foreground/5 bg-foreground/[0.01]">
                                     <Button
                                         onClick={handleSave}
-                                        disabled={saveNote.isPending || !noteBody.trim()}
+                                        disabled={true || !noteBody.trim()}
                                         className="w-full h-14 rounded-2xl bg-primary hover:bg-primary text-black font-black uppercase tracking-[0.2em] text-xs gap-3 shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
                                     >
-                                        {saveNote.isPending ? (
+                                        {false ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
                                             <>
