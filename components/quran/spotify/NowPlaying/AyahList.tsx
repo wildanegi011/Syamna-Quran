@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ayah, SurahSummary } from '@/lib/types';
 import { AyahItem } from './AyahItem';
-import { Search, Loader2, ChevronDown } from 'lucide-react';
+import { useReadingProgress } from '@/contexts/ReadingProgressContext';
+import { useQuranFoundation } from '@/hooks/use-quran-foundation';
+import { useQuranAuth } from '@/contexts/QuranAuthContext';
+import { ChevronDown, Loader2, Search, Trophy } from 'lucide-react';
 
 // Surahs that don't start with Bismillah (At-Taubah) or already contains it (Al-Fatihah)
 const NO_BISMILLAH = [1, 9];
@@ -20,8 +23,6 @@ interface AyahListProps {
     currentAyah: Ayah | null;
     playingSurah: SurahSummary | null;
     isPlaying: boolean;
-    isFavorite: (surahId: number, ayahId: number) => boolean;
-    toggleFavorite: (surahId: number, ayahId: number) => void;
     handleAyahPlay: (ayah: Ayah) => void;
     handleTafsirClick: (e: React.MouseEvent, ayah: Ayah) => void;
     handleCopyAyah: (e: React.MouseEvent, ayah: Ayah) => void;
@@ -34,6 +35,7 @@ interface AyahListProps {
     fetchNextPage?: () => void;
     pagination?: any;
     isJumping?: boolean;
+    mode: 'reading' | 'listening';
 }
 
 // Compact inline jump input 
@@ -202,6 +204,7 @@ function AyahSkeleton() {
     );
 }
 
+// Main list of Ayahs with goal and mode logic
 export const AyahList = ({
     scrollContainerRef,
     isLoading,
@@ -212,8 +215,6 @@ export const AyahList = ({
     currentAyah,
     playingSurah,
     isPlaying,
-    isFavorite,
-    toggleFavorite,
     handleAyahPlay,
     handleTafsirClick,
     handleCopyAyah,
@@ -224,11 +225,29 @@ export const AyahList = ({
     isFetchingNextPage,
     fetchNextPage,
     pagination,
-    isJumping
+    isJumping,
+    mode
 }: AyahListProps) => {
 
-    // Infinite scroll sentinel
     const loadMoreRef = useRef<HTMLDivElement>(null);
+    const { dailyGoal, hasFinishedGoalMode, setHasFinishedGoalMode, submitActivity, hasSubmittedToday } = useReadingProgress();
+    const { readingBookmark, toggleReadingBookmark } = useQuranFoundation();
+    const { isConnected, connectQuranAccount } = useQuranAuth();
+    const [ayahPendingKey, setAyahPendingKey] = React.useState<string | null>(null);
+    const [isConnecting, setIsConnecting] = React.useState(false);
+
+    // Clear local pending state when mutation finishes
+    useEffect(() => {
+        if (!toggleReadingBookmark.isPending && !isConnecting) {
+            setAyahPendingKey(null);
+        }
+    }, [toggleReadingBookmark.isPending, isConnecting]);
+
+    const isGoalModeActive = mode === 'reading' && !hasFinishedGoalMode;
+    // We only slice the array if they are in reading mode and haven't finished the goal
+    const displayedAyat = isGoalModeActive ? activeData?.ayat?.slice(0, dailyGoal) : activeData?.ayat;
+    // Check if we hit the limit in the current view
+    const isTargetReachedInView = isGoalModeActive && (activeData?.ayat?.length || 0) >= dailyGoal;
 
     useEffect(() => {
         if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
@@ -259,7 +278,7 @@ export const AyahList = ({
                 >
                     <div className="hidden lg:block sticky top-0 z-30 pt-3 pb-3 bg-background -mx-1 px-1">
                         <AyahJumpInput
-                            ayahs={(isLoading || isDataStale) ? [] : (activeData?.ayat || [])}
+                            ayahs={(isLoading || isDataStale) ? [] : (displayedAyat || [])}
                             onSelect={handleAyahJump}
                             viewedJuz={viewedJuz}
                             pagination={pagination}
@@ -312,8 +331,8 @@ export const AyahList = ({
                                 </div>
                             )}
 
-                            {activeData?.ayat?.map((ayah: Ayah, idx: number) => {
-                                const prevAyah = idx > 0 ? activeData?.ayat?.[idx - 1] : null;
+                            {displayedAyat?.map((ayah: Ayah, idx: number) => {
+                                const prevAyah = idx > 0 ? displayedAyat?.[idx - 1] : null;
                                 const showSurahHeader = viewedJuz && (!prevAyah || prevAyah.surahInfo?.nomor !== ayah.surahInfo?.nomor);
 
                                 return (
@@ -342,49 +361,101 @@ export const AyahList = ({
                                                 (currentAyah?.surahInfo?.nomor || playingSurah?.nomor) === (ayah.surahInfo?.nomor || viewedSurah?.nomor)
                                             )}
                                             isPlaying={isPlaying}
-                                            isFav={isFavorite(ayah.surahInfo?.nomor || viewedSurah?.nomor || 0, ayah.nomorAyat)}
+                                            isBookmarked={
+                                                readingBookmark.data?.key === (ayah.surahInfo?.nomor || viewedSurah?.nomor) &&
+                                                readingBookmark.data?.verseNumber === ayah.nomorAyat
+                                            }
+                                            isBookmarking={
+                                                ayahPendingKey === `${ayah.surahInfo?.nomor || viewedSurah?.nomor}-${ayah.nomorAyat}`
+                                            }
                                             onPlay={handleAyahPlay}
                                             onTafsir={handleTafsirClick}
                                             onCopy={handleCopyAyah}
-                                            onToggleFavorite={(e) => {
+                                            onToggleBookmark={(e) => {
                                                 e.stopPropagation();
-                                                toggleFavorite(ayah.surahInfo?.nomor || viewedSurah?.nomor || 0, ayah.nomorAyat);
+                                                const sId = ayah.surahInfo?.nomor || viewedSurah?.nomor || 0;
+                                                const aId = ayah.nomorAyat;
+                                                setAyahPendingKey(`${sId}-${aId}`);
+
+                                                if (!isConnected) {
+                                                    setIsConnecting(true);
+                                                    connectQuranAccount();
+                                                    return;
+                                                }
+                                                
+                                                toggleReadingBookmark.mutate({
+                                                    surahId: sId,
+                                                    ayahId: aId
+                                                });
                                             }}
                                             onOpenMenu={handleOpenMenu}
+                                            mode={mode}
                                         />
                                     </React.Fragment>
                                 );
                             })}
 
-                            {/* Infinite Scroll Sentinel + Loading */}
-                            <div ref={loadMoreRef} className="py-6 flex justify-center">
-                                {isFetchingNextPage ? (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="flex items-center gap-2 text-foreground/30"
-                                    >
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span className="text-xs font-medium">Memuat ayat...</span>
-                                    </motion.div>
-                                ) : hasNextPage ? (
-                                    <button
-                                        onClick={() => fetchNextPage?.()}
-                                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground/30 hover:text-foreground/50 text-xs font-medium transition-all"
-                                    >
-                                        <ChevronDown className="w-3.5 h-3.5" />
-                                        Muat lagi
-                                    </button>
-                                ) : activeData?.ayat?.length > 0 ? (
-                                    <span className="text-[10px] text-foreground/15 font-medium uppercase tracking-wider">
-                                        — Selesai —
-                                    </span>
-                                ) : null}
-                            </div>
+                            {isTargetReachedInView ? (
+                                <div className="py-8 px-4 flex flex-col items-center gap-4">
+                                    <div className="flex items-center gap-2 text-primary">
+                                        <Trophy className="w-4 h-4" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Target {dailyGoal} Ayat Tercapai</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 w-full max-w-[280px]">
+                                        <button
+                                            onClick={() => {
+                                                const ranges = displayedAyat.map((a: Ayah) => `${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}-${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}`);
+                                                submitActivity(dailyGoal, ranges);
+                                            }}
+                                            disabled={hasSubmittedToday}
+                                            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-black uppercase tracking-wider text-[10px] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                        >
+                                            {hasSubmittedToday ? "Tersimpan ✅" : "Selesai ✨"}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const ranges = displayedAyat.map((a: Ayah) => `${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}-${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}`);
+                                                submitActivity(dailyGoal, ranges);
+                                                setHasFinishedGoalMode(true);
+                                            }}
+                                            className="flex-1 py-2.5 rounded-xl bg-foreground/5 hover:bg-foreground/10 text-foreground/60 font-bold uppercase tracking-wider text-[10px] transition-colors"
+                                        >
+                                            Lanjut Baca
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Infinite Scroll Sentinel + Loading */
+                                <div ref={loadMoreRef} className="py-6 flex justify-center">
+                                    {isFetchingNextPage ? (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="flex items-center gap-2 text-foreground/30"
+                                        >
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span className="text-xs font-medium">Memuat ayat...</span>
+                                        </motion.div>
+                                    ) : hasNextPage ? (
+                                        <button
+                                            onClick={() => fetchNextPage?.()}
+                                            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground/30 hover:text-foreground/50 text-xs font-medium transition-all"
+                                        >
+                                            <ChevronDown className="w-3.5 h-3.5" />
+                                            Muat lagi
+                                        </button>
+                                    ) : displayedAyat?.length > 0 ? (
+                                        <span className="text-[10px] text-foreground/15 font-medium uppercase tracking-wider">
+                                            — Selesai —
+                                        </span>
+                                    ) : null}
+                                </div>
+                            )}
                         </>
                     )}
                 </motion.div>
             </AnimatePresence>
+
         </div>
     );
 };

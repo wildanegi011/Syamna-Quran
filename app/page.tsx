@@ -19,7 +19,7 @@ export default function Home() {
       {/* Page 1: Hero */}
       <section className="relative h-screen min-h-[600px] w-full flex flex-col items-center justify-center snap-start px-4 sm:px-6">
         <HeroSection />
-        
+
         {/* Subtle Scroll Hint */}
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-20 animate-pulse hidden md:flex">
           <span className="text-[9px] font-black uppercase tracking-[0.3em]">Scroll</span>
@@ -37,7 +37,7 @@ export default function Home() {
         <div className="flex-1 flex items-center justify-center w-full py-12">
           <StorySection />
         </div>
-        
+
         <div className="w-full mt-12">
           <HomeFooter />
         </div>

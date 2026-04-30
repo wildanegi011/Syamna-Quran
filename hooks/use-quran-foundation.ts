@@ -1,82 +1,87 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+    getQFProfile,
+    getQFStreaks,
+    QFProfile,
+    QFStreak,
+    QFCurrentStreakDays,
+    getQFCurrentStreakDays,
+    logQFActivity,
+    QFActivityPayload,
+    QFBookmark,
+    getQFReadingBookmark,
+    setQFReadingBookmark
+} from "@/lib/api/quran-foundation";
 
-interface Profile {
-    id: string;
-    full_name: string;
-    email: string;
-}
-
-interface Streak {
-    streak: number;
-    last_activity_at: string;
-    max_streak: number;
-}
-
-interface Activity {
-    id: string;
-    day: string;
-    duration: number; // in seconds
-    verses_count: number;
-}
+export const qfKeys = {
+    all: ["qf"] as const,
+    profile: () => [...qfKeys.all, "profile"] as const,
+    streaks: () => [...qfKeys.all, "streaks"] as const,
+    currentStreak: () => [...qfKeys.all, "current-streak"] as const,
+    readingBookmark: () => [...qfKeys.all, "reading-bookmark"] as const,
+};
 
 export function useQuranFoundation() {
     const queryClient = useQueryClient();
+    const { user, loading: authLoading } = useAuth();
+    const isConnected = !!user;
 
     // Fetch user profile
-    const profile = useQuery<Profile>({
-        queryKey: ["qf-profile"],
-        queryFn: async () => {
-            const res = await fetch("/api/quran/user/profile");
-            if (!res.ok) throw new Error("Failed to fetch profile");
-            return res.json();
-        },
+    const profile = useQuery<QFProfile>({
+        queryKey: qfKeys.profile(),
+        queryFn: getQFProfile,
         retry: false,
+        enabled: isConnected,
     });
 
-    // Fetch Streaks
-    const streaks = useQuery<Streak>({
-        queryKey: ["qf-streaks"],
-        queryFn: async () => {
-            const res = await fetch("/api/quran/user/streaks");
-            if (!res.ok) throw new Error("Failed to fetch streaks");
-            return res.json();
-        },
-        enabled: !!profile.data,
+    // Fetch Streaks Summary
+    const streaks = useQuery<QFStreak[]>({
+        queryKey: qfKeys.streaks(),
+        queryFn: getQFStreaks,
+        enabled: isConnected,
     });
 
-    // Fetch Today's Activity
-    const todayActivity = useQuery<Activity>({
-        queryKey: ["qf-activity-today"],
-        queryFn: async () => {
-            const res = await fetch("/api/quran/user/activity-days/today");
-            if (!res.ok) throw new Error("Failed to fetch activity");
-            return res.json();
-        },
-        enabled: !!profile.data,
+    // Fetch Current Streak Days
+    const currentStreakCount = useQuery<QFCurrentStreakDays>({
+        queryKey: qfKeys.currentStreak(),
+        queryFn: getQFCurrentStreakDays,
+        enabled: isConnected,
     });
 
     // Log Activity
     const logActivity = useMutation({
-        mutationFn: async (data: { duration: number; verses_count: number }) => {
-            const res = await fetch("/api/quran/user/activity-days", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-            if (!res.ok) throw new Error("Failed to log activity");
-            return res.json();
-        },
+        mutationFn: logQFActivity,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["qf-activity-today"] });
-            queryClient.invalidateQueries({ queryKey: ["qf-streaks"] });
-        },
+            queryClient.invalidateQueries({ queryKey: qfKeys.currentStreak() });
+            queryClient.invalidateQueries({ queryKey: qfKeys.streaks() });
+        }
+    });
+
+    // Fetch Reading Bookmark
+    const readingBookmark = useQuery<QFBookmark | null>({
+        queryKey: qfKeys.readingBookmark(),
+        queryFn: getQFReadingBookmark,
+        enabled: isConnected,
+    });
+
+    // Set Reading Bookmark
+    const toggleReadingBookmark = useMutation({
+        mutationFn: ({ surahId, ayahId }: { surahId: number, ayahId: number }) => 
+            setQFReadingBookmark(surahId, ayahId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: qfKeys.readingBookmark() });
+        }
     });
 
     return {
         profile,
         streaks,
-        todayActivity,
+        currentStreakCount,
         logActivity,
-        isConnected: !!profile.data && !profile.isError,
+        readingBookmark,
+        toggleReadingBookmark,
+        isConnected,
+        authLoading
     };
 }

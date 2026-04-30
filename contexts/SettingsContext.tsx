@@ -10,6 +10,7 @@ interface Settings {
   showTranslation: boolean;
   showLatin: boolean;
   tafsirId: number;
+  mushafId: number;
 }
 
 interface SettingsContextType extends Settings {
@@ -20,6 +21,7 @@ interface SettingsContextType extends Settings {
   setShowTranslation: (show: boolean) => void;
   setShowLatin: (show: boolean) => void;
   setTafsirId: (id: number) => void;
+  setMushafId: (id: number) => void;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -30,6 +32,7 @@ const DEFAULT_SETTINGS: Settings = {
   showTranslation: true,
   showLatin: true,
   tafsirId: 0,
+  mushafId: 4,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -66,6 +69,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const setShowTranslation = (show: boolean) => setSettings(prev => ({ ...prev, showTranslation: show }));
   const setShowLatin = (show: boolean) => setSettings(prev => ({ ...prev, showLatin: show }));
   const setTafsirId = (id: number) => setSettings(prev => ({ ...prev, tafsirId: id }));
+  const setMushafId = (id: number) => setSettings(prev => ({ ...prev, mushafId: id }));
 
   const value = {
     ...settings,
@@ -76,6 +80,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setShowTranslation,
     setShowLatin,
     setTafsirId,
+    setMushafId,
   };
 
   return (

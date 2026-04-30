@@ -4,12 +4,29 @@ import { useQuery, useInfiniteQuery, keepPreviousData } from "@tanstack/react-qu
 import { getAllSurahs, getSurahPage, getSurahTafsir, getJuzPage, getReciters, getTranslations, getTafsirResources, getChapterInfo } from "@/lib/quran";
 import { useSettings } from "@/contexts/SettingsContext";
 
+const QURAN_BASE_KEY = ['quran'] as const;
+
+export const quranKeys = {
+    all: QURAN_BASE_KEY,
+    surahs: () => [...QURAN_BASE_KEY, 'surahs'],
+    reciters: () => [...QURAN_BASE_KEY, 'reciters'],
+    translations: () => [...QURAN_BASE_KEY, 'translations'],
+    tafsirs: () => [...QURAN_BASE_KEY, 'tafsirs'],
+    surahDetail: (nomor: any, reciter: any, trans: any, mushaf: any) => 
+        [...QURAN_BASE_KEY, 'surah', nomor ?? 0, reciter ?? '7', trans ?? 33, mushaf ?? 4],
+    surahTafsir: (nomor: any, tafsirId: any) => 
+        [...QURAN_BASE_KEY, 'tafsir', nomor ?? 0, tafsirId ?? 0],
+    juzDetail: (nomor: any, reciter: any, trans: any, mushaf: any) => 
+        [...QURAN_BASE_KEY, 'juz', nomor ?? 0, reciter ?? '7', trans ?? 33, mushaf ?? 4],
+    chapterInfo: (nomor: any) => [...QURAN_BASE_KEY, 'chapterInfo', nomor ?? 0],
+};
+
 /**
  * Hook to fetch the list of all available reciters (Qori).
  */
 export function useReciters() {
     return useQuery({
-        queryKey: ["reciters"],
+        queryKey: quranKeys.reciters(),
         queryFn: getReciters,
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
     });
@@ -20,7 +37,7 @@ export function useReciters() {
  */
 export function useTranslations() {
     return useQuery({
-        queryKey: ["translations"],
+        queryKey: quranKeys.translations(),
         queryFn: getTranslations,
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
         placeholderData: keepPreviousData,
@@ -32,19 +49,18 @@ export function useTranslations() {
  */
 export function useTafsirResources() {
     return useQuery({
-        queryKey: ["tafsirs"],
+        queryKey: quranKeys.tafsirs(),
         queryFn: getTafsirResources,
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
     });
 }
-
 
 /**
  * Hook to fetch the list of all Surahs.
  */
 export function useSurahs() {
     return useQuery({
-        queryKey: ["surahs"],
+        queryKey: quranKeys.surahs(),
         queryFn: getAllSurahs,
         staleTime: 1000 * 60 * 10,
     });
@@ -52,24 +68,23 @@ export function useSurahs() {
 
 /**
  * Infinite query hook for surah detail with pagination.
- * Flattens all pages into a single ayat array for easy consumption.
  */
 export function useSurahDetail(surahNumber: number, selectedReciterId: string = "7", enabled: boolean = true) {
-    const { translationId } = useSettings();
+    const { translationId, mushafId } = useSettings();
 
     const query = useInfiniteQuery({
-        queryKey: ["surah", surahNumber, selectedReciterId, translationId],
-        queryFn: ({ pageParam }) => getSurahPage(surahNumber, selectedReciterId, translationId, pageParam),
+        queryKey: quranKeys.surahDetail(surahNumber, selectedReciterId, translationId, mushafId),
+        queryFn: ({ pageParam }) => getSurahPage(surahNumber, selectedReciterId, translationId, pageParam, mushafId),
         initialPageParam: 1,
         getNextPageParam: (lastPage) => lastPage?.pagination?.nextPage ?? undefined,
         enabled: enabled && !!surahNumber,
         staleTime: 1000 * 60 * 60,
     });
 
-    // Flatten pages into a single data object matching the old interface
-    const allAyats = query.data?.pages?.flatMap(p => p?.ayats ?? []) ?? [];
-    const surahMeta = query.data?.pages?.[0]?.surahMeta;
-    const pagination = query.data?.pages?.[query.data.pages.length - 1]?.pagination;
+    const pages = query.data?.pages;
+    const allAyats = pages ? pages.flatMap(p => p?.ayats ?? []) : [];
+    const surahMeta = (pages && pages.length > 0) ? pages[0]?.surahMeta : undefined;
+    const pagination = (pages && pages.length > 0) ? pages[pages.length - 1]?.pagination : undefined;
 
     const data = surahMeta ? {
         ...surahMeta,
@@ -94,7 +109,7 @@ export function useSurahDetail(surahNumber: number, selectedReciterId: string = 
  */
 export function useSurahTafsir(surahNumber: number, enabled: boolean = true, tafsirId?: number) {
     return useQuery({
-        queryKey: ["tafsir", surahNumber, tafsirId],
+        queryKey: quranKeys.surahTafsir(surahNumber, tafsirId!),
         queryFn: () => getSurahTafsir(surahNumber, tafsirId!),
         enabled: enabled && !!surahNumber && !!tafsirId,
         staleTime: 1000 * 60 * 60,
@@ -105,19 +120,20 @@ export function useSurahTafsir(surahNumber: number, enabled: boolean = true, taf
  * Infinite query hook for juz detail with pagination.
  */
 export function useJuzDetail(juzNumber: number, selectedReciterId: string = "7", enabled: boolean = true) {
-    const { translationId } = useSettings();
+    const { translationId, mushafId } = useSettings();
 
     const query = useInfiniteQuery({
-        queryKey: ["juz", juzNumber, selectedReciterId, translationId],
-        queryFn: ({ pageParam }) => getJuzPage(juzNumber, selectedReciterId, translationId, pageParam),
+        queryKey: quranKeys.juzDetail(juzNumber, selectedReciterId, translationId, mushafId),
+        queryFn: ({ pageParam }) => getJuzPage(juzNumber, selectedReciterId, translationId, pageParam, mushafId),
         initialPageParam: 1,
         getNextPageParam: (lastPage) => lastPage?.pagination?.nextPage ?? undefined,
         enabled: enabled && !!juzNumber,
         staleTime: 1000 * 60 * 60,
     });
 
-    const allAyats = query.data?.pages?.flatMap(p => p?.ayats ?? []) ?? [];
-    const lastPage = query.data?.pages?.[query.data.pages.length - 1];
+    const pages = query.data?.pages;
+    const allAyats = pages ? pages.flatMap(p => p?.ayats ?? []) : [];
+    const lastPage = (pages && pages.length > 0) ? pages[pages.length - 1] : undefined;
 
     const data = juzNumber ? {
         nomor: juzNumber,
@@ -140,10 +156,9 @@ export function useJuzDetail(juzNumber: number, selectedReciterId: string = "7",
  */
 export function useChapterInfo(surahNumber: number, enabled: boolean = true) {
     return useQuery({
-        queryKey: ["chapterInfo", surahNumber],
+        queryKey: quranKeys.chapterInfo(surahNumber),
         queryFn: () => getChapterInfo(surahNumber),
         enabled: enabled && !!surahNumber,
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
     });
 }
-

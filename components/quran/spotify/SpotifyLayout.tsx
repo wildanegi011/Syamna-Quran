@@ -15,6 +15,7 @@ import { useSearch } from '@/contexts/SearchContext';
 import { NowPlayingPanel } from './NowPlayingPanel';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TajweedLegend } from '../TajweedLegend';
+import { DailyGoalSetter } from './DailyGoalSetter';
 
 export function SpotifyLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -94,6 +95,9 @@ export function SpotifyLayout({ children }: { children: React.ReactNode }) {
             <div className="fixed inset-0 z-0 text-primary">
                 <AmbientBackground className="opacity-10 mix-blend-screen" />
             </div>
+
+            {/* Interactive Goal Setter (Onboarding) */}
+            <DailyGoalSetter />
 
             {/* Main Application Structure */}
             <div className="flex flex-1 overflow-hidden p-0 relative z-10">

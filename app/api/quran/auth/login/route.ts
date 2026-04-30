@@ -8,6 +8,7 @@ export async function GET() {
     const nonce = randomString(16);
 
     // Scopes optimized for Quran Foundation usage
+    // Standard OIDC scopes (openid, profile, email) are required for full user data in id_token
     const scopes = [
         "openid",
         "offline_access",
@@ -15,17 +16,17 @@ export async function GET() {
         // "search",
         "bookmark",
         "collection",
-        "reading_session",
-        "preference",
+        // "reading_session",
+        // "preference",
         "activity_day",
-        "goal",
+        // "goal",
         "streak",
-        "user",
-        "post",
-        "comment",
-        "room",
-        "tag",
-        "note"
+        "user"
+        // "post",`
+        // "comment",
+        // "room",
+        // "tag",
+        // "note"
     ].join(" ");
 
     const url = new URL(`${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/auth`);

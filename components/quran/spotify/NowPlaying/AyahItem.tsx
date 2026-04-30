@@ -9,43 +9,50 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { 
     Play, 
     Pause,
-    BookOpen, 
-    Heart, 
+    BookOpen,
+    Bookmark, 
     Copy, 
-    CheckCircle2 
+    CheckCircle2,
+    Sparkles,
+    Loader2
 } from 'lucide-react';
 
 export const AyahItem = React.memo(({
     ayah,
     isActive,
-    isFav,
+    isBookmarked,
     onTafsir,
     onCopy,
-    onToggleFavorite,
+    onToggleBookmark,
     onPlay,
     onOpenMenu,
     isPlaying,
     surahNumber,
-    customId
+    customId,
+    mode,
+    isBookmarking
 }: {
     ayah: Ayah,
     isActive: boolean,
-    isFav: boolean,
+    isBookmarked: boolean,
+    isBookmarking: boolean,
     onTafsir: (e: React.MouseEvent, ayah: Ayah) => void,
     onCopy: (e: React.MouseEvent, ayah: Ayah) => void,
-    onToggleFavorite: (e: React.MouseEvent, ayah: Ayah) => void,
+    onToggleBookmark: (e: React.MouseEvent, ayah: Ayah) => void,
     onPlay: (ayah: Ayah) => void,
     onOpenMenu?: (ayah: Ayah) => void,
     isPlaying: boolean,
     surahNumber?: number,
-    customId?: string
+    customId?: string,
+    mode?: 'reading' | 'listening'
 }) => {
     const [isCopied, setIsCopied] = useState(false);
     const { 
         arabicFontSize, 
         translationFontSize, 
         showTajweed, 
-        showTranslation 
+        showTranslation,
+        mushafId
     } = useSettings();
 
     const handleCopy = (e: React.MouseEvent) => {
@@ -79,7 +86,8 @@ export const AyahItem = React.memo(({
             {/* Arabic Text - Full Width, Right-Aligned */}
             <div
                 className={cn(
-                    "font-arabic leading-[2.4] transition-all text-right w-full mb-4",
+                    [3, 6, 7].includes(mushafId) ? "font-indopak" : "font-arabic",
+                    "leading-[2.4] transition-all text-right w-full mb-4",
                     isActive ? "text-foreground" : "text-foreground/90 group-hover:text-foreground"
                 )}
                 dir="rtl"
@@ -105,15 +113,22 @@ export const AyahItem = React.memo(({
             <div className="flex items-center justify-between mt-4">
                 {/* Ayah Number Badge */}
                 <button
-                    onClick={(e) => { e.stopPropagation(); onPlay(ayah); }}
+                    onClick={(e) => { 
+                        if (mode === 'listening') {
+                            e.stopPropagation(); 
+                            onPlay(ayah); 
+                        }
+                    }}
                     className={cn(
                         "flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all",
                         isActive 
                             ? "bg-primary/20 text-primary" 
-                            : "bg-foreground/5 text-foreground/30 hover:bg-primary/10 hover:text-primary"
+                            : "bg-foreground/5 text-foreground/30",
+                        mode === 'listening' && !isActive && "hover:bg-primary/10 hover:text-primary",
+                        mode === 'reading' && "cursor-default"
                     )}
                 >
-                    {isActive && isPlaying ? (
+                    {isActive && isPlaying && mode === 'listening' ? (
                         <>
                             <div className="flex items-end gap-[2px] h-3">
                                 <motion.div animate={{ height: [3, 8, 4, 8, 3] }} transition={{ repeat: Infinity, duration: 0.4 }} className="w-[2px] bg-primary rounded-full" />
@@ -124,7 +139,7 @@ export const AyahItem = React.memo(({
                         </>
                     ) : (
                         <>
-                            <Play className="w-3 h-3 fill-current" />
+                            {mode === 'listening' && <Play className="w-3 h-3 fill-current" />}
                             <span>Ayat {ayah.nomorAyat}</span>
                         </>
                     )}
@@ -132,35 +147,51 @@ export const AyahItem = React.memo(({
 
                 {/* Action Buttons - Desktop only, visible on hover/active */}
                 <div className={cn(
-                    "hidden lg:flex items-center gap-1 transition-all duration-300",
+                    "hidden lg:flex items-center gap-2 transition-all duration-300",
                     isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                 )}>
                     <button
                         onClick={(e) => onTafsir(e, ayah)}
-                        className="w-8 h-8 rounded-full hover:bg-foreground/10 flex items-center justify-center text-foreground/30 hover:text-foreground transition-colors"
-                        title="Tafsir"
+                        className="h-8 px-3 rounded-full hover:bg-foreground/10 flex items-center gap-1.5 text-foreground/30 hover:text-foreground transition-all group/btn"
                     >
-                        <BookOpen className="w-3.5 h-3.5" />
+                        <BookOpen className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Tafsir</span>
                     </button>
+
                     <button
-                        onClick={(e) => onToggleFavorite(e, ayah)}
+                        onClick={(e) => !isBookmarking && onToggleBookmark(e, ayah)}
+                        disabled={isBookmarking}
                         className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                            isFav ? "text-primary" : "hover:bg-foreground/10 text-foreground/30 hover:text-foreground"
+                            "h-8 px-3 rounded-full flex items-center gap-1.5 transition-all group/btn",
+                            isBookmarked 
+                                ? "bg-primary/10 text-primary" 
+                                : "hover:bg-foreground/10 text-foreground/30 hover:text-foreground",
+                            isBookmarking && "opacity-50 cursor-wait"
                         )}
-                        title={isFav ? 'Hapus Favorit' : 'Favorit'}
                     >
-                        <Heart className={cn("w-3.5 h-3.5", isFav && "fill-current")} />
+                        {isBookmarking ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                            <Bookmark className={cn("w-3.5 h-3.5 transition-transform group-hover/btn:scale-110", isBookmarked && "fill-current")} />
+                        )}
+                        <span className="text-[10px] font-bold uppercase tracking-wider">
+                            {isBookmarking ? 'Proses...' : (isBookmarked ? 'Ditandai' : 'Tandai')}
+                        </span>
                     </button>
+
                     <button
                         onClick={handleCopy}
                         className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                            isCopied ? "text-[#56B874]" : "hover:bg-foreground/10 text-foreground/30 hover:text-foreground"
+                            "h-8 px-3 rounded-full flex items-center gap-1.5 transition-all group/btn",
+                            isCopied 
+                                ? "bg-[#56B874]/10 text-[#56B874]" 
+                                : "hover:bg-foreground/10 text-foreground/30 hover:text-foreground"
                         )}
-                        title={isCopied ? 'Tersalin' : 'Salin'}
                     >
-                        {isCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        {isCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />}
+                        <span className="text-[10px] font-bold uppercase tracking-wider">
+                            {isCopied ? 'Tersalin' : 'Salin'}
+                        </span>
                     </button>
                 </div>
             </div>
@@ -168,7 +199,9 @@ export const AyahItem = React.memo(({
     );
 }, (prev, next) => {
     return prev.isActive === next.isActive &&
-        prev.isFav === next.isFav &&
+        prev.isBookmarked === next.isBookmarked &&
+        prev.isBookmarking === next.isBookmarking &&
         prev.ayah.numberGlobal === next.ayah.numberGlobal &&
-        prev.isPlaying === next.isPlaying;
+        prev.isPlaying === next.isPlaying &&
+        prev.mode === next.mode;
 });

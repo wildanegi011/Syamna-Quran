@@ -63,6 +63,7 @@ export const SurahCard = React.memo(function SurahCard({
     selectedReciterId
 }: SurahCardProps) {
     const queryClient = useQueryClient();
+    const { quranMode } = useAudioState();
     const [isLoading, setIsLoading] = React.useState(false);
     const { theme: currentTheme } = useTheme();
 
@@ -223,14 +224,59 @@ export const SurahCard = React.memo(function SurahCard({
                         </div>
 
                         {/* Action Corner - Play Button (Desktop) */}
-                        <div className="flex items-center gap-4">
+                        {quranMode === 'listening' && (
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={handlePlayClick}
+                                    className={cn(
+                                        "h-8 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-300 shadow-lg group/play",
+                                        isCurrentlyPlaying && isPlaying
+                                            ? "bg-primary text-primary-foreground scale-110"
+                                            : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground hover:scale-110",
+                                        (isLoading || (isCurrentlyPlaying && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
+                                    )}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : isCurrentlyPlaying && isPlaying ? (
+                                        <>
+                                            <Pause className="w-3.5 h-3.5 fill-current" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Berhenti</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Putar</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Mobile/Tablet Row Action */}
+                    {quranMode === 'listening' && (
+                        <div className="lg:hidden flex items-center gap-2 sm:gap-4 ml-auto">
+                            {/* Arabic (shown on row layout if screen > 400px) */}
+                            <span
+                                className="text-xl sm:text-2xl lg:text-3xl font-arabic transition-all duration-500 opacity-60 hidden min-[400px]:block"
+                                style={{ 
+                                    color: isCurrentlyPlaying 
+                                        ? 'var(--primary)' 
+                                        : (currentTheme === 'light' ? 'rgba(var(--foreground-rgb), 0.6)' : theme.color) 
+                                }}
+                            >
+                                {surah.nama}
+                            </span>
+
                             <button
                                 onClick={handlePlayClick}
                                 className={cn(
-                                    "h-8 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-300 shadow-lg group/play",
+                                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg shrink-0",
                                     isCurrentlyPlaying && isPlaying
-                                        ? "bg-primary text-primary-foreground scale-110"
-                                        : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground hover:scale-110",
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground",
                                     (isLoading || (isCurrentlyPlaying && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
                                 )}
                                 disabled={isLoading}
@@ -238,62 +284,15 @@ export const SurahCard = React.memo(function SurahCard({
                                 {isLoading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : isCurrentlyPlaying && isPlaying ? (
-                                    <>
-                                        <Pause className="w-3.5 h-3.5 fill-current" />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">Berhenti</span>
-                                    </>
+                                    <Pause className="w-4 h-4 fill-current" />
                                 ) : (
-                                    <>
-                                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">Putar</span>
-                                    </>
+                                    <Play className="w-4 h-4 fill-current ml-0.5" />
                                 )}
                             </button>
                         </div>
-                    </div>
-
-                    {/* Mobile/Tablet Row Action */}
-                    <div className="lg:hidden flex items-center gap-2 sm:gap-4 ml-auto">
-                        {/* Arabic (shown on row layout if screen > 400px) */}
-                        <span
-                            className="text-xl sm:text-2xl lg:text-3xl font-arabic transition-all duration-500 opacity-60 hidden min-[400px]:block"
-                            style={{ 
-                                color: isCurrentlyPlaying 
-                                    ? 'var(--primary)' 
-                                    : (currentTheme === 'light' ? 'rgba(var(--foreground-rgb), 0.6)' : theme.color) 
-                            }}
-                        >
-                            {surah.nama}
-                        </span>
-
-                        <button
-                            onClick={handlePlayClick}
-                            className={cn(
-                                "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg shrink-0",
-                                isCurrentlyPlaying && isPlaying
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground",
-                                (isLoading || (isCurrentlyPlaying && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
-                            )}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : isCurrentlyPlaying && isPlaying ? (
-                                <Pause className="w-4 h-4 fill-current" />
-                            ) : (
-                                <Play className="w-4 h-4 fill-current ml-0.5" />
-                            )}
-                        </button>
-                    </div>
+                    )}
                 </div>
             </div>
         </motion.div>
     );
-}, (prevProps, nextProps) => {
-    return prevProps.surah.nomor === nextProps.surah.nomor &&
-        prevProps.index === nextProps.index &&
-        prevProps.isCurrentlyPlaying === nextProps.isCurrentlyPlaying &&
-        prevProps.isPlaying === nextProps.isPlaying &&
-        prevProps.selectedReciterId === nextProps.selectedReciterId;
 });

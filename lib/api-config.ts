@@ -45,4 +45,5 @@ export const CONFIG = {
   QURAN_FOUNDATION_CLIENT_ID: process.env.QURAN_FOUNDATION_CLIENT_ID || "",
   QURAN_FOUNDATION_CLIENT_SECRET: process.env.QURAN_FOUNDATION_CLIENT_SECRET || "",
   QURAN_FOUNDATION_REDIRECT_URI: `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/quran/auth/callback`,
+  QURAN_FOUNDATION_MUSHAF_ID: Number(process.env.NEXT_PUBLIC_QF_MUSHAF_ID) || 4,
 };

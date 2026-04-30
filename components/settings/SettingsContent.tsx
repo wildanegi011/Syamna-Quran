@@ -22,6 +22,19 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getLanguageMeta } from '@/lib/constants/languages';
 import { Input } from '@/components/ui/input';
+import { Book } from 'lucide-react';
+
+const MUSHAF_OPTIONS = [
+    { id: 1, name: 'QCF V2', desc: 'Standard Digital V2' },
+    { id: 2, name: 'QCF V1', desc: 'Standard Digital V1' },
+    { id: 3, name: 'Indopak', desc: 'Skrip Asia Selatan' },
+    { id: 4, name: 'Uthmani Hafs', desc: 'Standar Internasional' },
+    { id: 5, name: 'KFGQPCHAFS', desc: 'Mushaf Madinah' },
+    { id: 6, name: 'Indopak 15 Lines', desc: 'Standar Indonesia' },
+    { id: 7, name: 'Indopak 16 Lines', desc: 'Standard Asia' },
+    { id: 11, name: 'Tajweed', desc: 'Berwarna dengan hukum Tajwid' },
+    { id: 19, name: 'QCF Tajweed V4', desc: 'Standard Digital Tajweed' },
+];
 
 interface SettingsContentProps {
     className?: string;
@@ -35,7 +48,8 @@ export function SettingsContent({ className }: SettingsContentProps) {
         showTajweed, setShowTajweed,
         showTranslation, setShowTranslation,
         showLatin, setShowLatin,
-        tafsirId, setTafsirId
+        tafsirId, setTafsirId,
+        mushafId, setMushafId
     } = useSettings();
 
     const { selectedReciterId, setReciterId } = useAudioState();
@@ -46,7 +60,8 @@ export function SettingsContent({ className }: SettingsContentProps) {
     const [searchReciter, setSearchReciter] = React.useState('');
     const [searchTranslation, setSearchTranslation] = React.useState('');
     const [searchTafsir, setSearchTafsir] = React.useState('');
-    const [expandedSection, setExpandedSection] = React.useState<'tampilan' | 'reciter' | 'translation' | 'tafsir' | null>('tampilan');
+    const [searchMushaf, setSearchMushaf] = React.useState('');
+    const [expandedSection, setExpandedSection] = React.useState<'tampilan' | 'mushaf' | 'reciter' | 'translation' | 'tafsir' | null>('tampilan');
 
     const sortedTafsirs = React.useMemo(() => {
         if (!tafsirResources) return [];
@@ -82,6 +97,12 @@ export function SettingsContent({ className }: SettingsContentProps) {
     const selectedReciter = reciters?.find(r => r.identifier === selectedReciterId);
     const selectedTranslation = translations?.find(t => t.id === translationId);
     const selectedTafsir = sortedTafsirs.find(t => t.id === tafsirId) || tafsirResources?.find(t => t.id === tafsirId);
+    const selectedMushaf = MUSHAF_OPTIONS.find(m => m.id === mushafId);
+
+    const filteredMushafs = MUSHAF_OPTIONS.filter(m =>
+        m.name.toLowerCase().includes(searchMushaf.toLowerCase()) ||
+        m.desc.toLowerCase().includes(searchMushaf.toLowerCase())
+    );
 
     const filteredReciters = reciters?.filter(r =>
         r.englishName.toLowerCase().includes(searchReciter.toLowerCase())
@@ -95,7 +116,11 @@ export function SettingsContent({ className }: SettingsContentProps) {
 
     const AccordionHeader = ({ id, icon: Icon, title, subtitle }: { id: typeof expandedSection, icon: any, title: string, subtitle?: string }) => (
         <button
-            onClick={() => setExpandedSection(expandedSection === id ? null : id)}
+            type="button"
+            onClick={(e) => {
+                e.stopPropagation();
+                setExpandedSection(expandedSection === id ? null : id);
+            }}
             className="w-full flex items-center justify-between py-4 group"
         >
             <div className="flex items-center gap-4 text-left overflow-hidden">
@@ -165,6 +190,58 @@ export function SettingsContent({ className }: SettingsContentProps) {
                                             <span className="text-sm font-medium text-foreground/70">{item.label}</span>
                                             <Switch checked={item.checked} onCheckedChange={item.onChange} />
                                         </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* JENIS MUSHAF */}
+            <div className="border-b border-foreground/5">
+                <AccordionHeader
+                    id="mushaf"
+                    icon={Book}
+                    title="Jenis Mushaf"
+                    subtitle={selectedMushaf ? `${selectedMushaf.name} • ${selectedMushaf.desc}` : "Pilih Mushaf"}
+                />
+                <AnimatePresence>
+                    {expandedSection === 'mushaf' && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden pb-6"
+                        >
+                            <div className="bg-foreground/[0.03] rounded-2xl overflow-hidden">
+                                <div className="p-3 border-b border-foreground/5">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20" />
+                                        <Input
+                                            placeholder="Cari Mushaf..."
+                                            value={searchMushaf}
+                                            onChange={(e) => setSearchMushaf(e.target.value)}
+                                            className="h-10 pl-10 bg-transparent border-none focus-visible:ring-0 text-sm placeholder:text-foreground/20"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="max-h-[300px] overflow-y-auto px-1.5 py-1.5 custom-scrollbar">
+                                    {filteredMushafs.map((m) => (
+                                        <button
+                                            key={m.id}
+                                            onClick={() => {
+                                                setMushafId(m.id);
+                                                setExpandedSection(null);
+                                            }}
+                                            className={`w-full flex items-center justify-between p-3.5 px-4 rounded-xl text-left transition-all ${mushafId === m.id ? 'bg-primary/10 text-primary font-bold' : 'text-foreground/60 hover:bg-foreground/5'}`}
+                                        >
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-sm truncate">{m.name}</span>
+                                                <span className="text-[10px] opacity-40 font-medium uppercase tracking-wider">{m.desc}</span>
+                                            </div>
+                                            {mushafId === m.id && <Check className="w-4 h-4 shrink-0" />}
+                                        </button>
                                     ))}
                                 </div>
                             </div>

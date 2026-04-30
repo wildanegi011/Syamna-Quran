@@ -7,11 +7,11 @@ import { useTheme } from "next-themes";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 export function HomeBackground() {
-  const { theme } = useTheme();
   const { scrollYProgress } = useScroll();
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const [mounted, setMounted] = React.useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
 
   React.useEffect(() => {
     setMounted(true);
@@ -48,7 +48,7 @@ export function HomeBackground() {
           fill
           className={cn(
             "object-cover scale-125 pointer-events-none transition-opacity duration-1000",
-            mounted ? (theme === 'dark' ? "opacity-[0.25]" : "opacity-[0.08]") : "opacity-[0.25]"
+            mounted ? (resolvedTheme === 'dark' ? "opacity-[0.25]" : "opacity-[0.08]") : "opacity-[0.25]"
           )}
           priority
         />
@@ -82,7 +82,7 @@ export function HomeBackground() {
       >
         <div className={cn(
                 "absolute inset-0 transition-opacity duration-1000",
-                mounted ? (theme === 'dark' ? "opacity-[0.3]" : "opacity-[0.1]") : "opacity-[0.3]"
+                mounted ? (resolvedTheme === 'dark' ? "opacity-[0.3]" : "opacity-[0.1]") : "opacity-[0.3]"
               )}
              style={{
                backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
@@ -94,7 +94,7 @@ export function HomeBackground() {
       {/* Layer 4: Global Ambient Glows */}
       <AmbientBackground variant="equran" className={cn(
         "fixed inset-0 z-30 transition-opacity duration-1000 mix-blend-screen",
-        mounted ? (theme === 'dark' ? "opacity-40" : "opacity-10") : "opacity-40"
+        mounted ? (resolvedTheme === 'dark' ? "opacity-40" : "opacity-10") : "opacity-40"
       )} />
 
       {/* Final Vignette Finish */}

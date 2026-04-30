@@ -6,6 +6,8 @@ import { AudioProvider } from "@/contexts/AudioContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { QuranAuthProvider } from "@/contexts/QuranAuthContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
+import { ReadingProgressProvider } from "@/contexts/ReadingProgressContext";
 import QuranDataPrefetcher from "./quran/QuranDataPrefetcher";
 
 export default function Providers({ children }: { children: ReactNode }) {
@@ -24,16 +26,20 @@ export default function Providers({ children }: { children: ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <QuranDataPrefetcher />
-            <AuthProvider>
-                <QuranAuthProvider>
-                    <SearchProvider>
-                        <AudioProvider>
-                            {children}
-                        </AudioProvider>
-                    </SearchProvider>
-                </QuranAuthProvider>
-            </AuthProvider>
+            <SettingsProvider>
+                <QuranDataPrefetcher />
+                <AuthProvider>
+                    <QuranAuthProvider>
+                        <SearchProvider>
+                            <AudioProvider>
+                                <ReadingProgressProvider>
+                                    {children}
+                                </ReadingProgressProvider>
+                            </AudioProvider>
+                        </SearchProvider>
+                    </QuranAuthProvider>
+                </AuthProvider>
+            </SettingsProvider>
         </QueryClientProvider>
     );
 }

@@ -1,6 +1,6 @@
 import { ApiResponse, SurahSummary, SurahDetail, SurahTafsir, JuzDetail, Ayah, Reciters, AyahAudio, Translation, Language, TafsirResource } from "./types";
 import { stripHtml } from "./utils";
-import { fetchRecitations, fetchSurahVerses, fetchJuzVerses, fetchSurahTafsirFromQF, fetchTranslations, fetchLanguages, fetchChapters, fetchTafsirResources, fetchChapterInfo } from "./api/quran";
+import { fetchRecitations, fetchSurahVerses, fetchJuzVerses, fetchSurahTafsirFromQF, fetchTranslations, fetchLanguages, fetchChapters, fetchTafsirResources, fetchChapterInfo, fetchIndonesianTafsir } from "./api/quran";
 import surahSummaryData from "./data/surahs.json";
 
 const QF_AUDIO_BASE = "https://verses.quran.com";
@@ -205,10 +205,11 @@ export async function getSurahPage(
     nomor: number,
     reciterId: string = '7',
     translationId: number = 33,
-    page: number = 1
+    page: number = 1,
+    mushafId: number = 4
 ): Promise<{ ayats: Ayah[]; pagination: { currentPage: number; totalPages: number; totalRecords: number; nextPage: number | null }; surahMeta: any } | null> {
     try {
-        const versesData = await fetchSurahVerses(nomor, reciterId, translationId, page, 50);
+        const versesData = await fetchSurahVerses(nomor, reciterId, translationId, page, 50, mushafId);
         const verses = versesData.verses || [];
         const pag = versesData.pagination || {};
 
@@ -225,7 +226,7 @@ export async function getSurahPage(
                 nomorAyat: v.verse_number,
                 numberGlobal: v.id,
                 verseKey: v.verse_key,
-                teksArab: v.text_uthmani,
+                teksArab: [3, 6, 7].includes(mushafId) ? (v.text_indopak || v.text_uthmani) : v.text_uthmani,
                 teksTajweed: v.text_uthmani_tajweed || v.text_uthmani,
                 teksLatin: "",
                 teksIndonesia: stripHtml(v.translations?.[0]?.text || ""),
@@ -295,9 +296,7 @@ export async function getSurahTafsir(nomor: number, tafsirId: number): Promise<S
     try {
         // Handle virtual Indonesian Tafsirs from equran.id
         if (tafsirId === VIRTUAL_ID_TAFSIR_KEMENAG) {
-            const response = await fetch(`/api/tafsir/${nomor}`);
-            if (!response.ok) return null;
-            const result = await response.json();
+            const result = await fetchIndonesianTafsir(nomor);
             
             if (!result || !result.data) return null;
             const data = result.data;
@@ -359,10 +358,11 @@ export async function getJuzPage(
     nomor: number,
     reciterId: string = '7',
     translationId: number = 33,
-    page: number = 1
+    page: number = 1,
+    mushafId: number = 4
 ): Promise<{ ayats: Ayah[]; pagination: { currentPage: number; totalPages: number; totalRecords: number; nextPage: number | null } } | null> {
     try {
-        const result = await fetchJuzVerses(nomor, reciterId, translationId, page, 50);
+        const result = await fetchJuzVerses(nomor, reciterId, translationId, page, 50, mushafId);
         const verses = result.verses || [];
         const pag = result.pagination || {};
 
@@ -384,7 +384,7 @@ export async function getJuzPage(
                 nomorAyat: v.verse_number,
                 numberGlobal: v.id,
                 verseKey: v.verse_key,
-                teksArab: v.text_uthmani,
+                teksArab: [3, 6, 7].includes(mushafId) ? (v.text_indopak || v.text_uthmani) : v.text_uthmani,
                 teksTajweed: v.text_uthmani_tajweed || v.text_uthmani,
                 teksLatin: "",
                 teksIndonesia: stripHtml(v.translations?.[0]?.text || ""),

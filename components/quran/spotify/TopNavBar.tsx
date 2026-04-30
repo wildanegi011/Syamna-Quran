@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { SettingsSheet } from '@/components/settings/SettingsSheet';
+import { ProfileSheet } from './ProfileSheet';
 
 interface TopNavBarProps {
     isReadingMode?: boolean;
@@ -26,9 +27,10 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
     const params = useParams();
     const { searchQuery, setSearchQuery } = useSearch();
     const { user, signInWithGoogle, signOut, loading } = useAuth();
-    const { theme, setTheme, resolvedTheme } = useTheme();
+    const { resolvedTheme, setTheme } = useTheme();
     const [language, setLanguage] = React.useState("ID");
     const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
+    const [isProfileOpen, setIsProfileOpen] = React.useState(false);
     const [mounted, setMounted] = React.useState(false);
     const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false);
     const { isMobileMenuOpen, setIsMobileMenuOpen } = useSearch(); // Reusing SearchContext for layout state or a local one
@@ -44,7 +46,16 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
     // Auto close dropdown on click outside
     React.useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+                // If the click is inside a Radix UI portal (like the Settings sheet), don't close
+                if (target instanceof Element && (
+                    target.closest('[data-radix-portal]') || 
+                    target.closest('[role="dialog"]') ||
+                    target.closest('[role="menu"]')
+                )) {
+                    return;
+                }
                 setIsUserDropdownOpen(false);
             }
         }
@@ -154,11 +165,11 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                     {/* Theme & Language Toggles - Desktop only */}
                     <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-foreground/5 border border-foreground/10">
                         <button
-                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
                             className="p-2 rounded-lg hover:bg-foreground/10 transition-colors text-foreground/50 hover:text-primary"
-                            title={mounted ? (theme === "dark" ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap") : ""}
+                            title={mounted ? (resolvedTheme === "dark" ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap") : ""}
                         >
-                            {mounted && (theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
+                            {mounted && (resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
                         </button>
                         <div className="w-px h-4 bg-foreground/10 mx-1" />
                         <button
@@ -226,13 +237,13 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                                     <div className="flex items-center gap-1 bg-background/50 p-1 rounded-sm">
                                                         <button
                                                             onClick={() => setTheme("light")}
-                                                            className={cn("p-1.5 rounded-sm transition-all", (mounted && theme === "light") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40")}
+                                                            className={cn("p-1.5 rounded-sm transition-all", (mounted && resolvedTheme === "light") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40")}
                                                         >
                                                             <Sun className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
                                                             onClick={() => setTheme("dark")}
-                                                            className={cn("p-1.5 rounded-sm transition-all", (mounted && theme === "dark") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40")}
+                                                            className={cn("p-1.5 rounded-sm transition-all", (mounted && resolvedTheme === "dark") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40")}
                                                         >
                                                             <Moon className="w-3.5 h-3.5" />
                                                         </button>
@@ -254,6 +265,16 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                                     <p className="text-xs font-black text-foreground truncate">{user.user_metadata.full_name}</p>
                                                     <p className="text-[10px] text-foreground/30 truncate">{user.email}</p>
                                                 </div>
+                                            )}
+                                            
+                                            {user && (
+                                                <button
+                                                    onClick={() => { setIsProfileOpen(true); setIsUserDropdownOpen(false); }}
+                                                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/10 text-foreground/60 hover:text-primary transition-all group text-left"
+                                                >
+                                                    <User className="w-4 h-4 text-foreground/40 group-hover:text-primary transition-colors" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Profil Saya</span>
+                                                </button>
                                             )}
 
                                             {/* Settings - Always show in app dropdown */}
@@ -291,6 +312,11 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                     </div>
                 </div>
             </div>
+
+            <ProfileSheet 
+                isOpen={isProfileOpen} 
+                onClose={() => setIsProfileOpen(false)} 
+            />
         </nav>
     );
 }

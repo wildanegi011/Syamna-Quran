@@ -171,6 +171,10 @@
   .font-arabic {
     font-family: var(--font-amiri), serif;
   }
+
+  .font-indopak {
+    font-family: var(--font-lateef), serif;
+  }
   
   .font-modern {
     font-family: var(--font-cairo), sans-serif;

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface QFUser {
     sub: string;
@@ -29,40 +30,37 @@ const QuranAuthContext = createContext<QuranAuthContextType | undefined>(
 );
 
 export function QuranAuthProvider({ children }: { children: React.ReactNode }) {
-    const [isConnected, setIsConnected] = useState(false);
-    const [qfUser, setQfUser] = useState<QFUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Use the SAME query key and logic as the main AuthProvider for automatic deduplication
+    const { data: authData, isLoading, refetch } = useQuery({
+        queryKey: ["qf-auth-status"],
+        queryFn: async () => {
+            const res = await fetch("/api/quran/auth/status");
+            if (!res.ok) throw new Error("Gagal mengambil status auth");
+            return res.json();
+        },
+        staleTime: 5 * 60 * 1000,
+        retry: 1,
+    });
+
+    const isConnected = !!(authData?.connected && authData.user);
+    const qfUser = authData?.user || null;
+    const loading = isLoading;
 
     const checkStatus = useCallback(async () => {
-        try {
-            const res = await fetch("/api/quran/auth/status");
-            const data = await res.json();
-            setIsConnected(data.connected);
-            setQfUser(data.user);
-        } catch {
-            setIsConnected(false);
-            setQfUser(null);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        checkStatus();
-    }, [checkStatus]);
+        await refetch();
+    }, [refetch]);
 
     const connectQuranAccount = () => {
         // Redirect ke QF OAuth login — akan kembali ke /quran setelah selesai
-        window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/login";
+        window.location.href = "/api/quran/auth/login";
     };
 
     const disconnectQuranAccount = () => {
         // Redirect ke QF logout — akan kembali ke /quran
-        window.location.href = "https://syamna-quran.netlify.app/api/quran/auth/logout";
+        window.location.href = "/api/quran/auth/logout";
     };
 
     const refreshStatus = async () => {
-        setLoading(true);
         await checkStatus();
     };
 

@@ -16,6 +16,7 @@ import { ModuleFilterBar } from "@/components/shared/ModuleFilterBar";
 import { SurahCard } from "@/components/quran/SurahCard";
 import { JuzCard } from "@/components/quran/JuzCard";
 import { useAudioState } from "@/contexts/AudioContext";
+import { useQuranFoundation } from "@/hooks/use-quran-foundation";
 
 function QuranSkeleton() {
     return (
@@ -62,8 +63,13 @@ export default function QuranRootPage() {
         setViewedSurah,
         setViewedJuz,
         selectedReciterId,
-        currentJuz
+        currentJuz,
+        viewedSurah,
+        viewedJuz,
+        quranMode,
+        setQuranMode
     } = useAudioState();
+
     const [activeFilter, setActiveFilter] = useState("Semua");
 
     const { data: surahs = [], isLoading } = useSurahs();
@@ -74,7 +80,7 @@ export default function QuranRootPage() {
         Makkiyah: surahs.filter(s => s.tempatTurun === "Mekah").length,
         Madaniyah: surahs.filter(s => s.tempatTurun === "Madinah").length,
         Sajdah: surahs.filter(s => s.ayatsajdah).length,
-        Juz: 30
+        Juz: 30,
     };
 
     const filterItems = [
@@ -83,6 +89,8 @@ export default function QuranRootPage() {
         { label: "Madaniyah", value: "Madaniyah", count: counts.Madaniyah },
         { label: "Sajdah", value: "Sajdah", count: counts.Sajdah },
         { label: "Juz", value: "Juz", count: counts.Juz },
+        // { label: "Favorit", value: "Favorit", count: counts.Favorit },
+        // { label: "Tadabbur", value: "Tadabbur", count: counts.Tadabbur },
     ];
 
     const filteredSurahs = surahs.filter(surah => {
@@ -117,6 +125,8 @@ export default function QuranRootPage() {
                 subtitle="Hiduplah dalam bimbingan cahaya wahyu. Akses 114 Surah dengan lantunan qari terbaik dan terjemahan yang mendalam."
                 backgroundImage="/backgrounds/quran_hero.png"
             />
+
+
 
             {/* Sticky Filter Bar */}
             <ModuleFilterBar
@@ -177,7 +187,7 @@ export default function QuranRootPage() {
                                     key={`juz-${juz.id}`}
                                     juz={juz}
                                     index={index}
-                                    isCurrentJuzActive={currentJuz === juz.id}
+                                    isCurrentJuzActive={viewedJuz === juz.id}
                                     isPlaying={isPlaying}
                                     currentAyah={currentAyah}
                                     togglePlay={togglePlay}
@@ -193,7 +203,7 @@ export default function QuranRootPage() {
                                     key={surah.nomor}
                                     surah={surah}
                                     index={index}
-                                    isCurrentlyPlaying={playingSurah?.nomor === surah.nomor && !currentJuz}
+                                    isCurrentlyPlaying={viewedSurah?.nomor === surah.nomor && !viewedJuz}
                                     isPlaying={isPlaying}
                                     currentAyah={currentAyah}
                                     togglePlay={togglePlay}

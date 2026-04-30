@@ -67,8 +67,8 @@ const JUZ_THEME = {
     border: 'rgba(143, 169, 244, 0.2)'
 };
 
-export const JuzCard = React.memo(function JuzCard({ 
-    juz, 
+export const JuzCard = React.memo(function JuzCard({
+    juz,
     index,
     isCurrentJuzActive,
     isPlaying,
@@ -80,6 +80,7 @@ export const JuzCard = React.memo(function JuzCard({
     selectedReciterId
 }: JuzCardProps) {
     const queryClient = useQueryClient();
+    const { quranMode } = useAudioState();
     const [isLoading, setIsLoading] = React.useState(false);
     const { data: allSurahs = [] } = useSurahs();
 
@@ -235,65 +236,63 @@ export const JuzCard = React.memo(function JuzCard({
                         </div>
 
                         {/* Play Button - Desktop/Card */}
-                        <div className="hidden lg:flex items-center justify-end w-full">
-                            <button
-                                onClick={handlePlayClick}
-                                className={cn(
-                                    "h-8 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-300 shadow-lg group/play",
-                                    isCurrentJuzActive && isPlaying
-                                        ? "bg-primary text-primary-foreground scale-110"
-                                        : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground hover:scale-110",
-                                    (isLoading || (isCurrentJuzActive && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
-                                )}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : isCurrentJuzActive && isPlaying ? (
-                                    <>
-                                        <Pause className="w-3.5 h-3.5 fill-current" />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">Berhenti</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">Putar</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
+                        {quranMode === 'listening' && (
+                            <div className="hidden lg:flex items-center justify-end w-full">
+                                <button
+                                    onClick={handlePlayClick}
+                                    className={cn(
+                                        "h-8 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-300 shadow-lg group/play",
+                                        isCurrentJuzActive && isPlaying
+                                            ? "bg-primary text-primary-foreground scale-110"
+                                            : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground hover:scale-110",
+                                        (isLoading || (isCurrentJuzActive && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
+                                    )}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : isCurrentJuzActive && isPlaying ? (
+                                        <>
+                                            <Pause className="w-3.5 h-3.5 fill-current" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Berhenti</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Putar</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        )}
 
                         {/* Play Button - Mobile/Tablet Row */}
-                        <div className="lg:hidden flex items-center gap-2">
-                            <button
-                                onClick={handlePlayClick}
-                                className={cn(
-                                    "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg shrink-0",
-                                    isCurrentJuzActive && isPlaying
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground",
-                                    (isLoading || (isCurrentJuzActive && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
-                                )}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : isCurrentJuzActive && isPlaying ? (
-                                    <Pause className="w-4 h-4 fill-current" />
-                                ) : (
-                                    <Play className="w-4 h-4 fill-current ml-0.5" />
-                                )}
-                            </button>
-                        </div>
+                        {quranMode === 'listening' && (
+                            <div className="lg:hidden flex items-center gap-2">
+                                <button
+                                    onClick={handlePlayClick}
+                                    className={cn(
+                                        "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg shrink-0",
+                                        isCurrentJuzActive && isPlaying
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-foreground/10 text-foreground hover:bg-primary hover:text-primary-foreground",
+                                        (isLoading || (isCurrentJuzActive && !currentAyah && isPlaying)) ? "cursor-wait" : "cursor-pointer"
+                                    )}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : isCurrentJuzActive && isPlaying ? (
+                                        <Pause className="w-4 h-4 fill-current" />
+                                    ) : (
+                                        <Play className="w-4 h-4 fill-current ml-0.5" />
+                                    )}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
         </motion.div>
     );
-}, (prevProps, nextProps) => {
-    return prevProps.juz.id === nextProps.juz.id && 
-           prevProps.index === nextProps.index &&
-           prevProps.isCurrentJuzActive === nextProps.isCurrentJuzActive &&
-           prevProps.isPlaying === nextProps.isPlaying &&
-           prevProps.selectedReciterId === nextProps.selectedReciterId;
 });

@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import { LogOut, User, Menu, X, BookOpen, Sparkles, ChevronDown, Moon, Sun, BookText, HandHelping, Clock, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppModules } from "@/hooks/use-modules";
+import { ProfileSheet } from "@/components/quran/spotify/ProfileSheet";
 
 const iconMap: Record<string, any> = {
   "Moon": Moon,
@@ -21,12 +22,13 @@ const iconMap: Record<string, any> = {
 export function Navbar() {
   const { user, signInWithGoogle, signOut, loading } = useAuth();
   const { data: modules = [] } = useAppModules();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [language, setLanguage] = useState("ID");
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
@@ -127,11 +129,11 @@ export function Navbar() {
             {/* Theme & Language Toggles - Desktop Only */}
             <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-foreground/5 border border-foreground/5">
               <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
                 className="p-2 rounded-lg hover:bg-foreground/10 transition-colors text-foreground/50 hover:text-primary"
-                title={mounted ? (theme === "dark" ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap") : ""}
+                title={mounted ? (resolvedTheme === "dark" ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap") : ""}
               >
-                {mounted && (theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
+                {mounted && (resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
               </button>
               <div className="w-px h-4 bg-foreground/10 mx-1" />
               <button
@@ -202,13 +204,13 @@ export function Navbar() {
                             <div className="flex items-center gap-1 bg-background/50 p-1 rounded-sm">
                               <button
                                 onClick={() => setTheme("light")}
-                                className={cn("p-1.5 rounded-sm transition-all", (mounted && theme === "light") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40 hover:text-foreground")}
+                                className={cn("p-1.5 rounded-sm transition-all", (mounted && resolvedTheme === "light") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40 hover:text-foreground")}
                               >
                                 <Sun className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => setTheme("dark")}
-                                className={cn("p-1.5 rounded-sm transition-all", (mounted && theme === "dark") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40 hover:text-foreground")}
+                                className={cn("p-1.5 rounded-sm transition-all", (mounted && resolvedTheme === "dark") ? "bg-primary text-primary-foreground shadow-lg" : "text-foreground/40 hover:text-foreground")}
                               >
                                 <Moon className="w-3.5 h-3.5" />
                               </button>
@@ -242,6 +244,14 @@ export function Navbar() {
                           </button>
                         ) : (
                           <>
+                            <button
+                              onClick={() => { setIsProfileOpen(true); setIsUserDropdownOpen(false); }}
+                              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/10 text-foreground/60 hover:text-primary transition-all group text-left"
+                            >
+                              <User className="w-4 h-4 text-foreground/40 group-hover:text-primary transition-colors" />
+                              <span className="text-[10px] font-black uppercase tracking-widest leading-none">Profil Saya</span>
+                            </button>
+                            
                             <button
                               onClick={() => { signOut(); setIsUserDropdownOpen(false); }}
                               className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-500/10 text-foreground/60 hover:text-red-500 transition-all group text-left"
@@ -340,10 +350,10 @@ export function Navbar() {
                   </div>
                   <div className="flex items-center gap-2 p-1 rounded-xl bg-foreground/5">
                     <button
-                      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
                       className="p-2 rounded-lg hover:bg-foreground/10 transition-colors text-foreground/50 hover:text-primary"
                     >
-                      {mounted && (theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
+                      {mounted && (resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
                     </button>
                     <div className="w-px h-4 bg-foreground/10 mx-1" />
                     <button
@@ -375,12 +385,20 @@ export function Navbar() {
                         <span className="text-[10px] text-foreground/30 truncate">{user.email}</span>
                       </div>
                     </div>
-                    <button
-                      onClick={signOut}
-                      className="w-full h-12 rounded-full border border-foreground/10 hover:bg-red-500/5 hover:border-red-500/20 text-foreground/40 hover:text-red-500 font-black uppercase tracking-widest text-[10px] transition-all"
-                    >
-                      Keluar
-                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => { setIsProfileOpen(true); setIsMobileMenuOpen(false); }}
+                        className="w-full h-12 rounded-full bg-primary/10 border border-primary/20 text-primary font-black uppercase tracking-widest text-[10px] transition-all"
+                      >
+                        Profil Saya
+                      </button>
+                      <button
+                        onClick={signOut}
+                        className="w-full h-12 rounded-full border border-foreground/10 hover:bg-red-500/5 hover:border-red-500/20 text-foreground/40 hover:text-red-500 font-black uppercase tracking-widest text-[10px] transition-all"
+                      >
+                        Keluar
+                      </button>
+                    </div>
                   </div>
                 ) : null}
                 {!user && (
@@ -404,6 +422,10 @@ export function Navbar() {
       </AnimatePresence>
 
 
+      <ProfileSheet 
+        isOpen={isProfileOpen} 
+        onClose={() => setIsProfileOpen(false)} 
+      />
     </>
   );
 }

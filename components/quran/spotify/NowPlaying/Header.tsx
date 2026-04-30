@@ -50,6 +50,8 @@ interface MobileHeaderProps {
     activeData: any;
     handleAyahJump: (ayah: Ayah) => void;
     pagination?: any;
+    mode: 'reading' | 'listening';
+    setMode: (mode: 'reading' | 'listening') => void;
 }
 
 export const MobileHeader = ({
@@ -63,7 +65,9 @@ export const MobileHeader = ({
     scrollContainerRef,
     activeData,
     handleAyahJump,
-    pagination
+    pagination,
+    mode,
+    setMode
 }: MobileHeaderProps) => {
     const [isJumpInputOpen, setIsJumpInputOpen] = React.useState(false);
 
@@ -121,6 +125,41 @@ export const MobileHeader = ({
                         className="w-10 h-10 rounded-full flex items-center justify-center text-foreground/60 hover:text-foreground active:scale-95 transition-all"
                     >
                         <Settings className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Mode Switcher - Mobile */}
+            <div className="px-4 pb-2">
+                <div className="flex bg-foreground/[0.03] p-1 rounded-2xl border border-foreground/5 relative overflow-hidden">
+                    <motion.div
+                        className="absolute inset-1 bg-background border border-foreground/5 shadow-lg rounded-xl z-0"
+                        initial={false}
+                        animate={{
+                            x: mode === 'reading' ? '0%' : '100%',
+                            width: '50%'
+                        }}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                    />
+                    <button
+                        onClick={() => setMode('reading')}
+                        className={cn(
+                            "flex-1 py-2 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                            mode === 'reading' ? "text-primary" : "text-foreground/30"
+                        )}
+                    >
+                        <BookOpen className="w-3.5 h-3.5" />
+                        Membaca
+                    </button>
+                    <button
+                        onClick={() => setMode('listening')}
+                        className={cn(
+                            "flex-1 py-2 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                            mode === 'listening' ? "text-primary" : "text-foreground/30"
+                        )}
+                    >
+                        <Headphones className="w-3.5 h-3.5" />
+                        Mendengar
                     </button>
                 </div>
             </div>
@@ -193,6 +232,8 @@ interface DesktopHeaderProps {
     selectedReciterId: string;
     setReciterId: (id: string) => void;
     isFetching: boolean;
+    mode: 'reading' | 'listening';
+    setMode: (mode: 'reading' | 'listening') => void;
 }
 
 export const DesktopHeader = ({
@@ -204,7 +245,9 @@ export const DesktopHeader = ({
     reciters,
     selectedReciterId,
     setReciterId,
-    isFetching
+    isFetching,
+    mode,
+    setMode
 }: DesktopHeaderProps) => {
     return (
         <div className="p-4 sm:p-6 pb-4 flex flex-col gap-4 sm:gap-6 shrink-0 hidden lg:flex">
@@ -249,7 +292,38 @@ export const DesktopHeader = ({
                     )}
                 </motion.div>
             </AnimatePresence>
-
+            {/* Mode Switcher - Desktop */}
+            <div className="flex bg-foreground/[0.03] p-1 rounded-2xl border border-foreground/5 relative overflow-hidden">
+                <motion.div
+                    className="absolute inset-1 bg-background border border-foreground/5 shadow-lg rounded-xl z-0"
+                    initial={false}
+                    animate={{
+                        x: mode === 'reading' ? '0%' : '100%',
+                        width: '50%'
+                    }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                />
+                <button
+                    onClick={() => setMode('reading')}
+                    className={cn(
+                        "flex-1 py-2.5 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                        mode === 'reading' ? "text-primary" : "text-foreground/30"
+                    )}
+                >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Membaca
+                </button>
+                <button
+                    onClick={() => setMode('listening')}
+                    className={cn(
+                        "flex-1 py-2.5 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors",
+                        mode === 'listening' ? "text-primary" : "text-foreground/30"
+                    )}
+                >
+                    <Headphones className="w-3.5 h-3.5" />
+                    Mendengar
+                </button>
+            </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
                 {!viewedJuz && (
                     <button

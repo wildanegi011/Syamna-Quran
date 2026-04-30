@@ -17,12 +17,9 @@ import {
     ChevronLeft,
     PanelLeftClose,
     PanelLeftOpen,
-    X,
-    LogIn,
-    LogOut
+    X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { useSurahs } from '@/hooks/use-quran';
 import { SurahSummary } from '@/lib/types';
@@ -33,6 +30,7 @@ import juzData from '@/lib/data/juz.json';
 import Image from 'next/image';
 
 import { ReadingJourney } from './ReadingJourney';
+import { useQuranAuth } from '@/contexts/QuranAuthContext';
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -42,7 +40,7 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
     const pathname = usePathname();
     const params = useParams();
-    const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
+    const { isConnected } = useQuranAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [lastRead, setLastRead] = useState<{ id: number; name: string } | null>(null);
 
@@ -101,7 +99,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
         )}>
             {/* Logo area */}
             <div className={cn("pt-5 pb-6 px-8 border-b border-foreground/5 flex items-center justify-between")}>
-                <Link href="/" className="flex items-center gap-3 relative group cursor-pointer">
+                <Link href="/" className="flex items-center gap-3 group cursor-pointer">
                     <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg border border-foreground/10 shrink-0 transition-transform group-hover:scale-110 duration-500">
                         <Image
                             src="/logos/logo.png"
@@ -132,7 +130,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col pt-6">
                 
                 {/* User Journey Stats */}
-                <ReadingJourney />
+                {isConnected && <ReadingJourney />}
 
                 {/* Features Group */}
                 <div className="px-4 pb-4">
@@ -241,47 +239,12 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
                     </div>
                 )}
             </div>
-
-            {/* Authentication Footer */}
-            <div className="border-t border-foreground/5 bg-foreground/[0.01]">
-
-
-                {/* User Profile */}
-                <div className="p-5">
-                    {user ? (
-                        <div className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-xl overflow-hidden ring-1 ring-foreground/10 shrink-0">
-                                {user.user_metadata.avatar_url ? (
-                                    <Image src={user.user_metadata.avatar_url} alt="Profile" fill className="object-cover" />
-                                ) : (
-                                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                                        {user.user_metadata.full_name?.[0] || 'U'}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex flex-col min-w-0 flex-1">
-                                <p className="text-[11px] font-black text-foreground truncate uppercase tracking-tight">{user.user_metadata.full_name}</p>
-                                <p className="text-[9px] text-foreground/20 truncate uppercase tracking-[0.2em] font-bold">Premium</p>
-                            </div>
-                            <button
-                                onClick={signOut}
-                                className="w-10 h-10 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 flex items-center justify-center text-red-500/40 hover:text-red-500 transition-all shrink-0 cursor-pointer"
-                                title="Keluar"
-                            >
-                                <LogOut className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ) : (
-                        <Button
-                            onClick={signInWithGoogle}
-                            disabled={authLoading}
-                            className="w-full h-12 rounded-xl bg-primary hover:bg-primary text-black font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95"
-                        >
-                            <LogIn className="w-4 h-4" />
-                            Masuk Akun
-                        </Button>
-                    )}
-                </div>
+            
+            {/* Attribution / Footer area */}
+            <div className="p-6 border-t border-foreground/5 text-center">
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-foreground/20">
+                    Syamna Quran &copy; 2026
+                </p>
             </div>
         </aside>
     );

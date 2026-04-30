@@ -77,11 +77,11 @@ export function StorySection() {
                 >
                     <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-full blur-[60px] md:blur-[100px] animate-pulse" />
                     <div className="relative h-full w-full rounded-[2rem] md:rounded-[3rem] border border-foreground/5 bg-foreground/[0.02] backdrop-blur-3xl overflow-hidden flex items-center justify-center p-8 md:p-12">
-                        <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none" 
-                             style={{
+                        <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none"
+                            style={{
                                 backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
                                 backgroundSize: '40px 40px'
-                             }}
+                            }}
                         />
                         <div className="text-center space-y-6 relative z-10">
                             <div className="w-24 h-24 rounded-3xl bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(0,223,154,0.1)]">

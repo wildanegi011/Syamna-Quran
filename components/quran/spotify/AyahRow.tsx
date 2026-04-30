@@ -24,6 +24,7 @@ interface AyahRowProps {
 
 export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsirText, onShowTafsir }: AyahRowProps) {
     const { currentAyah, isPlaying, playAyah, togglePlay, currentSurah } = useAudioState();
+    const { mushafId } = useSettings();
 
     const isCurrent = currentAyah?.nomorAyat === ayah.nomorAyat && currentSurah?.nomor === surah.nomor;
 
@@ -101,8 +102,9 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
 
                 <div
                     className={cn(
-                        "flex-1 text-right font-arabic leading-[2] transition-all duration-1000",
-                        isCurrent ? "text-foreground text-3xl md:text-4xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.05)] opacity-100" : "text-foreground/80 text-3xl md:text-4xl hover:text-foreground"
+                        "flex-1 text-right leading-[2] transition-all duration-1000",
+                        [3, 6, 7].includes(mushafId) ? "font-indopak text-4xl md:text-5xl" : "font-arabic text-3xl md:text-4xl",
+                        isCurrent ? "text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.05)] opacity-100" : "text-foreground/80 hover:text-foreground"
                     )}
                     dir="rtl"
                     dangerouslySetInnerHTML={{ __html: parseTajweed(ayah.teksTajweed || ayah.teksArab) }}
