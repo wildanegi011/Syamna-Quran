@@ -5,24 +5,28 @@ import { cn } from "@/lib/utils";
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
+  display: 'swap',
 });
 
 const amiri = Amiri({
   variable: "--font-amiri",
   weight: ["400", "700"],
   subsets: ["arabic"],
+  display: 'swap',
 });
 
 const lateef = Lateef({
   variable: "--font-lateef",
   weight: ["400", "700"],
   subsets: ["arabic"],
+  display: 'swap',
 });
 
 const cairo = Cairo({
   variable: "--font-cairo",
   weight: ["400", "500", "600", "700"],
   subsets: ["arabic", "latin"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

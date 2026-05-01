@@ -18,14 +18,14 @@ export default function QuranDataPrefetcher() {
         // Prefetch reciters list
         queryClient.prefetchQuery({
             queryKey: ["reciters"],
-            queryFn: getReciters,
+            queryFn: () => getReciters("id"),
             staleTime: 1000 * 60 * 60 * 24, // 24 hours
         });
 
         // Prefetch translations list
         queryClient.prefetchQuery({
             queryKey: ["translations"],
-            queryFn: getTranslations,
+            queryFn: () => getTranslations("id"),
             staleTime: 1000 * 60 * 60 * 24, // 24 hours
         });
     }, [queryClient]);

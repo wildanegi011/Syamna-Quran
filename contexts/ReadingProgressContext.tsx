@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useQuranFoundation } from "@/hooks/use-quran-foundation";
+import { getQFReadingEstimate } from "@/lib/api/quran-foundation";
 import { toast } from "sonner"; 
 
 interface ReadingProgressContextType {
@@ -74,10 +75,13 @@ export function ReadingProgressProvider({ children }: { children: React.ReactNod
         if (hasSubmittedToday || !isConnected) return;
 
         try {
+            // Get official estimation from QF
+            const estimatedSeconds = await getQFReadingEstimate(ranges);
+
             await logActivity.mutateAsync({
                 date: new Date().toISOString().split("T")[0],
                 type: "QURAN",
-                seconds: count * 30, // Estimate 30 seconds per ayah
+                seconds: Math.round(estimatedSeconds),
                 ranges: ranges.length > 0 ? ranges : ["1:1-1:1"]
             });
             setHasSubmittedToday(true);

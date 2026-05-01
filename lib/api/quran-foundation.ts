@@ -146,3 +146,19 @@ export async function getQFActivityDays(from: string, to: string): Promise<QFAct
     const json = await res.json();
     return json.data || [];
 }
+
+/**
+ * Estimates reading time for a given set of ayah ranges.
+ */
+export async function getQFReadingEstimate(ranges: string[]): Promise<number> {
+    if (ranges.length === 0) return 0;
+    
+    // Join ranges with comma
+    const rangeParam = ranges.join(",");
+    const res = await fetch(`/api/quran/user/activity-days/estimate-reading-time?ranges=${encodeURIComponent(rangeParam)}`);
+    
+    if (!res.ok) return ranges.length * 30; // Fallback to 30s per ayah
+    
+    const json = await res.json();
+    return json.data?.seconds || (ranges.length * 30);
+}

@@ -51,6 +51,7 @@ export function SidebarProgress() {
 
 export function SidebarControls() {
     const { isPlaying, togglePlay, stopAudio, nextAyah, prevAyah, isShuffle, toggleShuffle, repeatMode, toggleRepeatMode } = useAudioState();
+    const { language } = useSettings();
 
     return (
         <div className="flex items-center gap-3">
