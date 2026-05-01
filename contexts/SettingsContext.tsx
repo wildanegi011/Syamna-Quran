@@ -11,6 +11,7 @@ interface Settings {
   showLatin: boolean;
   tafsirId: number;
   mushafId: number;
+  language: 'ID' | 'EN';
 }
 
 interface SettingsContextType extends Settings {
@@ -22,6 +23,7 @@ interface SettingsContextType extends Settings {
   setShowLatin: (show: boolean) => void;
   setTafsirId: (id: number) => void;
   setMushafId: (id: number) => void;
+  setLanguage: (lang: 'ID' | 'EN') => void;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -33,6 +35,7 @@ const DEFAULT_SETTINGS: Settings = {
   showLatin: true,
   tafsirId: 0,
   mushafId: 4,
+  language: 'ID',
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -70,6 +73,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const setShowLatin = (show: boolean) => setSettings(prev => ({ ...prev, showLatin: show }));
   const setTafsirId = (id: number) => setSettings(prev => ({ ...prev, tafsirId: id }));
   const setMushafId = (id: number) => setSettings(prev => ({ ...prev, mushafId: id }));
+  const setLanguage = (lang: 'ID' | 'EN') => setSettings(prev => ({ 
+    ...prev, 
+    language: lang,
+    translationId: lang === 'EN' ? 131 : 33 // 131: Clear Quran (EN), 33: Kemenag (ID)
+  }));
 
   const value = {
     ...settings,
@@ -81,6 +89,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setShowLatin,
     setTafsirId,
     setMushafId,
+    setLanguage,
   };
 
   return (

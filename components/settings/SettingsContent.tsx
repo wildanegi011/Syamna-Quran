@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/lib/constants/translations';
 import { useAudioState } from '@/contexts/AudioContext';
 import { useReciters, useTranslations, useTafsirResources } from '@/hooks/use-quran';
 import { Slider } from '@/components/ui/slider';
@@ -17,12 +18,14 @@ import {
     Check,
     ChevronDown,
     Info,
-    BookOpen
+    BookOpen,
+    Layout
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getLanguageMeta } from '@/lib/constants/languages';
 import { Input } from '@/components/ui/input';
 import { Book } from 'lucide-react';
+import { SettingsPreview } from './SettingsPreview';
 
 const MUSHAF_OPTIONS = [
     { id: 1, name: 'QCF V2', desc: 'Standard Digital V2' },
@@ -32,15 +35,41 @@ const MUSHAF_OPTIONS = [
     { id: 5, name: 'KFGQPCHAFS', desc: 'Mushaf Madinah' },
     { id: 6, name: 'Indopak 15 Lines', desc: 'Standar Indonesia' },
     { id: 7, name: 'Indopak 16 Lines', desc: 'Standard Asia' },
-    { id: 11, name: 'Tajweed', desc: 'Berwarna dengan hukum Tajwid' },
     { id: 19, name: 'QCF Tajweed V4', desc: 'Standard Digital Tajweed' },
 ];
 
-interface SettingsContentProps {
-    className?: string;
+interface AccordionHeaderProps {
+    id: string;
+    icon: React.ElementType;
+    title: string;
+    subtitle?: string;
+    expandedId: string | null;
+    setExpandedId: (id: any) => void;
 }
 
-export function SettingsContent({ className }: SettingsContentProps) {
+const AccordionHeader = ({ id, icon: Icon, title, subtitle, expandedId, setExpandedId }: AccordionHeaderProps) => (
+    <button
+        type="button"
+        onClick={(e) => {
+            e.stopPropagation();
+            setExpandedId(expandedId === id ? null : id);
+        }}
+        className="w-full flex items-center justify-between py-4 group text-left"
+    >
+        <div className="flex items-center gap-4 text-left overflow-hidden">
+            <div className={`p-2.5 rounded-xl transition-colors ${expandedId === id ? 'bg-primary/20 text-primary' : 'bg-foreground/5 text-foreground/40 group-hover:bg-foreground/10'}`}>
+                <Icon className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col overflow-hidden">
+                <span className={`text-sm font-bold transition-colors ${expandedId === id ? 'text-foreground' : 'text-foreground/60'}`}>{title}</span>
+                {subtitle && <span className="text-[10px] text-foreground/30 truncate">{subtitle}</span>}
+            </div>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-foreground/20 transition-transform duration-300 ${expandedId === id ? 'rotate-180' : ''}`} />
+    </button>
+);
+
+export function SettingsContent({ className = "" }: { className?: string }) {
     const {
         arabicFontSize, setArabicFontSize,
         translationFontSize, setTranslationFontSize,
@@ -49,8 +78,11 @@ export function SettingsContent({ className }: SettingsContentProps) {
         showTranslation, setShowTranslation,
         showLatin, setShowLatin,
         tafsirId, setTafsirId,
-        mushafId, setMushafId
+        mushafId, setMushafId,
+        language
     } = useSettings();
+
+    const { t } = useTranslation(language);
 
     const { selectedReciterId, setReciterId } = useAudioState();
     const { data: reciters } = useReciters();
@@ -65,7 +97,6 @@ export function SettingsContent({ className }: SettingsContentProps) {
 
     const sortedTafsirs = React.useMemo(() => {
         if (!tafsirResources) return [];
-        // Sort Indonesian resources to the top, then the rest
         return [...tafsirResources].sort((a, b) => {
             const isAIndonesian = a.languageName.toLowerCase() === 'indonesian';
             const isBIndonesian = b.languageName.toLowerCase() === 'indonesian';
@@ -85,10 +116,8 @@ export function SettingsContent({ className }: SettingsContentProps) {
         return sortedTafsirs;
     }, [sortedTafsirs, searchTafsir]);
 
-    // Ensure we have a valid selection only if none is set (tafsirId === 0)
     React.useEffect(() => {
         if (tafsirId === 0 && sortedTafsirs.length > 0) {
-            // Set default to Kemenag (999) if available
             const kemenag = sortedTafsirs.find(t => t.id === 999);
             setTafsirId(kemenag ? kemenag.id : sortedTafsirs[0].id);
         }
@@ -96,7 +125,6 @@ export function SettingsContent({ className }: SettingsContentProps) {
 
     const selectedReciter = reciters?.find(r => r.identifier === selectedReciterId);
     const selectedTranslation = translations?.find(t => t.id === translationId);
-    const selectedTafsir = sortedTafsirs.find(t => t.id === tafsirId) || tafsirResources?.find(t => t.id === tafsirId);
     const selectedMushaf = MUSHAF_OPTIONS.find(m => m.id === mushafId);
 
     const filteredMushafs = MUSHAF_OPTIONS.filter(m =>
@@ -108,43 +136,25 @@ export function SettingsContent({ className }: SettingsContentProps) {
         r.englishName.toLowerCase().includes(searchReciter.toLowerCase())
     );
 
-    const filteredTranslations = translations?.filter(t =>
-        t.name.toLowerCase().includes(searchTranslation.toLowerCase()) ||
-        t.languageName.toLowerCase().includes(searchTranslation.toLowerCase()) ||
-        (t.translatedName?.name || '').toLowerCase().includes(searchTranslation.toLowerCase())
+    const filteredTranslations = translations?.filter(trans =>
+        trans.name.toLowerCase().includes(searchTranslation.toLowerCase()) ||
+        trans.languageName.toLowerCase().includes(searchTranslation.toLowerCase()) ||
+        (trans.translatedName?.name || '').toLowerCase().includes(searchTranslation.toLowerCase())
     );
 
-    const AccordionHeader = ({ id, icon: Icon, title, subtitle }: { id: typeof expandedSection, icon: any, title: string, subtitle?: string }) => (
-        <button
-            type="button"
-            onClick={(e) => {
-                e.stopPropagation();
-                setExpandedSection(expandedSection === id ? null : id);
-            }}
-            className="w-full flex items-center justify-between py-4 group"
-        >
-            <div className="flex items-center gap-4 text-left overflow-hidden">
-                <div className={`p-2.5 rounded-xl transition-colors ${expandedSection === id ? 'bg-primary/20 text-primary' : 'bg-foreground/5 text-foreground/40 group-hover:bg-foreground/10'}`}>
-                    <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex flex-col overflow-hidden">
-                    <span className={`text-sm font-bold transition-colors ${expandedSection === id ? 'text-foreground' : 'text-foreground/60'}`}>{title}</span>
-                    {subtitle && <span className="text-[10px] text-foreground/30 truncate">{subtitle}</span>}
-                </div>
-            </div>
-            <ChevronDown className={`w-4 h-4 text-foreground/20 transition-transform duration-300 ${expandedSection === id ? 'rotate-180' : ''}`} />
-        </button>
-    );
+    const selectedTafsir = sortedTafsirs.find(tafsir => tafsir.id === tafsirId) || tafsirResources?.find(tafsir => tafsir.id === tafsirId);
+
 
     return (
         <div className={`space-y-2 pb-10 ${className}`}>
-            {/* TAMPILAN */}
             <div className="border-b border-foreground/5">
                 <AccordionHeader
                     id="tampilan"
-                    icon={Eye}
-                    title="Tampilan"
-                    subtitle="Ukuran font & visibilitas"
+                    icon={Layout}
+                    expandedId={expandedSection}
+                    setExpandedId={setExpandedSection}
+                    title={t('tampilan')}
+                    subtitle={t('ukuranFont') + " & Pratinjau"}
                 />
                 <AnimatePresence>
                     {expandedSection === 'tampilan' && (
@@ -159,7 +169,7 @@ export function SettingsContent({ className }: SettingsContentProps) {
                                 <div className="space-y-6 bg-foreground/[0.02] p-4 rounded-2xl border border-foreground/5">
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center text-[11px]">
-                                            <span className="text-foreground/40 uppercase font-bold tracking-widest">Huruf Arab</span>
+                                            <span className="text-foreground/40 uppercase font-bold tracking-widest">{t('hurufArab')}</span>
                                             <span className="font-black text-primary">{arabicFontSize}px</span>
                                         </div>
                                         <Slider
@@ -169,7 +179,7 @@ export function SettingsContent({ className }: SettingsContentProps) {
                                     </div>
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center text-[11px]">
-                                            <span className="text-foreground/40 uppercase font-bold tracking-widest">Terjemahan</span>
+                                            <span className="text-foreground/40 uppercase font-bold tracking-widest">{t('terjemahan')}</span>
                                             <span className="font-black text-primary">{translationFontSize}px</span>
                                         </div>
                                         <Slider
@@ -182,9 +192,9 @@ export function SettingsContent({ className }: SettingsContentProps) {
                                 {/* TOGGLES */}
                                 <div className="space-y-1">
                                     {[
-                                        { label: 'Warna Tajweed', checked: showTajweed, onChange: setShowTajweed },
-                                        { label: 'Terjemahan', checked: showTranslation, onChange: setShowTranslation },
-                                        { label: 'Latin (Transliterasi)', checked: showLatin, onChange: setShowLatin }
+                                        { label: t('warnaTajweed'), checked: showTajweed, onChange: setShowTajweed },
+                                        { label: t('terjemahan'), checked: showTranslation, onChange: setShowTranslation },
+                                        { label: t('latin'), checked: showLatin, onChange: setShowLatin }
                                     ].map((item, i) => (
                                         <div key={i} className="flex items-center justify-between p-4 rounded-2xl hover:bg-foreground/[0.02] transition-colors">
                                             <span className="text-sm font-medium text-foreground/70">{item.label}</span>
@@ -192,6 +202,9 @@ export function SettingsContent({ className }: SettingsContentProps) {
                                         </div>
                                     ))}
                                 </div>
+
+                                {/* PREVIEW */}
+                                <SettingsPreview />
                             </div>
                         </motion.div>
                     )}
@@ -203,8 +216,10 @@ export function SettingsContent({ className }: SettingsContentProps) {
                 <AccordionHeader
                     id="mushaf"
                     icon={Book}
-                    title="Jenis Mushaf"
-                    subtitle={selectedMushaf ? `${selectedMushaf.name} • ${selectedMushaf.desc}` : "Pilih Mushaf"}
+                    expandedId={expandedSection}
+                    setExpandedId={setExpandedSection}
+                    title={t('jenisMushaf')}
+                    subtitle={selectedMushaf ? `${selectedMushaf.name} • ${selectedMushaf.desc}` : (language === 'ID' ? 'Pilih Mushaf' : 'Select Mushaf')}
                 />
                 <AnimatePresence>
                     {expandedSection === 'mushaf' && (
@@ -255,8 +270,10 @@ export function SettingsContent({ className }: SettingsContentProps) {
                 <AccordionHeader
                     id="reciter"
                     icon={Headphones}
-                    title="Audio"
-                    subtitle={selectedReciter ? `${selectedReciter.englishName} • ${selectedReciter.type}` : "Pilih Qori"}
+                    expandedId={expandedSection}
+                    setExpandedId={setExpandedSection}
+                    title={t('audio')}
+                    subtitle={selectedReciter ? `${selectedReciter.englishName} • ${selectedReciter.type}` : (language === 'ID' ? 'Pilih Qori' : 'Select Reciter')}
                 />
                 <AnimatePresence>
                     {expandedSection === 'reciter' && (
@@ -307,8 +324,10 @@ export function SettingsContent({ className }: SettingsContentProps) {
                 <AccordionHeader
                     id="translation"
                     icon={Languages}
-                    title="Terjemahan"
-                    subtitle={selectedTranslation ? (selectedTranslation.translatedName?.name || selectedTranslation.name) : "Pilih Terjemahan"}
+                    expandedId={expandedSection}
+                    setExpandedId={setExpandedSection}
+                    title={t('terjemahan')}
+                    subtitle={selectedTranslation ? (selectedTranslation.translatedName?.name || selectedTranslation.name) : (language === 'ID' ? 'Pilih Terjemahan' : 'Select Translation')}
                 />
                 <AnimatePresence>
                     {expandedSection === 'translation' && (
@@ -331,18 +350,18 @@ export function SettingsContent({ className }: SettingsContentProps) {
                                     </div>
                                 </div>
                                 <div className="max-h-[300px] overflow-y-auto px-1.5 py-1.5 custom-scrollbar">
-                                    {filteredTranslations?.map((t) => (
+                                    {filteredTranslations?.map((trans) => (
                                         <button
-                                            key={t.id}
+                                            key={trans.id}
                                             onClick={() => {
-                                                setTranslationId(t.id);
+                                                setTranslationId(trans.id);
                                                 setExpandedSection(null);
                                             }}
-                                            className={`w-full flex items-center gap-4 p-3.5 px-4 rounded-xl text-left transition-all ${translationId === t.id ? 'bg-primary/10 text-primary font-bold' : 'text-foreground/60 hover:bg-foreground/5'}`}
+                                            className={`w-full flex items-center gap-4 p-3.5 px-4 rounded-xl text-left transition-all ${translationId === trans.id ? 'bg-primary/10 text-primary font-bold' : 'text-foreground/60 hover:bg-foreground/5'}`}
                                         >
-                                            <span className="text-xl shrink-0">{getLanguageMeta(t.languageName).flag}</span>
-                                            <span className="text-sm flex-1 truncate">{t.translatedName?.name || t.name}</span>
-                                            {translationId === t.id && <Check className="w-4 h-4" />}
+                                            <span className="text-xl shrink-0">{getLanguageMeta(trans.languageName).flag}</span>
+                                            <span className="text-sm flex-1 truncate">{trans.translatedName?.name || trans.name}</span>
+                                            {translationId === trans.id && <Check className="w-4 h-4" />}
                                         </button>
                                     ))}
                                 </div>
@@ -357,8 +376,10 @@ export function SettingsContent({ className }: SettingsContentProps) {
                 <AccordionHeader
                     id="tafsir"
                     icon={BookOpen}
-                    title="Tafsir"
-                    subtitle={selectedTafsir ? selectedTafsir.name : "Pilih Tafsir"}
+                    expandedId={expandedSection}
+                    setExpandedId={setExpandedSection}
+                    title={t('tafsir')}
+                    subtitle={selectedTafsir ? selectedTafsir.name : (language === 'ID' ? 'Pilih Tafsir' : 'Select Commentary')}
                 />
                 <AnimatePresence>
                     {expandedSection === 'tafsir' && (
@@ -387,23 +408,23 @@ export function SettingsContent({ className }: SettingsContentProps) {
                                             <div className="h-4 w-2/3 bg-foreground/5 animate-pulse rounded-full" />
                                         </div>
                                     ) : (
-                                        filteredTafsirs.map((t) => (
+                                        filteredTafsirs.map((tafsir) => (
                                             <button
-                                                key={t.id}
+                                                key={tafsir.id}
                                                 onClick={() => {
-                                                    setTafsirId(t.id);
+                                                    setTafsirId(tafsir.id);
                                                     setExpandedSection(null);
                                                 }}
-                                                className={`w-full flex items-center gap-4 p-3.5 px-4 rounded-xl text-left transition-all ${tafsirId === t.id ? 'bg-primary/10 text-primary font-bold' : 'text-foreground/60 hover:bg-foreground/5'}`}
+                                                className={`w-full flex items-center gap-4 p-3.5 px-4 rounded-xl text-left transition-all ${tafsirId === tafsir.id ? 'bg-primary/10 text-primary font-bold' : 'text-foreground/60 hover:bg-foreground/5'}`}
                                             >
-                                                <span className="text-xl shrink-0">{getLanguageMeta(t.languageName).flag}</span>
+                                                <span className="text-xl shrink-0">{getLanguageMeta(tafsir.languageName).flag}</span>
                                                 <div className="flex-1 flex flex-col min-w-0">
-                                                    <span className="text-sm truncate">{t.name}</span>
+                                                    <span className="text-sm truncate">{tafsir.name}</span>
                                                     <span className="text-[10px] opacity-40 font-medium truncate">
-                                                        {t.authorName}
+                                                        {tafsir.authorName}
                                                     </span>
                                                 </div>
-                                                {tafsirId === t.id && <Check className="w-4 h-4" />}
+                                                {tafsirId === tafsir.id && <Check className="w-4 h-4" />}
                                             </button>
                                         ))
                                     )}

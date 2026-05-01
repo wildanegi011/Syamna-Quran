@@ -1,12 +1,12 @@
 "use client";
 
 import { useSurahs } from "@/hooks/use-quran";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import juzData from "@/lib/data/juz.json";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearch } from "@/contexts/SearchContext";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { Search, Flame, X, LogIn } from "lucide-react";
 
 import { ModuleGrid } from "@/components/shared/ModuleGrid";
 import { ModuleFooter } from "@/components/shared/ModuleFooter";
@@ -17,6 +17,9 @@ import { SurahCard } from "@/components/quran/SurahCard";
 import { JuzCard } from "@/components/quran/JuzCard";
 import { useAudioState } from "@/contexts/AudioContext";
 import { useQuranFoundation } from "@/hooks/use-quran-foundation";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useTranslation } from "@/lib/constants/translations";
 
 function QuranSkeleton() {
     return (
@@ -71,6 +74,25 @@ export default function QuranRootPage() {
     } = useAudioState();
 
     const [activeFilter, setActiveFilter] = useState("Semua");
+    const { user, signInWithGoogle } = useAuth();
+    const { language } = useSettings();
+    const { t } = useTranslation(language);
+
+    // Journey discovery banner for guests — dismissible
+    const [showJourneyBanner, setShowJourneyBanner] = useState(false);
+    useEffect(() => {
+        if (!user) {
+            const dismissed = localStorage.getItem('syamna_journey_banner_dismissed');
+            if (!dismissed) setShowJourneyBanner(true);
+        } else {
+            setShowJourneyBanner(false);
+        }
+    }, [user]);
+
+    const dismissBanner = () => {
+        setShowJourneyBanner(false);
+        localStorage.setItem('syamna_journey_banner_dismissed', 'true');
+    };
 
     const { data: surahs = [], isLoading } = useSurahs();
 
@@ -89,8 +111,6 @@ export default function QuranRootPage() {
         { label: "Madaniyah", value: "Madaniyah", count: counts.Madaniyah },
         { label: "Sajdah", value: "Sajdah", count: counts.Sajdah },
         { label: "Juz", value: "Juz", count: counts.Juz },
-        // { label: "Favorit", value: "Favorit", count: counts.Favorit },
-        // { label: "Tadabbur", value: "Tadabbur", count: counts.Tadabbur },
     ];
 
     const filteredSurahs = surahs.filter(surah => {
@@ -126,7 +146,36 @@ export default function QuranRootPage() {
                 backgroundImage="/backgrounds/quran_hero.png"
             />
 
-
+            {/* Journey Discovery Banner for Guests */}
+            <AnimatePresence>
+                {showJourneyBanner && !user && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="mx-4 sm:mx-6 md:mx-12 mt-3 mb-1">
+                            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/10">
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                    <Flame className="w-4 h-4 text-primary fill-primary/20" />
+                                </div>
+                                <p className="flex-1 text-[11px] font-medium text-foreground/50 leading-relaxed">
+                                    {language === 'ID'
+                                        ? 'Syamna Quran Journey kini tersedia! Gunakan akun Google Anda di pojok kanan atas untuk membuka fitur lacak streak dan target bacaan harian.'
+                                        : 'Syamna Quran Journey is here! Use your Google account at the top right to unlock daily streak tracking and reading goals.'}
+                                </p>
+                                <button
+                                    onClick={dismissBanner}
+                                    className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-foreground/20 hover:text-foreground/50 hover:bg-foreground/5 transition-all"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Sticky Filter Bar */}
             <ModuleFilterBar

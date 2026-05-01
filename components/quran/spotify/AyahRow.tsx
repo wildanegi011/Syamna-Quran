@@ -25,7 +25,7 @@ interface AyahRowProps {
 
 export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsirText, onShowTafsir }: AyahRowProps) {
     const { currentAyah, isPlaying, playAyah, togglePlay, currentSurah } = useAudioState();
-    const { mushafId } = useSettings();
+    const { mushafId, arabicFontSize, translationFontSize, showTranslation, showLatin, showTajweed } = useSettings();
 
     const isCurrent = currentAyah?.nomorAyat === ayah.nomorAyat && currentSurah?.nomor === surah.nomor;
 
@@ -103,12 +103,17 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
 
                 <div
                     className={cn(
-                        "flex-1 text-right leading-[2] transition-all duration-1000",
-                        [3, 6, 7].includes(mushafId) ? "font-indopak text-4xl md:text-5xl" : "font-arabic text-3xl md:text-4xl",
+                        "flex-1 text-right leading-[2.5] transition-all duration-300",
+                        [3, 6, 7].includes(mushafId) ? "font-indopak" : "font-arabic",
                         isCurrent ? "text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.05)] opacity-100" : "text-foreground/80 hover:text-foreground"
                     )}
                     dir="rtl"
-                    dangerouslySetInnerHTML={{ __html: parseTajweed(ayah.teksTajweed || ayah.teksArab) }}
+                    style={{ fontSize: `${arabicFontSize}px` }}
+                    dangerouslySetInnerHTML={{ 
+                        __html: showTajweed 
+                            ? parseTajweed(ayah.teksTajweed || ayah.teksArab) 
+                            : (ayah.teksArab || "")
+                    }}
                 />
             </div>
 
@@ -116,18 +121,24 @@ export const AyahRow = memo(function AyahRow({ ayah, surah, index, queue, tafsir
             <div className="flex flex-col gap-4 relative z-10 md:pl-20">
                 <div className="flex flex-col gap-3">
                     {/* Latin Transliteration (Small & Subdue) */}
-                    <p className={cn(
-                        "text-xs font-label font-bold italic tracking-wide transition-colors",
-                        isCurrent ? "text-primary/60" : "text-foreground/20"
-                    )} dangerouslySetInnerHTML={{ __html: ayah.teksLatin }} />
+                    {showLatin && (
+                        <p className={cn(
+                            "text-xs font-label font-bold italic tracking-wide transition-colors",
+                            isCurrent ? "text-primary/60" : "text-foreground/20"
+                        )} dangerouslySetInnerHTML={{ __html: ayah.teksLatin }} />
+                    )}
 
                     {/* Translation (Main Reading) */}
-                    <p className={cn(
-                        "text-base md:text-lg font-body leading-relaxed transition-all duration-700 max-w-4xl",
-                        isCurrent ? "text-foreground opacity-100" : "text-foreground/60 font-medium opacity-80"
-                    )}>
-                        {ayah.teksIndonesia}
-                    </p>
+                    {showTranslation && (
+                        <p className={cn(
+                            "font-body leading-relaxed transition-all duration-700 max-w-4xl",
+                            isCurrent ? "text-foreground opacity-100" : "text-foreground/60 font-medium opacity-80"
+                        )}
+                        style={{ fontSize: `${translationFontSize}px` }}
+                        >
+                            {ayah.teksIndonesia}
+                        </p>
+                    )}
                 </div>
 
                 {/* Quick Actions - Persistent on Mobile, Hover on Desktop */}

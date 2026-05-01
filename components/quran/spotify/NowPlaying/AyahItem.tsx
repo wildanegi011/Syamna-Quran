@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Ayah } from '@/lib/types';
 import { parseTajweed } from '@/lib/utils/tajweed';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/lib/constants/translations';
 import { 
     Play, 
     Pause,
@@ -30,7 +31,8 @@ export const AyahItem = React.memo(({
     surahNumber,
     customId,
     mode,
-    isBookmarking
+    isBookmarking,
+    isLastRead
 }: {
     ayah: Ayah,
     isActive: boolean,
@@ -44,7 +46,8 @@ export const AyahItem = React.memo(({
     isPlaying: boolean,
     surahNumber?: number,
     customId?: string,
-    mode?: 'reading' | 'listening'
+    mode?: 'reading' | 'listening',
+    isLastRead?: boolean
 }) => {
     const [isCopied, setIsCopied] = useState(false);
     const { 
@@ -52,8 +55,11 @@ export const AyahItem = React.memo(({
         translationFontSize, 
         showTajweed, 
         showTranslation,
-        mushafId
+        showLatin,
+        mushafId,
+        language
     } = useSettings();
+    const { t } = useTranslation(language);
 
     const handleCopy = (e: React.MouseEvent) => {
         onCopy(e, ayah);
@@ -75,12 +81,19 @@ export const AyahItem = React.memo(({
                 "border-b border-foreground/[0.04]",
                 isActive
                     ? "bg-foreground/[0.04] border-transparent"
-                    : "active:bg-foreground/[0.06] lg:active:bg-transparent"
+                    : isLastRead
+                        ? "bg-primary/[0.03] border-primary/10"
+                        : "active:bg-foreground/[0.06] lg:active:bg-transparent"
             )}
         >
-            {/* Active Indicator Line */}
+            {/* Active Indicator Line (Playing) */}
             {isActive && (
                 <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" />
+            )}
+            
+            {/* Last Read Indicator (Bookmark) */}
+            {isLastRead && !isActive && (
+                <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-full bg-primary/40 shadow-[0_0_4px_rgba(var(--primary-rgb),0.2)]" />
             )}
 
             {/* Arabic Text - Full Width, Right-Aligned */}
@@ -99,10 +112,20 @@ export const AyahItem = React.memo(({
                 }}
             />
 
+            {/* Latin / Transliteration */}
+            {showLatin && ayah.teksLatin && (
+                <p className={cn(
+                    "leading-relaxed transition-colors font-medium mt-2 italic text-primary/80",
+                    isActive ? "text-primary" : "text-primary/60 group-hover:text-primary/80"
+                )} style={{ fontSize: `${translationFontSize - 2}px` }}>
+                    {ayah.teksLatin}
+                </p>
+            )}
+
             {/* Translation */}
             {showTranslation && (
                 <p className={cn(
-                    "leading-relaxed transition-colors font-medium mt-2",
+                    "leading-relaxed transition-colors font-medium mt-1",
                     isActive ? "text-foreground/80" : "text-foreground/40 group-hover:text-foreground/60"
                 )} style={{ fontSize: `${translationFontSize}px` }}>
                     {ayah.teksIndonesia}
@@ -135,12 +158,12 @@ export const AyahItem = React.memo(({
                                 <motion.div animate={{ height: [5, 3, 8, 3, 5] }} transition={{ repeat: Infinity, duration: 0.3 }} className="w-[2px] bg-primary rounded-full" />
                                 <motion.div animate={{ height: [8, 4, 3, 4, 8] }} transition={{ repeat: Infinity, duration: 0.5 }} className="w-[2px] bg-primary rounded-full" />
                             </div>
-                            <span>Ayat {ayah.nomorAyat}</span>
+                            <span>{t('ayat')} {ayah.nomorAyat}</span>
                         </>
                     ) : (
                         <>
                             {mode === 'listening' && <Play className="w-3 h-3 fill-current" />}
-                            <span>Ayat {ayah.nomorAyat}</span>
+                            <span>{t('ayat')} {ayah.nomorAyat}</span>
                         </>
                     )}
                 </button>
@@ -155,7 +178,7 @@ export const AyahItem = React.memo(({
                         className="h-8 px-3 rounded-full hover:bg-foreground/10 flex items-center gap-1.5 text-foreground/30 hover:text-foreground transition-all group/btn"
                     >
                         <BookOpen className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Tafsir</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">{t('tafsir')}</span>
                     </button>
 
                     <button
@@ -175,7 +198,7 @@ export const AyahItem = React.memo(({
                             <Bookmark className={cn("w-3.5 h-3.5 transition-transform group-hover/btn:scale-110", isBookmarked && "fill-current")} />
                         )}
                         <span className="text-[10px] font-bold uppercase tracking-wider">
-                            {isBookmarking ? 'Proses...' : (isBookmarked ? 'Ditandai' : 'Tandai')}
+                            {isBookmarking ? (language === 'ID' ? 'Proses...' : 'Processing...') : (isBookmarked ? t('ditandai') : t('tandai'))}
                         </span>
                     </button>
 
@@ -190,7 +213,7 @@ export const AyahItem = React.memo(({
                     >
                         {isCopied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />}
                         <span className="text-[10px] font-bold uppercase tracking-wider">
-                            {isCopied ? 'Tersalin' : 'Salin'}
+                            {isCopied ? (language === 'ID' ? 'Tersalin' : 'Copied') : (language === 'ID' ? 'Salin' : 'Copy')}
                         </span>
                     </button>
                 </div>

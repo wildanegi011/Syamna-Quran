@@ -19,6 +19,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useTafsirResources } from '@/hooks/use-quran';
 import { useQuranFoundation } from '@/hooks/use-quran-foundation';
 import { useQuranAuth } from '@/contexts/QuranAuthContext';
+import { useTranslation } from '@/lib/constants/translations';
 import { cn } from '@/lib/utils';
 import { Ayah, SurahSummary, Reciters } from '@/lib/types';
 import {
@@ -69,7 +70,8 @@ export const SettingsDrawer = ({
     onOpenTajweed,
     viewedJuz
 }: SettingsDrawerProps) => {
-    const { tafsirId, setTafsirId, mushafId, setMushafId } = useSettings();
+    const { tafsirId, setTafsirId, mushafId, setMushafId, language } = useSettings();
+    const { t } = useTranslation(language);
     const { data: tafsirResources, isLoading: isTafsirLoading } = useTafsirResources();
 
     // Sort tafsirs with Indonesian first, show all
@@ -96,8 +98,12 @@ export const SettingsDrawer = ({
         <Drawer open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DrawerContent className="bg-background border-foreground/10 p-0 text-foreground pb-10">
                 <DrawerHeader className="border-b border-foreground/5 pb-4">
-                    <DrawerTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary">Pengaturan Pemutar</DrawerTitle>
-                    <DrawerDescription className="text-[10px] text-foreground/40">Sesuaikan pengalaman mendengarkan Anda</DrawerDescription>
+                    <DrawerTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary">
+                        {language === 'ID' ? 'Pengaturan Pemutar' : 'Player Settings'}
+                    </DrawerTitle>
+                    <DrawerDescription className="text-[10px] text-foreground/40">
+                        {language === 'ID' ? 'Sesuaikan pengalaman mendengarkan Anda' : 'Customize your listening experience'}
+                    </DrawerDescription>
                 </DrawerHeader>
 
                 <div className="overflow-y-auto max-h-[70vh] custom-scrollbar px-6 py-4">
@@ -110,8 +116,8 @@ export const SettingsDrawer = ({
                                         <Headphones className="w-4 h-4" />
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Pilih Qori</p>
-                                        <p className="text-[10px] text-foreground/40 font-medium">Lantunan suara pilihan</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">{language === 'ID' ? 'Pilih Qori' : 'Choose Reciter'}</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">{language === 'ID' ? 'Lantunan suara pilihan' : 'Selected voice recitation'}</p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
@@ -144,8 +150,8 @@ export const SettingsDrawer = ({
                                         <BookOpen className="w-4 h-4" />
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Pilih Tafsir</p>
-                                        <p className="text-[10px] text-foreground/40 font-medium">Penjelasan makna ayat</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">{language === 'ID' ? 'Pilih Tafsir' : 'Choose Tafsir'}</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">{language === 'ID' ? 'Penjelasan makna ayat' : 'Explanation of verse meanings'}</p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
@@ -192,7 +198,7 @@ export const SettingsDrawer = ({
                                     </div>
                                     <div className="text-left">
                                         <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Tajwid</p>
-                                        <p className="text-[10px] text-foreground/40 font-medium">Panduan hukum bacaan</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">{language === 'ID' ? 'Panduan hukum bacaan' : 'Reading rule guidance'}</p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
@@ -208,8 +214,8 @@ export const SettingsDrawer = ({
                                             <BookOpen className="w-4 h-4" />
                                         </div>
                                         <div className="text-left">
-                                            <p className="font-bold text-sm">Buka Keterangan Tajwid</p>
-                                            <p className="text-[10px] opacity-70">Pewarnaan hukum bacaan</p>
+                                            <p className="font-bold text-sm">{language === 'ID' ? 'Buka Keterangan Tajwid' : 'Open Tajweed Info'}</p>
+                                            <p className="text-[10px] opacity-70">{language === 'ID' ? 'Pewarnaan hukum bacaan' : 'Coloring of reading rules'}</p>
                                         </div>
                                     </div>
                                     <ChevronRight className="w-4 h-4" />
@@ -225,8 +231,8 @@ export const SettingsDrawer = ({
                                         <Book className="w-4 h-4" />
                                     </div>
                                     <div className="text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">Jenis Mushaf</p>
-                                        <p className="text-[10px] text-foreground/40 font-medium">Laporan Aktivitas QF</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-foreground/90">{language === 'ID' ? 'Jenis Mushaf' : 'Mushaf Type'}</p>
+                                        <p className="text-[10px] text-foreground/40 font-medium">{language === 'ID' ? 'Tampilan skrip Al-Qur\'an' : 'Quran script appearance'}</p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
@@ -269,7 +275,7 @@ export const SettingsDrawer = ({
                 <DrawerFooter className="border-t border-foreground/5 pt-4 px-6">
                     <DrawerClose asChild>
                         <Button variant="ghost" className="w-full h-12 rounded-xl text-foreground/60 font-black uppercase tracking-widest text-[10px] hover:bg-foreground/5">
-                            Tutup Pengaturan
+                            {language === 'ID' ? 'Tutup Pengaturan' : 'Close Settings'}
                         </Button>
                     </DrawerClose>
                 </DrawerFooter>
@@ -303,6 +309,8 @@ export const ActionDrawer = ({
     handleCopyAyah,
     mode
 }: ActionDrawerProps) => {
+    const { language } = useSettings();
+    const { t } = useTranslation(language);
     const { readingBookmark, toggleReadingBookmark } = useQuranFoundation();
     const { isConnected, connectQuranAccount } = useQuranAuth();
     const [isConnecting, setIsConnecting] = React.useState(false);
@@ -319,8 +327,8 @@ export const ActionDrawer = ({
             <DrawerContent className="bg-background border-foreground/10 p-0 text-foreground pb-10">
                 <DrawerHeader className="border-b border-foreground/5 pb-4 px-6">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Aksi Ayat</span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">Ayat {selectedAyahMenu?.nomorAyat}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">{language === 'ID' ? 'Aksi Ayat' : 'Verse Action'}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">{t('ayat')} {selectedAyahMenu?.nomorAyat}</span>
                     </div>
                     <DrawerTitle className="text-lg font-headline font-black text-foreground leading-tight">
                         {viewedJuz ? selectedAyahMenu?.surahInfo?.namaLatin : viewedSurah?.namaLatin}
@@ -343,8 +351,8 @@ export const ActionDrawer = ({
                                     <Play className="w-5 h-5 fill-current ml-0.5" />
                                 </div>
                                 <div className="text-left">
-                                    <p className="font-bold text-sm text-foreground">Putar Ayat</p>
-                                    <p className="text-[10px] text-foreground/40">Dengarkan lantunan audio</p>
+                                    <p className="font-bold text-sm text-foreground">{language === 'ID' ? 'Putar Ayat' : 'Play Verse'}</p>
+                                    <p className="text-[10px] text-foreground/40">{language === 'ID' ? 'Dengarkan lantunan audio' : 'Listen to audio recitation'}</p>
                                 </div>
                             </div>
                             <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-foreground/40" />
@@ -365,8 +373,8 @@ export const ActionDrawer = ({
                                 <BookOpen className="w-5 h-5" />
                             </div>
                             <div className="text-left">
-                                <p className="font-bold text-sm text-foreground">Tafsir Ayat</p>
-                                <p className="text-[10px] text-foreground/40">Baca penjelasan dan hukum</p>
+                                <p className="font-bold text-sm text-foreground">{t('tafsir')} {t('ayat')}</p>
+                                <p className="text-[10px] text-foreground/40">{language === 'ID' ? 'Baca penjelasan dan hukum' : 'Read explanation and rules'}</p>
                             </div>
                         </div>
                         <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-foreground/40" />
@@ -407,10 +415,10 @@ export const ActionDrawer = ({
                             </div>
                             <div className="text-left">
                                 <p className="font-bold text-sm text-foreground">
-                                    {toggleReadingBookmark.isPending || isConnecting ? 'Memproses...' : (selectedAyahMenu && readingBookmark.data?.key === (selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor) && readingBookmark.data?.verseNumber === selectedAyahMenu.nomorAyat ? 'Hapus Terakhir Baca' : 'Jadikan Terakhir Baca')}
+                                    {toggleReadingBookmark.isPending || isConnecting ? (language === 'ID' ? 'Memproses...' : 'Processing...') : (selectedAyahMenu && readingBookmark.data?.key === (selectedAyahMenu.surahInfo?.nomor || viewedSurah?.nomor) && readingBookmark.data?.verseNumber === selectedAyahMenu.nomorAyat ? (language === 'ID' ? 'Hapus Terakhir Baca' : 'Remove Last Read') : (language === 'ID' ? 'Jadikan Terakhir Baca' : 'Set as Last Read'))}
                                 </p>
                                 <p className="text-[10px] text-foreground/40">
-                                    {toggleReadingBookmark.isPending || isConnecting ? 'Sedang memperbarui bookmark...' : 'Simpan ayat untuk dilanjutkan nanti'}
+                                    {toggleReadingBookmark.isPending || isConnecting ? (language === 'ID' ? 'Sedang memperbarui bookmark...' : 'Updating bookmark...') : (language === 'ID' ? 'Simpan ayat untuk dilanjutkan nanti' : 'Save verse to continue later')}
                                 </p>
                             </div>
                         </div>
@@ -437,10 +445,10 @@ export const ActionDrawer = ({
                                     "font-bold text-sm transition-colors",
                                     isCopied ? "text-[#56B874]" : "text-foreground"
                                 )}>
-                                    {isCopied ? 'Berhasil Salin' : 'Salin Ayat'}
+                                    {isCopied ? (language === 'ID' ? 'Berhasil Salin' : 'Successfully Copied') : (language === 'ID' ? 'Salin Ayat' : 'Copy Verse')}
                                 </p>
                                 <p className="text-[10px] text-foreground/40">
-                                    {isCopied ? 'Teks telah disalin ke clipboard' : 'Salin teks Arab dan terjemah'}
+                                    {isCopied ? (language === 'ID' ? 'Teks telah disalin ke clipboard' : 'Text copied to clipboard') : (language === 'ID' ? 'Salin teks Arab dan terjemah' : 'Copy Arabic text and translation')}
                                 </p>
                             </div>
                         </div>
@@ -451,7 +459,7 @@ export const ActionDrawer = ({
                 <DrawerFooter className="px-6 pt-2">
                     <DrawerClose asChild>
                         <Button variant="ghost" className="w-full h-12 rounded-xl text-foreground/40 font-black uppercase tracking-widest text-[10px] hover:bg-foreground/5">
-                            Tutup
+                            {language === 'ID' ? 'Tutup' : 'Close'}
                         </Button>
                     </DrawerClose>
                 </DrawerFooter>

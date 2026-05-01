@@ -91,7 +91,7 @@ export async function getQFReadingBookmark(): Promise<QFBookmark | null> {
     const res = await fetch("/api/quran/user/bookmarks?mushafId=4&first=20");
     if (!res.ok) return null;
     const json = await res.json();
-    
+
     // Sometimes the API returns an array or an object depending on the endpoint structure.
     // If it's an array, find the reading one. But `isReading=true` might return just the object or an array.
     if (Array.isArray(json.data)) {
@@ -121,4 +121,28 @@ export async function setQFReadingBookmark(surahId: number, ayahId: number): Pro
         throw new Error(`Failed to set reading bookmark: ${err.message || 'Unknown error'}`);
     }
     return res.json();
+}
+
+export interface QFActivityDay {
+    id: string;
+    date: string;       // "YYYY-MM-DD"
+    progress: number;   // 0-1 percentage
+    type: string;
+    ranges: string[];
+    pagesRead?: number;
+    secondsRead?: number;
+    versesRead?: number;
+}
+
+/**
+ * Fetches user activity days for a given date range from Quran Foundation.
+ */
+export async function getQFActivityDays(from: string, to: string): Promise<QFActivityDay[]> {
+    const res = await fetch(`/api/quran/user/activity-days?from=${from}&to=${to}&type=QURAN&first=10`);
+    if (!res.ok) {
+        console.error(`Activity days fetch failed: ${res.status}`);
+        return [];
+    }
+    const json = await res.json();
+    return json.data || [];
 }

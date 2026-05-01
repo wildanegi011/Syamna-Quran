@@ -8,26 +8,27 @@ const QURAN_BASE_KEY = ['quran'] as const;
 
 export const quranKeys = {
     all: QURAN_BASE_KEY,
-    surahs: () => [...QURAN_BASE_KEY, 'surahs'],
-    reciters: () => [...QURAN_BASE_KEY, 'reciters'],
-    translations: () => [...QURAN_BASE_KEY, 'translations'],
-    tafsirs: () => [...QURAN_BASE_KEY, 'tafsirs'],
-    surahDetail: (nomor: any, reciter: any, trans: any, mushaf: any) => 
-        [...QURAN_BASE_KEY, 'surah', nomor ?? 0, reciter ?? '7', trans ?? 33, mushaf ?? 4],
-    surahTafsir: (nomor: any, tafsirId: any) => 
-        [...QURAN_BASE_KEY, 'tafsir', nomor ?? 0, tafsirId ?? 0],
-    juzDetail: (nomor: any, reciter: any, trans: any, mushaf: any) => 
-        [...QURAN_BASE_KEY, 'juz', nomor ?? 0, reciter ?? '7', trans ?? 33, mushaf ?? 4],
-    chapterInfo: (nomor: any) => [...QURAN_BASE_KEY, 'chapterInfo', nomor ?? 0],
+    surahs: (lang: string) => [...QURAN_BASE_KEY, 'surahs', lang],
+    reciters: (lang: string) => [...QURAN_BASE_KEY, 'reciters', lang],
+    translations: (lang: string) => [...QURAN_BASE_KEY, 'translations', lang],
+    tafsirs: (lang: string) => [...QURAN_BASE_KEY, 'tafsirs', lang],
+    surahDetail: (nomor: any, reciter: any, trans: any, mushaf: any, lang: string) => 
+        [...QURAN_BASE_KEY, 'surah', nomor ?? 0, reciter ?? '7', trans ?? 33, mushaf ?? 4, lang],
+    surahTafsir: (nomor: any, tafsirId: any, lang: string) => 
+        [...QURAN_BASE_KEY, 'tafsir', nomor ?? 0, tafsirId ?? 0, lang],
+    juzDetail: (nomor: any, reciter: any, trans: any, mushaf: any, lang: string) => 
+        [...QURAN_BASE_KEY, 'juz', nomor ?? 0, reciter ?? '7', trans ?? 33, mushaf ?? 4, lang],
+    chapterInfo: (nomor: any, lang: string) => [...QURAN_BASE_KEY, 'chapterInfo', nomor ?? 0, lang],
 };
 
 /**
  * Hook to fetch the list of all available reciters (Qori).
  */
 export function useReciters() {
+    const { language } = useSettings();
     return useQuery({
-        queryKey: quranKeys.reciters(),
-        queryFn: getReciters,
+        queryKey: quranKeys.reciters(language),
+        queryFn: () => getReciters(language),
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
     });
 }
@@ -36,9 +37,10 @@ export function useReciters() {
  * Hook to fetch the list of all available translations.
  */
 export function useTranslations() {
+    const { language } = useSettings();
     return useQuery({
-        queryKey: quranKeys.translations(),
-        queryFn: getTranslations,
+        queryKey: quranKeys.translations(language),
+        queryFn: () => getTranslations(language),
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
         placeholderData: keepPreviousData,
     });
@@ -48,9 +50,10 @@ export function useTranslations() {
  * Hook to fetch the list of all available tafsir resources.
  */
 export function useTafsirResources() {
+    const { language } = useSettings();
     return useQuery({
-        queryKey: quranKeys.tafsirs(),
-        queryFn: getTafsirResources,
+        queryKey: quranKeys.tafsirs(language),
+        queryFn: () => getTafsirResources(language),
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
     });
 }
@@ -59,9 +62,10 @@ export function useTafsirResources() {
  * Hook to fetch the list of all Surahs.
  */
 export function useSurahs() {
+    const { language } = useSettings();
     return useQuery({
-        queryKey: quranKeys.surahs(),
-        queryFn: getAllSurahs,
+        queryKey: quranKeys.surahs(language),
+        queryFn: () => getAllSurahs(language),
         staleTime: 1000 * 60 * 10,
     });
 }
@@ -70,11 +74,11 @@ export function useSurahs() {
  * Infinite query hook for surah detail with pagination.
  */
 export function useSurahDetail(surahNumber: number, selectedReciterId: string = "7", enabled: boolean = true) {
-    const { translationId, mushafId } = useSettings();
+    const { translationId, mushafId, language } = useSettings();
 
     const query = useInfiniteQuery({
-        queryKey: quranKeys.surahDetail(surahNumber, selectedReciterId, translationId, mushafId),
-        queryFn: ({ pageParam }) => getSurahPage(surahNumber, selectedReciterId, translationId, pageParam, mushafId),
+        queryKey: quranKeys.surahDetail(surahNumber, selectedReciterId, translationId, mushafId, language),
+        queryFn: ({ pageParam }) => getSurahPage(surahNumber, selectedReciterId, translationId, pageParam, mushafId, language),
         initialPageParam: 1,
         getNextPageParam: (lastPage) => lastPage?.pagination?.nextPage ?? undefined,
         enabled: enabled && !!surahNumber,
@@ -108,9 +112,10 @@ export function useSurahDetail(surahNumber: number, selectedReciterId: string = 
  * Hook to fetch Tafsir for a specific Surah.
  */
 export function useSurahTafsir(surahNumber: number, enabled: boolean = true, tafsirId?: number) {
+    const { language } = useSettings();
     return useQuery({
-        queryKey: quranKeys.surahTafsir(surahNumber, tafsirId!),
-        queryFn: () => getSurahTafsir(surahNumber, tafsirId!),
+        queryKey: quranKeys.surahTafsir(surahNumber, tafsirId!, language),
+        queryFn: () => getSurahTafsir(surahNumber, tafsirId!, language),
         enabled: enabled && !!surahNumber && !!tafsirId,
         staleTime: 1000 * 60 * 60,
     });
@@ -120,11 +125,11 @@ export function useSurahTafsir(surahNumber: number, enabled: boolean = true, taf
  * Infinite query hook for juz detail with pagination.
  */
 export function useJuzDetail(juzNumber: number, selectedReciterId: string = "7", enabled: boolean = true) {
-    const { translationId, mushafId } = useSettings();
+    const { translationId, mushafId, language } = useSettings();
 
     const query = useInfiniteQuery({
-        queryKey: quranKeys.juzDetail(juzNumber, selectedReciterId, translationId, mushafId),
-        queryFn: ({ pageParam }) => getJuzPage(juzNumber, selectedReciterId, translationId, pageParam, mushafId),
+        queryKey: quranKeys.juzDetail(juzNumber, selectedReciterId, translationId, mushafId, language),
+        queryFn: ({ pageParam }) => getJuzPage(juzNumber, selectedReciterId, translationId, pageParam, mushafId, language),
         initialPageParam: 1,
         getNextPageParam: (lastPage) => lastPage?.pagination?.nextPage ?? undefined,
         enabled: enabled && !!juzNumber,
@@ -155,9 +160,10 @@ export function useJuzDetail(juzNumber: number, selectedReciterId: string = "7",
  * Hook to fetch information about a specific Surah (Chapter Info).
  */
 export function useChapterInfo(surahNumber: number, enabled: boolean = true) {
+    const { language } = useSettings();
     return useQuery({
-        queryKey: quranKeys.chapterInfo(surahNumber),
-        queryFn: () => getChapterInfo(surahNumber),
+        queryKey: quranKeys.chapterInfo(surahNumber, language),
+        queryFn: () => getChapterInfo(surahNumber, language),
         enabled: enabled && !!surahNumber,
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
     });

@@ -11,7 +11,9 @@ import {
     QFActivityPayload,
     QFBookmark,
     getQFReadingBookmark,
-    setQFReadingBookmark
+    setQFReadingBookmark,
+    QFActivityDay,
+    getQFActivityDays
 } from "@/lib/api/quran-foundation";
 
 export const qfKeys = {
@@ -20,7 +22,25 @@ export const qfKeys = {
     streaks: () => [...qfKeys.all, "streaks"] as const,
     currentStreak: () => [...qfKeys.all, "current-streak"] as const,
     readingBookmark: () => [...qfKeys.all, "reading-bookmark"] as const,
+    activityDays: () => [...qfKeys.all, "activity-days"] as const,
 };
+
+/** Returns Monday..Sunday date range for the current week */
+function getWeekRange(): { from: string; to: string } {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun, 1=Mon...
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diffToMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const fmt = (d: Date) => d.toISOString().split("T")[0];
+    const fromDate = fmt(monday);
+    const toDate = fmt(now); // Cap at today instead of next Sunday
+    
+    return { from: fromDate, to: toDate };
+}
 
 export function useQuranFoundation() {
     const queryClient = useQueryClient();
@@ -49,12 +69,21 @@ export function useQuranFoundation() {
         enabled: isConnected,
     });
 
+    // Fetch Weekly Activity Days
+    const { from: weekFrom, to: weekTo } = getWeekRange();
+    const activityDays = useQuery<QFActivityDay[]>({
+        queryKey: [...qfKeys.activityDays(), weekFrom],
+        queryFn: () => getQFActivityDays(weekFrom, weekTo),
+        enabled: isConnected,
+    });
+
     // Log Activity
     const logActivity = useMutation({
         mutationFn: logQFActivity,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: qfKeys.currentStreak() });
             queryClient.invalidateQueries({ queryKey: qfKeys.streaks() });
+            queryClient.invalidateQueries({ queryKey: qfKeys.activityDays() });
         }
     });
 
@@ -78,6 +107,7 @@ export function useQuranFoundation() {
         profile,
         streaks,
         currentStreakCount,
+        activityDays,
         logActivity,
         readingBookmark,
         toggleReadingBookmark,

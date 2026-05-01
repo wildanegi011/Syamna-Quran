@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { Ayah } from '@/lib/types';
 import { AyahTafsir } from '../AyahTafsir';
 import { SurahInfo } from '../SurahInfo';
-import { ChevronRight, Music2 } from 'lucide-react';
+import { ChevronRight, Music2, Flame, Check, Target } from 'lucide-react';
 
 // Sub-components
 import { MobileHeader, DesktopHeader } from './NowPlaying/Header';
@@ -17,6 +17,9 @@ import { AyahList } from './NowPlaying/AyahList';
 import { SettingsDrawer, ActionDrawer } from './NowPlaying/Drawers';
 import { SidebarProgress, SidebarControls, SidebarVolume, SidebarActiveInfo } from './NowPlaying/PlayerFooter';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/lib/constants/translations';
+import { useReadingProgress } from '@/contexts/ReadingProgressContext';
+import { useQuranFoundation } from '@/hooks/use-quran-foundation';
 
 function findScrollParent(el: HTMLElement): HTMLElement | null {
     let parent = el.parentElement;
@@ -61,7 +64,10 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
         jumpTargetAyah,
         setJumpTargetAyah
     } = useAudioState();
-    const { tafsirId } = useSettings();
+    const { translationId, tafsirId, language } = useSettings();
+    const { t } = useTranslation(language);
+    const { dailyGoal, hasSubmittedToday, readCount } = useReadingProgress();
+    const { isConnected, authLoading } = useQuranFoundation();
 
     const { data: reciters = [] } = useReciters();
 
@@ -305,8 +311,14 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                                 <Music2 className="w-10 h-10 text-foreground" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-headline font-black text-foreground">Belum Ada Putaran</h3>
-                                <p className="text-xs font-medium text-foreground/60 leading-relaxed max-w-[200px]">Pilih salah satu Surah atau Juz untuk mulai mendengarkan lantunan ayat suci Al-Qur'an.</p>
+                                <h3 className="text-xl font-headline font-black text-foreground">
+                                    {language === 'ID' ? 'Belum Ada Putaran' : 'Nothing Playing'}
+                                </h3>
+                                <p className="text-xs font-medium text-foreground/60 leading-relaxed max-w-[200px]">
+                                    {language === 'ID' 
+                                        ? 'Pilih salah satu Surah atau Juz untuk mulai mendengarkan lantunan ayat suci Al-Qur\'an.' 
+                                        : 'Select a Surah or Juz to start listening to the holy verses of the Al-Qur\'an.'}
+                                </p>
                             </div>
                         </div>
                     ) : (
@@ -324,6 +336,49 @@ export function NowPlayingPanel({ onOpenTajweed }: { onOpenTajweed?: () => void 
                                 mode={quranMode}
                                 setMode={setQuranMode}
                             />
+
+                            {/* Streak Progress Bar */}
+                            {!authLoading && isConnected && (viewedSurah || viewedJuz) && (
+                                <div className="px-4 sm:px-6 lg:px-7 py-2 border-b border-foreground/5 bg-background/80 backdrop-blur-sm">
+                                    <div className="flex items-center gap-3">
+                                        {hasSubmittedToday ? (
+                                            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-md shadow-primary/30 shrink-0">
+                                                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                                            </div>
+                                        ) : (
+                                            <motion.div
+                                                animate={{ scale: [1, 1.15, 1] }}
+                                                transition={{ duration: 1.5, repeat: Infinity }}
+                                                className="w-7 h-7 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center shrink-0"
+                                            >
+                                                <Flame className="w-3.5 h-3.5 text-primary fill-primary/30" />
+                                            </motion.div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-foreground/40">
+                                                    {hasSubmittedToday
+                                                        ? (language === 'ID' ? 'Target Tercapai! 🎉' : 'Goal Reached! 🎉')
+                                                        : (language === 'ID' ? `Target: ${dailyGoal} Ayat` : `Goal: ${dailyGoal} Verses`)}
+                                                </span>
+                                                {!hasSubmittedToday && (
+                                                    <span className="text-[9px] font-bold text-primary/60">
+                                                        {Math.min(readCount, dailyGoal)}/{dailyGoal}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="h-1.5 bg-foreground/[0.06] rounded-full overflow-hidden">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: hasSubmittedToday ? '100%' : `${Math.min((readCount / dailyGoal) * 100, 100)}%` }}
+                                                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                                                    className="h-full bg-primary rounded-full"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <AyahList
                                 scrollContainerRef={scrollContainerRef}

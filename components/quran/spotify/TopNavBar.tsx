@@ -14,6 +14,8 @@ import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { SettingsSheet } from '@/components/settings/SettingsSheet';
 import { ProfileSheet } from './ProfileSheet';
+import { useTranslation } from '@/lib/constants/translations';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface TopNavBarProps {
     isReadingMode?: boolean;
@@ -28,7 +30,8 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
     const { searchQuery, setSearchQuery } = useSearch();
     const { user, signInWithGoogle, signOut, loading } = useAuth();
     const { resolvedTheme, setTheme } = useTheme();
-    const [language, setLanguage] = React.useState("ID");
+    const { language, setLanguage } = useSettings();
+    const { t } = useTranslation(language);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
     const [isProfileOpen, setIsProfileOpen] = React.useState(false);
     const [mounted, setMounted] = React.useState(false);
@@ -64,11 +67,11 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
     }, []);
 
     const getSearchPlaceholder = () => {
-        if (pathname.includes('/quran')) return "Cari Surah atau Juz...";
-        if (pathname.includes('/hadits')) return "Cari Kategori Hadits...";
-        if (pathname.includes('/doa')) return "Cari Doa...";
-        if (pathname.includes('/asmaul-husna')) return "Cari Asmaul Husna...";
-        return "Cari Sesuatu...";
+        if (pathname.includes('/quran')) return t('cariSurah');
+        if (pathname.includes('/hadits')) return t('cariHadits');
+        if (pathname.includes('/doa')) return t('cariDoa');
+        if (pathname.includes('/asmaul-husna')) return t('cariAsmaul');
+        return t('cari');
     };
 
     return (
@@ -173,7 +176,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                         </button>
                         <div className="w-px h-4 bg-foreground/10 mx-1" />
                         <button
-                            onClick={() => setLanguage(l => l === "ID" ? "EN" : "ID")}
+                            onClick={() => setLanguage(language === "ID" ? "EN" : "ID")}
                             className="px-2 py-1 rounded-lg hover:bg-foreground/10 transition-colors text-[10px] font-black text-foreground/50 hover:text-foreground"
                             title="Ganti Bahasa"
                         >
@@ -182,7 +185,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                     </div>
 
                     {/* Simplified User Menu Dropdown - Desktop Only */}
-                    <div ref={dropdownRef} className="relative hidden md:block">
+                    <div ref={dropdownRef} className="relative block">
                         <button
                             onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                             className={cn(
@@ -211,7 +214,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                             ) : (
                                 <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-foreground/10 text-foreground/60 hover:text-foreground hover:bg-foreground/10 transition-all">
                                     <LogIn className="w-4 h-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Masuk</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">{t('masuk')}</span>
                                 </div>
                             )}
                         </button>
@@ -233,7 +236,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                             {/* Mobile Toggles inside Dropdown */}
                                             <div className="lg:hidden p-2 mb-2 bg-foreground/5 space-y-3">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Mode</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">{language === 'ID' ? 'Mode' : 'Theme'}</span>
                                                     <div className="flex items-center gap-1 bg-background/50 p-1 rounded-sm">
                                                         <button
                                                             onClick={() => setTheme("light")}
@@ -250,9 +253,9 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Bahasa</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">{language === 'ID' ? 'Bahasa' : 'Language'}</span>
                                                     <button
-                                                        onClick={() => setLanguage(l => l === "ID" ? "EN" : "ID")}
+                                                        onClick={() => setLanguage(language === "ID" ? "EN" : "ID")}
                                                         className="px-3 py-1 rounded-sm bg-background/50 text-[10px] font-black text-foreground hover:bg-primary/20 hover:text-primary transition-all border border-foreground/5"
                                                     >
                                                         {language}
@@ -273,7 +276,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                                     className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/10 text-foreground/60 hover:text-primary transition-all group text-left"
                                                 >
                                                     <User className="w-4 h-4 text-foreground/40 group-hover:text-primary transition-colors" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Profil Saya</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t('profil')}</span>
                                                 </button>
                                             )}
 
@@ -283,7 +286,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                                     className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-foreground/5 text-foreground/60 hover:text-foreground transition-all group text-left"
                                                 >
                                                     <Settings className="w-4 h-4 text-foreground/40 group-hover:text-foreground transition-colors" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Pengaturan Quran</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t('pengaturan')}</span>
                                                 </button>
                                             </SettingsSheet>
 
@@ -293,7 +296,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                                     className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/10 text-foreground hover:text-primary transition-all group text-left"
                                                 >
                                                     <LogIn className="w-4 h-4 text-foreground/40 group-hover:text-primary transition-colors" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Masuk via Google</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t('masuk')} via Google</span>
                                                 </button>
                                             ) : (
                                                 <button
@@ -301,7 +304,7 @@ export function TopNavBar({ isReadingMode, isScrolled, isCollapsed, onToggleSide
                                                     className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-500/10 text-foreground/60 hover:text-red-500 transition-all group text-left"
                                                 >
                                                     <LogOut className="w-4 h-4 text-foreground/40 group-hover:text-red-500 transition-colors" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">Keluar</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t('keluar')}</span>
                                                 </button>
                                             )}
                                         </div>

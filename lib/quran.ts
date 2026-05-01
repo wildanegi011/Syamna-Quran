@@ -1,5 +1,6 @@
 import { ApiResponse, SurahSummary, SurahDetail, SurahTafsir, JuzDetail, Ayah, Reciters, AyahAudio, Translation, Language, TafsirResource } from "./types";
 import { stripHtml } from "./utils";
+import { normalizeArabicLatin } from "./utils/string";
 import { fetchRecitations, fetchSurahVerses, fetchJuzVerses, fetchSurahTafsirFromQF, fetchTranslations, fetchLanguages, fetchChapters, fetchTafsirResources, fetchChapterInfo, fetchIndonesianTafsir } from "./api/quran";
 import surahSummaryData from "./data/surahs.json";
 
@@ -51,12 +52,12 @@ function setCachedData<T>(key: string, data: T, ttlHours: number = 24): void {
 /**
  * Fetches the list of all available Qoris (reciters) purely from API.
  */
-export async function getReciters(): Promise<Reciters[]> {
-    const cached = getCachedData<Reciters[]>('recitations');
+export async function getReciters(language: string = 'id'): Promise<Reciters[]> {
+    const cached = getCachedData<Reciters[]>(`recitations_${language.toLowerCase()}`);
     if (cached) return cached;
 
     try {
-        const result = await fetchRecitations();
+        const result = await fetchRecitations(language);
 
         // Map strictly from QF API parameters
         const mappedData = (result.recitations as any[])
@@ -69,7 +70,7 @@ export async function getReciters(): Promise<Reciters[]> {
                 type: r.style || 'Murattal'
             }));
 
-        setCachedData('recitations', mappedData);
+        setCachedData(`recitations_${language.toLowerCase()}`, mappedData);
         return mappedData;
     } catch (error) {
         console.error(`Error fetching Reciters:`, error);
@@ -80,12 +81,12 @@ export async function getReciters(): Promise<Reciters[]> {
 /**
  * Fetches the list of all available translations from Quran Foundation.
  */
-export async function getTranslations(): Promise<Translation[]> {
-    const cached = getCachedData<Translation[]>('translations');
+export async function getTranslations(language: string = 'id'): Promise<Translation[]> {
+    const cached = getCachedData<Translation[]>(`translations_${language.toLowerCase()}`);
     if (cached) return cached;
 
     try {
-        const result = await fetchTranslations();
+        const result = await fetchTranslations(language);
         const mappedData = (result.translations as any[]).map(t => ({
             id: t.id,
             name: t.name,
@@ -95,7 +96,7 @@ export async function getTranslations(): Promise<Translation[]> {
             translatedName: t.translated_name
         }));
 
-        setCachedData('translations', mappedData);
+        setCachedData(`translations_${language.toLowerCase()}`, mappedData);
         return mappedData;
     } catch (error) {
         console.error(`Error fetching translations:`, error);
@@ -125,12 +126,12 @@ const INDONESIAN_VIRTUAL_TAFSIRS: TafsirResource[] = [
 /**
  * Fetches the list of all available tafsir resources from Quran Foundation.
  */
-export async function getTafsirResources(): Promise<TafsirResource[]> {
-    const cached = getCachedData<TafsirResource[]>('tafsir_resources');
+export async function getTafsirResources(language: string = 'id'): Promise<TafsirResource[]> {
+    const cached = getCachedData<TafsirResource[]>(`tafsir_resources_${language.toLowerCase()}`);
     if (cached) return [...INDONESIAN_VIRTUAL_TAFSIRS, ...cached];
 
     try {
-        const result = await fetchTafsirResources();
+        const result = await fetchTafsirResources(language);
         const mappedData = (result.tafsirs as any[]).map(t => ({
             id: t.id,
             name: t.name,
@@ -140,7 +141,7 @@ export async function getTafsirResources(): Promise<TafsirResource[]> {
             translatedName: t.translated_name
         }));
 
-        setCachedData('tafsir_resources', mappedData);
+        setCachedData(`tafsir_resources_${language.toLowerCase()}`, mappedData);
         return [...INDONESIAN_VIRTUAL_TAFSIRS, ...mappedData];
     } catch (error) {
         console.error(`Error fetching tafsir resources:`, error);
@@ -151,9 +152,9 @@ export async function getTafsirResources(): Promise<TafsirResource[]> {
 /**
  * Fetches the list of all supported languages from Quran Foundation.
  */
-export async function getLanguages(): Promise<Language[]> {
+export async function getLanguages(language: string = 'id'): Promise<Language[]> {
     try {
-        const result = await fetchLanguages();
+        const result = await fetchLanguages(language);
         return (result.languages as any[]).map(l => ({
             id: l.id,
             name: l.name,
@@ -172,12 +173,12 @@ export async function getLanguages(): Promise<Language[]> {
 /**
  * Returns the list of all surahs directly from Quran Foundation API.
  */
-export async function getAllSurahs(): Promise<SurahSummary[]> {
-    const cached = getCachedData<SurahSummary[]>('surahs');
+export async function getAllSurahs(language: string = 'id'): Promise<SurahSummary[]> {
+    const cached = getCachedData<SurahSummary[]>(`surahs_${language.toLowerCase()}`);
     if (cached) return cached;
 
     try {
-        const result = await fetchChapters();
+        const result = await fetchChapters(language);
         const mappedData = (result.chapters as any[]).map(s => ({
             nomor: s.id,
             nama: s.name_arabic,
@@ -190,7 +191,7 @@ export async function getAllSurahs(): Promise<SurahSummary[]> {
             ayatsajdah: [7, 13, 16, 17, 19, 22, 25, 27, 32, 38, 41, 53, 84, 96].includes(s.id)
         }));
 
-        setCachedData('surahs', mappedData);
+        setCachedData(`surahs_${language.toLowerCase()}`, mappedData);
         return mappedData;
     } catch (error) {
         console.error("Error in getAllSurahs from API:", error);
@@ -206,10 +207,11 @@ export async function getSurahPage(
     reciterId: string = '7',
     translationId: number = 33,
     page: number = 1,
-    mushafId: number = 4
+    mushafId: number = 4,
+    language: string = 'id'
 ): Promise<{ ayats: Ayah[]; pagination: { currentPage: number; totalPages: number; totalRecords: number; nextPage: number | null }; surahMeta: any } | null> {
     try {
-        const versesData = await fetchSurahVerses(nomor, reciterId, translationId, page, 50, mushafId);
+        const versesData = await fetchSurahVerses(nomor, reciterId, translationId, page, 50, mushafId, language);
         const verses = versesData.verses || [];
         const pag = versesData.pagination || {};
 
@@ -228,8 +230,8 @@ export async function getSurahPage(
                 verseKey: v.verse_key,
                 teksArab: [3, 6, 7].includes(mushafId) ? (v.text_indopak || v.text_uthmani) : v.text_uthmani,
                 teksTajweed: v.text_uthmani_tajweed || v.text_uthmani,
-                teksLatin: "",
-                teksIndonesia: stripHtml(v.translations?.[0]?.text || ""),
+                teksLatin: normalizeArabicLatin(v.translations?.find((t: any) => t.resource_id === 57)?.text || ""),
+                teksIndonesia: stripHtml(v.translations?.find((t: any) => t.resource_id === translationId)?.text || v.translations?.[0]?.text || ""),
                 audio: audioMap,
                 pageNumber: v.page_number,
                 juzNumber: v.juz_number,
@@ -242,7 +244,7 @@ export async function getSurahPage(
         });
 
         // Fetch dynamic Surah List from API rather than local JSON
-        const allSurahs = await getAllSurahs();
+        const allSurahs = await getAllSurahs(language);
         const localSurah = allSurahs.find(s => s.nomor === nomor);
 
         return {
@@ -274,8 +276,8 @@ export async function getSurahPage(
 /**
  * Legacy wrapper — fetches ALL ayats (page 1 only for backward compat).
  */
-export async function getSurahDetail(nomor: number, reciterId: string = '7', translationId: number = 33): Promise<SurahDetail | null> {
-    const result = await getSurahPage(nomor, reciterId, translationId, 1);
+export async function getSurahDetail(nomor: number, reciterId: string = '7', translationId: number = 33, language: string = 'id'): Promise<SurahDetail | null> {
+    const result = await getSurahPage(nomor, reciterId, translationId, 1, 4, language);
     if (!result || !result.surahMeta) return null;
 
     return {
@@ -292,7 +294,7 @@ export async function getSurahDetail(nomor: number, reciterId: string = '7', tra
  * @param nomor The surah number (1-114)
  * @param tafsirId The tafsir resource ID
  */
-export async function getSurahTafsir(nomor: number, tafsirId: number): Promise<SurahTafsir | null> {
+export async function getSurahTafsir(nomor: number, tafsirId: number, language: string = 'id'): Promise<SurahTafsir | null> {
     try {
         // Handle virtual Indonesian Tafsirs from equran.id
         if (tafsirId === VIRTUAL_ID_TAFSIR_KEMENAG) {
@@ -359,14 +361,15 @@ export async function getJuzPage(
     reciterId: string = '7',
     translationId: number = 33,
     page: number = 1,
-    mushafId: number = 4
+    mushafId: number = 4,
+    language: string = 'id'
 ): Promise<{ ayats: Ayah[]; pagination: { currentPage: number; totalPages: number; totalRecords: number; nextPage: number | null } } | null> {
     try {
-        const result = await fetchJuzVerses(nomor, reciterId, translationId, page, 50, mushafId);
+        const result = await fetchJuzVerses(nomor, reciterId, translationId, page, 50, mushafId, language);
         const verses = result.verses || [];
         const pag = result.pagination || {};
 
-        const allSurahs = await getAllSurahs();
+        const allSurahs = await getAllSurahs(language);
 
         const ayats: Ayah[] = verses.map((v: any) => {
             const [surahNum] = v.verse_key.split(':').map(Number);
@@ -386,8 +389,8 @@ export async function getJuzPage(
                 verseKey: v.verse_key,
                 teksArab: [3, 6, 7].includes(mushafId) ? (v.text_indopak || v.text_uthmani) : v.text_uthmani,
                 teksTajweed: v.text_uthmani_tajweed || v.text_uthmani,
-                teksLatin: "",
-                teksIndonesia: stripHtml(v.translations?.[0]?.text || ""),
+                teksLatin: normalizeArabicLatin(v.translations?.find((t: any) => t.resource_id === 57)?.text || ""),
+                teksIndonesia: stripHtml(v.translations?.find((t: any) => t.resource_id === translationId)?.text || v.translations?.[0]?.text || ""),
                 audio: audioMap,
                 pageNumber: v.page_number,
                 juzNumber: v.juz_number,
@@ -421,8 +424,8 @@ export async function getJuzPage(
 /**
  * Legacy wrapper for backward compat.
  */
-export async function getJuzDetail(nomor: number, reciterId: string = '7', translationId: number = 33): Promise<JuzDetail | null> {
-    const result = await getJuzPage(nomor, reciterId, translationId, 1);
+export async function getJuzDetail(nomor: number, reciterId: string = '7', translationId: number = 33, language: string = 'id'): Promise<JuzDetail | null> {
+    const result = await getJuzPage(nomor, reciterId, translationId, 1, 4, language);
     if (!result) return null;
 
     return {
@@ -435,9 +438,9 @@ export async function getJuzDetail(nomor: number, reciterId: string = '7', trans
  * Fetches information about a specific surah (chapter).
  * @param nomor The surah number
  */
-export async function getChapterInfo(nomor: number) {
+export async function getChapterInfo(nomor: number, language: string = 'id') {
     try {
-        const result = await fetchChapterInfo(nomor);
+        const result = await fetchChapterInfo(nomor, language);
         return result.chapter_info;
     } catch (error) {
         console.error(`Error fetching surah ${nomor} info:`, error);

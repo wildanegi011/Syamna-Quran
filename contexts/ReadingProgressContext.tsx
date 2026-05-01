@@ -11,6 +11,8 @@ interface ReadingProgressContextType {
     setHasFinishedGoalMode: (status: boolean) => void;
     hasSubmittedToday: boolean;
     submitActivity: (count: number, ranges: string[]) => Promise<void>;
+    readCount: number;
+    incrementReadCount: () => void;
 }
 
 const ReadingProgressContext = createContext<ReadingProgressContextType | undefined>(undefined);
@@ -19,6 +21,7 @@ export function ReadingProgressProvider({ children }: { children: React.ReactNod
     const [dailyGoal, setDailyGoal] = useState(5);
     const [hasFinishedGoalMode, setHasFinishedGoalMode] = useState(false);
     const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
+    const [readCount, setReadCount] = useState(0);
     
     const { logActivity, isConnected } = useQuranFoundation();
 
@@ -31,17 +34,21 @@ export function ReadingProgressProvider({ children }: { children: React.ReactNod
         const savedDate = localStorage.getItem("syamna_read_date");
         const savedSubmitted = localStorage.getItem("syamna_submitted_today");
         const savedGoalMode = localStorage.getItem("syamna_goal_mode_finished");
+        const savedReadCount = localStorage.getItem("syamna_read_count");
 
         if (savedDate === today) {
             if (savedSubmitted) setHasSubmittedToday(savedSubmitted === "true");
             if (savedGoalMode) setHasFinishedGoalMode(savedGoalMode === "true");
+            if (savedReadCount) setReadCount(parseInt(savedReadCount) || 0);
         } else {
             // New day, reset progress
             setHasSubmittedToday(false);
             setHasFinishedGoalMode(false);
+            setReadCount(0);
             localStorage.setItem("syamna_read_date", today);
             localStorage.setItem("syamna_submitted_today", "false");
             localStorage.setItem("syamna_goal_mode_finished", "false");
+            localStorage.setItem("syamna_read_count", "0");
         }
     }, []);
 
@@ -53,6 +60,14 @@ export function ReadingProgressProvider({ children }: { children: React.ReactNod
     const handleSetFinishedGoalMode = (status: boolean) => {
         setHasFinishedGoalMode(status);
         localStorage.setItem("syamna_goal_mode_finished", String(status));
+    };
+
+    const incrementReadCount = () => {
+        setReadCount(prev => {
+            const next = prev + 1;
+            localStorage.setItem("syamna_read_count", String(next));
+            return next;
+        });
     };
 
     const submitActivity = async (count: number, ranges: string[]) => {
@@ -83,7 +98,9 @@ export function ReadingProgressProvider({ children }: { children: React.ReactNod
             hasFinishedGoalMode,
             setHasFinishedGoalMode: handleSetFinishedGoalMode,
             hasSubmittedToday,
-            submitActivity
+            submitActivity,
+            readCount,
+            incrementReadCount
         }}>
             {children}
         </ReadingProgressContext.Provider>

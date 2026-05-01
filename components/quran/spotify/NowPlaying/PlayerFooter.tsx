@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { useAudioState, useAudioProgress } from '@/contexts/AudioContext';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/lib/constants/translations';
 
 export function SidebarProgress() {
     const { progress, duration } = useAudioProgress();
@@ -81,7 +83,7 @@ export function SidebarControls() {
                     size="icon"
                     onClick={stopAudio}
                     className="w-9 h-9 rounded-full text-foreground/40 hover:text-foreground hover:bg-foreground/10 transition-all"
-                    title="Stop"
+                    title={language === 'ID' ? 'Berhenti' : 'Stop'}
                 >
                     <Square className="w-4 h-4 fill-current" />
                 </Button>
@@ -143,6 +145,8 @@ export function SidebarVolume() {
 
 export function SidebarActiveInfo() {
     const { currentSurah, currentAyah, currentJuz, isUsingFallback } = useAudioState();
+    const { language } = useSettings();
+    const { t } = useTranslation(language);
 
     if (!currentSurah || !currentAyah) return (
         <div className="flex items-center gap-3 animate-pulse opacity-20">
@@ -159,13 +163,13 @@ export function SidebarActiveInfo() {
             {/* Mobile View: Centered, Single Line */}
             <div className="flex lg:hidden items-center justify-center gap-2 group text-center w-full px-4">
                 <span className="text-xs font-black text-foreground truncate tracking-tight">
-                    {currentJuz ? `Juz ${currentJuz}` : currentSurah.namaLatin}
+                    {currentJuz ? `${t('juz')} ${currentJuz}` : currentSurah.namaLatin}
                 </span>
                 <span className="text-[10px] font-black text-primary/40 leading-none">•</span>
                 <span className="text-[11px] font-bold text-primary uppercase tracking-widest truncate">
-                    {currentJuz ? currentSurah.namaLatin : `Ayat ${currentAyah.nomorAyat}`}
+                    {currentJuz ? currentSurah.namaLatin : `${t('ayat')} ${currentAyah.nomorAyat}`}
                     {currentJuz && <span className="mx-1 text-foreground/20 font-black">•</span>}
-                    {currentJuz && `Ayat ${currentAyah.nomorAyat}`}
+                    {currentJuz && `${t('ayat')} ${currentAyah.nomorAyat}`}
                 </span>
             </div>
 
@@ -173,7 +177,7 @@ export function SidebarActiveInfo() {
             <div className="hidden lg:flex flex-col items-start min-w-0 group text-left">
                 <div className="flex items-center gap-1.5 overflow-hidden">
                     <span className="text-xs font-black text-foreground truncate tracking-tight">
-                        {currentJuz ? `Juz ${currentJuz}` : currentSurah.namaLatin}
+                        {currentJuz ? `${t('juz')} ${currentJuz}` : currentSurah.namaLatin}
                     </span>
                     {isUsingFallback && (
                         <span className="shrink-0 px-1 py-0.5 rounded-[4px] bg-amber-500/10 border border-amber-500/20 text-[7px] font-black text-amber-500 uppercase tracking-tighter">
@@ -182,9 +186,9 @@ export function SidebarActiveInfo() {
                     )}
                 </div>
                 <span className="text-[10px] font-bold text-primary uppercase tracking-widest mt-0.5 truncate max-w-full">
-                    {currentJuz ? currentSurah.namaLatin : `Ayat ${currentAyah.nomorAyat}`}
+                    {currentJuz ? currentSurah.namaLatin : `${t('ayat')} ${currentAyah.nomorAyat}`}
                     {currentJuz && <span className="mx-1 text-foreground/20 font-black">•</span>}
-                    {currentJuz && `Ayat ${currentAyah.nomorAyat}`}
+                    {currentJuz && `${t('ayat')} ${currentAyah.nomorAyat}`}
                 </span>
             </div>
         </div>

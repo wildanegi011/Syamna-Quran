@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { AyahJumpInput } from './AyahList';
 import { cn } from '@/lib/utils';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/lib/constants/translations';
 import { Ayah, SurahSummary, Reciters } from '@/lib/types';
 import {
     DropdownMenu,
@@ -70,6 +72,8 @@ export const MobileHeader = ({
     setMode
 }: MobileHeaderProps) => {
     const [isJumpInputOpen, setIsJumpInputOpen] = React.useState(false);
+    const { language } = useSettings();
+    const { t } = useTranslation(language);
 
     return (
         <div className="lg:hidden flex flex-col bg-background/80 backdrop-blur-3xl sticky top-0 z-50 shrink-0 border-b border-foreground/5">
@@ -91,19 +95,19 @@ export const MobileHeader = ({
                         className="flex flex-col items-center min-w-0"
                     >
                         <h3 className="text-base font-black text-foreground truncate max-w-[200px] leading-tight">
-                            {viewedJuz ? `Juz ${viewedJuz}` : viewedSurah?.namaLatin}
+                            {viewedJuz ? `${t('juz')} ${viewedJuz}` : viewedSurah?.namaLatin}
                         </h3>
                         {/* Surah Subtitle Info */}
                         {!viewedJuz && viewedSurah && (
                             <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-foreground/40">
                                 <span className="truncate max-w-[100px]">{viewedSurah.arti}</span>
                                 <span className="w-0.5 h-0.5 rounded-full bg-foreground/20 shrink-0" />
-                                <span>{viewedSurah.jumlahAyat} Ayat</span>
+                                <span>{viewedSurah.jumlahAyat} {t('ayat')}</span>
                             </div>
                         )}
                         {viewedJuz && (
                             <span className="text-[11px] font-black uppercase tracking-wider text-foreground/40">
-                                Juz Al-Qur'an
+                                {language === 'ID' ? 'Juz Al-Qur\'an' : 'Quranic Juz'}
                             </span>
                         )}
                     </motion.div>
@@ -149,7 +153,7 @@ export const MobileHeader = ({
                         )}
                     >
                         <BookOpen className="w-3.5 h-3.5" />
-                        Membaca
+                        {language === 'ID' ? 'Membaca' : 'Reading'}
                     </button>
                     <button
                         onClick={() => setMode('listening')}
@@ -159,7 +163,7 @@ export const MobileHeader = ({
                         )}
                     >
                         <Headphones className="w-3.5 h-3.5" />
-                        Mendengar
+                        {language === 'ID' ? 'Mendengar' : 'Listening'}
                     </button>
                 </div>
             </div>
@@ -168,8 +172,12 @@ export const MobileHeader = ({
             <Drawer open={isJumpInputOpen} onOpenChange={setIsJumpInputOpen}>
                 <DrawerContent className="bg-background border-foreground/10 p-0 text-foreground pb-10">
                     <DrawerHeader className="border-b border-foreground/5 pb-4 px-6 text-left">
-                        <DrawerTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary">Lompat ke Ayat</DrawerTitle>
-                        <DrawerDescription className="text-[10px] text-foreground/40">Cari dan pilih ayat untuk langsung menuju ke lokasinya</DrawerDescription>
+                        <DrawerTitle className="text-sm font-black uppercase tracking-[0.2em] text-primary">
+                            {language === 'ID' ? 'Lompat ke Ayat' : 'Jump to Verse'}
+                        </DrawerTitle>
+                        <DrawerDescription className="text-[10px] text-foreground/40">
+                            {language === 'ID' ? 'Cari dan pilih ayat untuk langsung menuju ke lokasinya' : 'Search and select a verse to jump directly to it'}
+                        </DrawerDescription>
                     </DrawerHeader>
                     <div className="p-6">
                         <AyahJumpInput
@@ -191,7 +199,7 @@ export const MobileHeader = ({
                     {(viewedJuz ? Array.from({ length: 30 }, (_, i) => i + 1) : surahSummaryData).map((item: any) => {
                         const isJuzMode = typeof item === 'number';
                         const id = isJuzMode ? item : item.nomor;
-                        const label = isJuzMode ? `Juz ${item}` : `${item.nomor}. ${item.namaLatin}`;
+                        const label = isJuzMode ? `${t('juz')} ${item}` : `${item.nomor}. ${item.namaLatin}`;
                         const isActive = isJuzMode ? viewedJuz === item : viewedSurah?.nomor === item.nomor;
 
                         return (
@@ -249,6 +257,9 @@ export const DesktopHeader = ({
     mode,
     setMode
 }: DesktopHeaderProps) => {
+    const { language } = useSettings();
+    const { t } = useTranslation(language);
+
     return (
         <div className="p-4 sm:p-6 pb-4 flex flex-col gap-4 sm:gap-6 shrink-0 hidden lg:flex">
             <AnimatePresence mode="wait">
@@ -261,13 +272,13 @@ export const DesktopHeader = ({
                     className="flex flex-col gap-1.5 md:pt-0"
                 >
                     <h3 className="text-2xl sm:text-3xl font-headline font-black text-foreground tracking-tighter leading-none">
-                        {viewedJuz ? `Juz ${viewedJuz}` : viewedSurah?.namaLatin}
+                        {viewedJuz ? `${t('juz')} ${viewedJuz}` : viewedSurah?.namaLatin}
                     </h3>
                     {!viewedJuz && (
                         <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.1em]">
                             <span className="text-foreground/60">{viewedSurah?.arti}</span>
                             <span className="w-1 h-1 rounded-full bg-foreground/10" />
-                            <span className="text-foreground/40">{viewedSurah?.jumlahAyat} Ayat</span>
+                            <span className="text-foreground/40">{viewedSurah?.jumlahAyat} {t('ayat')}</span>
                             <span className="w-1 h-1 rounded-full bg-foreground/10" />
                             <span className={cn(
                                 viewedSurah?.tempatTurun === "Madinah" ? "text-[#56B874]" : "text-[#638FE5]"
@@ -279,9 +290,9 @@ export const DesktopHeader = ({
                     {viewedJuz && (
                         <div className="flex flex-col gap-1.5 mt-1">
                             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.1em]">
-                                <span className="text-primary font-black">Juz Al-Qur'an</span>
+                                <span className="text-primary font-black">{language === 'ID' ? 'Juz Al-Qur\'an' : 'Quranic Juz'}</span>
                                 <span className="w-1 h-1 rounded-full bg-foreground/10" />
-                                <span className="text-foreground/40">{activeData?.ayat?.length || 0} Ayat</span>
+                                <span className="text-foreground/40">{activeData?.ayat?.length || 0} {t('ayat')}</span>
                             </div>
                             {activeData && activeData.ayat && activeData.ayat.length > 0 && (
                                 <p className="text-[11px] font-medium text-foreground/50 leading-relaxed max-w-[90%]">
@@ -311,7 +322,7 @@ export const DesktopHeader = ({
                     )}
                 >
                     <BookOpen className="w-3.5 h-3.5" />
-                    Membaca
+                    {language === 'ID' ? 'Membaca' : 'Reading'}
                 </button>
                 <button
                     onClick={() => setMode('listening')}
@@ -321,7 +332,7 @@ export const DesktopHeader = ({
                     )}
                 >
                     <Headphones className="w-3.5 h-3.5" />
-                    Mendengar
+                    {language === 'ID' ? 'Mendengar' : 'Listening'}
                 </button>
             </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
@@ -331,7 +342,7 @@ export const DesktopHeader = ({
                         className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-foreground/5 hover:bg-foreground/10 border border-foreground/5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-foreground/60 hover:text-foreground transition-all active:scale-95 whitespace-nowrap"
                     >
                         <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        Info Surat
+                        {language === 'ID' ? 'Info Surat' : 'Surah Info'}
                     </button>
                 )}
 
@@ -356,7 +367,7 @@ export const DesktopHeader = ({
                     >
                         <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 px-4 py-4 flex items-center gap-2">
                             <Headphones className="w-3 h-3" />
-                            Pilih Qori (Reciter)
+                            {language === 'ID' ? 'Pilih Qori (Reciter)' : 'Choose Reciter'}
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator className="bg-foreground/5 mx-2 mb-1" />
                         <div className="max-h-[400px] overflow-y-auto custom-scrollbar px-1 py-1 space-y-1">

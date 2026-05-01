@@ -31,6 +31,10 @@ import Image from 'next/image';
 
 import { ReadingJourney } from './ReadingJourney';
 import { useQuranAuth } from '@/contexts/QuranAuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/lib/constants/translations';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogIn, LogOut, User as UserIcon } from 'lucide-react';
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -41,6 +45,9 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
     const pathname = usePathname();
     const params = useParams();
     const { isConnected } = useQuranAuth();
+    const { language } = useSettings();
+    const { t } = useTranslation(language);
+    const { user, signInWithGoogle, signOut, loading } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [lastRead, setLastRead] = useState<{ id: number; name: string } | null>(null);
 
@@ -71,24 +78,24 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
 
     const menuGroups = [
         {
-            label: 'UTAMA',
+            label: language === 'ID' ? 'UTAMA' : 'MAIN',
             items: [
-                { icon: Home, label: 'Beranda', href: '/' },
-                { icon: BookOpen, label: 'Baca Quran', href: '/quran' },
+                { icon: Home, label: t('beranda'), href: '/' },
+                { icon: BookOpen, label: t('quran'), href: '/quran' },
             ]
         },
         {
-            label: 'IBADAH',
+            label: language === 'ID' ? 'IBADAH' : 'WORSHIP',
             items: [
-                { icon: FileText, label: 'Hadits Nabawi', href: '/hadits' },
-                { icon: HeartIcon, label: 'Kumpulan Doa', href: '/doa' },
-                { icon: Clock, label: 'Jadwal Sholat', href: '/jadwal-sholat' },
+                { icon: FileText, label: t('hadits'), href: '/hadits' },
+                { icon: HeartIcon, label: t('doa'), href: '/doa' },
+                { icon: Clock, label: t('sholat'), href: '/jadwal-sholat' },
             ]
         },
         {
-            label: 'PELAJARAN',
+            label: language === 'ID' ? 'PELAJARAN' : 'LEARNING',
             items: [
-                { icon: Sparkles, label: 'Asmaul Husna', href: '/asmaul-husna' },
+                { icon: Sparkles, label: t('asmaulHusna'), href: '/asmaul-husna' },
             ]
         }
     ];
@@ -130,7 +137,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col pt-6">
                 
                 {/* User Journey Stats */}
-                {isConnected && <ReadingJourney />}
+                <ReadingJourney />
 
                 {/* Features Group */}
                 <div className="px-4 pb-4">
@@ -192,7 +199,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
                         <div className="flex items-center gap-2 text-foreground/40 px-4 py-3">
                             <ListIcon className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-[0.3em]">
-                                {isJuzMode ? 'Ganti Juz' : 'Ganti Surah'}
+                                {isJuzMode ? (language === 'ID' ? 'Ganti Juz' : 'Change Juz') : (language === 'ID' ? 'Ganti Surah' : 'Change Surah')}
                             </span>
                         </div>
 
@@ -202,7 +209,7 @@ export function Sidebar({ isCollapsed, toggleCollapse }: SidebarProps) {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20" />
                                 <input
                                     type="text"
-                                    placeholder="Cari..."
+                                    placeholder={t('cari')}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full h-10 pl-10 pr-4 bg-foreground/5 border-none rounded-xl text-xs outline-none focus:ring-1 focus:ring-primary/20 transition-all text-foreground"

@@ -40,17 +40,24 @@ export function parseTajweed(text: string): string {
     let parsed = text;
     
     // 1. Handle Quran Foundation Format: <tajweed class=tag>char</tajweed>
-    const qfRegex = /<tajweed class=([a-z_]+)>([^<]+)<\/tajweed>/g;
+    const qfRegex = /<tajweed class=([a-z0-9_]+)>([^<]+)<\/tajweed>/g;
     parsed = parsed.replace(qfRegex, (_, cls: string, char: string) => {
         const color = TAJWEED_COLORS[cls] || 'inherit';
-        return `<span style="color:${color}">${char}</span>`;
+        return `<span style="color:${color};display:inline;font-family:inherit;">${char}</span>`;
     });
 
-    // 2. Handle Aladhan Format: [tag:code[char]] or [tag[char]]
-    const tajweedRegex = /\[([a-z]+)(?::\d+)?\[([^\]]+)\]/g;
+    // 2. Handle [tag:code]content[/tag] format
+    const tagRegex = /\[([a-z0-9_]+)(?::\d+)?\]([^\[]+)\[\/\1\]/g;
+    parsed = parsed.replace(tagRegex, (_, cls: string, char: string) => {
+        const color = TAJWEED_COLORS[cls] || 'inherit';
+        return `<span style="color:${color};display:inline;font-family:inherit;">${char}</span>`;
+    });
+
+    // 3. Handle Aladhan Format: [tag:code[char]] or [tag[char]]
+    const tajweedRegex = /\[([a-z0-9_]+)(?::\d+)?\[([^\]]+)\]/g;
     const replaceFn = (_: string, cls: string, char: string) => {
         const color = TAJWEED_COLORS[cls] || 'inherit';
-        return `<span style="color:${color}">${char}</span>`;
+        return `<span style="color:${color};display:inline;font-family:inherit;">${char}</span>`;
     };
 
     parsed = parsed.replace(tajweedRegex, replaceFn);

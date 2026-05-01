@@ -29,13 +29,13 @@ export function DailyGoalSetter({ onGoalSet }: DailyGoalSetterProps) {
     const { setDailyGoal } = useReadingProgress();
 
     useEffect(() => {
-        if (pathname.includes('/quran')) {
+        if (pathname.includes('/quran') && user) {
             const saved = localStorage.getItem('syamna_daily_goal');
             if (!saved) setIsVisible(true);
         } else {
             setIsVisible(false);
         }
-    }, [pathname]);
+    }, [pathname, user]);
 
     const handlePickGoal = (verses: number) => {
         setSelectedGoal(verses);

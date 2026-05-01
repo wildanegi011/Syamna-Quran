@@ -8,6 +8,8 @@ import { AyahItem } from './AyahItem';
 import { useReadingProgress } from '@/contexts/ReadingProgressContext';
 import { useQuranFoundation } from '@/hooks/use-quran-foundation';
 import { useQuranAuth } from '@/contexts/QuranAuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/lib/constants/translations';
 import { ChevronDown, Loader2, Search, Trophy } from 'lucide-react';
 
 // Surahs that don't start with Bismillah (At-Taubah) or already contains it (Al-Fatihah)
@@ -231,10 +233,13 @@ export const AyahList = ({
 
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const { dailyGoal, hasFinishedGoalMode, setHasFinishedGoalMode, submitActivity, hasSubmittedToday } = useReadingProgress();
-    const { readingBookmark, toggleReadingBookmark } = useQuranFoundation();
+    const { readingBookmark, toggleReadingBookmark, logActivity } = useQuranFoundation();
     const { isConnected, connectQuranAccount } = useQuranAuth();
+    const { language } = useSettings();
+    const { t } = useTranslation(language);
     const [ayahPendingKey, setAyahPendingKey] = React.useState<string | null>(null);
     const [isConnecting, setIsConnecting] = React.useState(false);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
 
     // Clear local pending state when mutation finishes
     useEffect(() => {
@@ -243,11 +248,35 @@ export const AyahList = ({
         }
     }, [toggleReadingBookmark.isPending, isConnecting]);
 
-    const isGoalModeActive = mode === 'reading' && !hasFinishedGoalMode;
+    const isGoalModeActive = isConnected && mode === 'reading' && !hasFinishedGoalMode;
+
+    // Calculate how many ayat to show: from ayah 1 up to (bookmark + dailyGoal)
+    const goalEndIndex = React.useMemo(() => {
+        if (!isGoalModeActive || !activeData?.ayat?.length) return 0;
+
+        const allAyat = activeData.ayat;
+        const bookmarkAyah = readingBookmark.data?.verseNumber || 0;
+        const bookmarkSurah = readingBookmark.data?.key || 0;
+        const currentSurah = viewedSurah?.nomor || 0;
+
+        // If bookmark is in this surah, end = bookmark + dailyGoal
+        if (bookmarkSurah === currentSurah && bookmarkAyah > 0) {
+            return bookmarkAyah + dailyGoal;
+        }
+
+        // Different surah or no bookmark: just show dailyGoal from the start
+        return dailyGoal;
+    }, [isGoalModeActive, activeData?.ayat, readingBookmark.data, viewedSurah, dailyGoal]);
+
     // We only slice the array if they are in reading mode and haven't finished the goal
-    const displayedAyat = isGoalModeActive ? activeData?.ayat?.slice(0, dailyGoal) : activeData?.ayat;
-    // Check if we hit the limit in the current view
-    const isTargetReachedInView = isGoalModeActive && (activeData?.ayat?.length || 0) >= dailyGoal;
+    const displayedAyat = isGoalModeActive
+        ? activeData?.ayat?.slice(0, goalEndIndex)
+        : activeData?.ayat;
+
+    // Check if we have enough ayat loaded to fill the goal range
+    const isTargetReachedInView = isGoalModeActive
+        && (activeData?.ayat?.length || 0) >= goalEndIndex
+        && goalEndIndex > 0;
 
     useEffect(() => {
         if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
@@ -390,6 +419,11 @@ export const AyahList = ({
                                             }}
                                             onOpenMenu={handleOpenMenu}
                                             mode={mode}
+                                            isLastRead={
+                                                mode === 'reading' &&
+                                                readingBookmark.data?.key === (ayah.surahInfo?.nomor || viewedSurah?.nomor) &&
+                                                readingBookmark.data?.verseNumber === ayah.nomorAyat
+                                            }
                                         />
                                     </React.Fragment>
                                 );
@@ -399,28 +433,59 @@ export const AyahList = ({
                                 <div className="py-8 px-4 flex flex-col items-center gap-4">
                                     <div className="flex items-center gap-2 text-primary">
                                         <Trophy className="w-4 h-4" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Target {dailyGoal} Ayat Tercapai</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest">
+                                            {language === 'ID' ? `Target ${dailyGoal} Ayat Tercapai` : `${dailyGoal} Verses Goal Reached`}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-3 w-full max-w-[280px]">
                                         <button
-                                            onClick={() => {
-                                                const ranges = displayedAyat.map((a: Ayah) => `${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}-${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}`);
-                                                submitActivity(dailyGoal, ranges);
+                                            onClick={async () => {
+                                                setIsSubmitting(true);
+                                                // Capture last ayah BEFORE state changes
+                                                const lastAyah = displayedAyat[displayedAyat.length - 1];
+                                                const sId = lastAyah?.surahInfo?.nomor || viewedSurah?.nomor || 0;
+                                                const ranges = displayedAyat.map((a: Ayah) => `${sId}:${a.nomorAyat}-${sId}:${a.nomorAyat}`);
+
+                                                // Update bookmark first (sync mutate)
+                                                if (lastAyah) {
+                                                    toggleReadingBookmark.mutate({ surahId: sId, ayahId: lastAyah.nomorAyat });
+                                                }
+                                                // Then submit activity
+                                                await submitActivity(dailyGoal, ranges);
+                                                setIsSubmitting(false);
                                             }}
-                                            disabled={hasSubmittedToday}
-                                            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-black uppercase tracking-wider text-[10px] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                            disabled={hasSubmittedToday || isSubmitting}
+                                            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-black uppercase tracking-wider text-[10px] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                         >
-                                            {hasSubmittedToday ? "Tersimpan ✅" : "Selesai ✨"}
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                    {language === 'ID' ? 'Menyimpan...' : 'Saving...'}
+                                                </>
+                                            ) : hasSubmittedToday ? (
+                                                (language === 'ID' ? 'Tersimpan ✅' : 'Saved ✅')
+                                            ) : (
+                                                (language === 'ID' ? 'Selesai ✨' : 'Done ✨')
+                                            )}
                                         </button>
                                         <button
                                             onClick={() => {
-                                                const ranges = displayedAyat.map((a: Ayah) => `${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}-${a.surahInfo?.nomor || viewedSurah?.nomor}:${a.nomorAyat}`);
+                                                // Capture last ayah BEFORE state changes
+                                                const lastAyah = displayedAyat[displayedAyat.length - 1];
+                                                const sId = lastAyah?.surahInfo?.nomor || viewedSurah?.nomor || 0;
+                                                const ranges = displayedAyat.map((a: Ayah) => `${sId}:${a.nomorAyat}-${sId}:${a.nomorAyat}`);
+
+                                                // Update bookmark first
+                                                if (lastAyah) {
+                                                    toggleReadingBookmark.mutate({ surahId: sId, ayahId: lastAyah.nomorAyat });
+                                                }
+                                                // Then submit and unlock full surah
                                                 submitActivity(dailyGoal, ranges);
                                                 setHasFinishedGoalMode(true);
                                             }}
                                             className="flex-1 py-2.5 rounded-xl bg-foreground/5 hover:bg-foreground/10 text-foreground/60 font-bold uppercase tracking-wider text-[10px] transition-colors"
                                         >
-                                            Lanjut Baca
+                                            {language === 'ID' ? 'Lanjut Baca' : 'Continue'}
                                         </button>
                                     </div>
                                 </div>
