@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
 
     // 3. Security Validation
     if (!savedState || state !== savedState) {
+        console.error(`[QF Auth Error] State Mismatch! URL: ${state}, Cookie: ${savedState}`);
         return NextResponse.json(
             { error: "Invalid state (CSRF protected). Please try logging in again." },
             { status: 400 }
