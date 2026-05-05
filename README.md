@@ -6,10 +6,12 @@
 
 ## 📺 Demo Video
 
-[![Syamna Quran Demo](https://res.cloudinary.com/dc9jxqbqj/video/upload/v1714950000/syamna_quran_onsg0k.jpg)](https://player.cloudinary.com/embed/?cloud_name=dc9jxqbqj&public_id=syamna_quran_onsg0k)
+<div align="center">
+  <video src="https://res.cloudinary.com/dc9jxqbqj/video/upload/f_auto,q_auto/syamna_quran_onsg0k" autoplay muted loop playsinline width="100%" style="border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);"></video>
+</div>
 
-> [!TIP]
-> Click the image above to watch the demo video.
+> [!NOTE]
+> Modern browsers require videos to be **muted** to allow autoplay.
 
 ---
 
