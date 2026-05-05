@@ -10,7 +10,7 @@ import { CONFIG } from "@/lib/api-config";
 export async function GET(req: NextRequest) {
     const config = getQfOAuthConfig();
     const { searchParams } = new URL(req.url);
-    
+
     const code = searchParams.get("code");
     const state = searchParams.get("state");
     const error = searchParams.get("error");
@@ -65,8 +65,8 @@ export async function GET(req: NextRequest) {
             redirectUri: savedRedirectUri
         });
 
-        const response = NextResponse.redirect(new URL("/profile", req.url));
-        
+        const response = NextResponse.redirect(new URL("/quran", CONFIG.NEXT_PUBLIC_URL));
+
         const cookieOptions = {
             httpOnly: true,
             secure: CONFIG.NODE_ENV === "production",
