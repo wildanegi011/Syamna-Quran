@@ -11,13 +11,11 @@ export async function GET(req: NextRequest) {
         // Ensure configuration is valid
         getQfOAuthConfig();
 
-        // Build a dynamic redirect URI based on the current host if not explicitly set
-        // This ensures it works correctly on local (ngrok) and production (Netlify)
-        const host = req.headers.get("host");
-        const protocol = req.headers.get("x-forwarded-proto") || "http";
-        const origin = `${protocol}://${host}`;
-
-        const redirectUri = CONFIG.QURAN_FOUNDATION_REDIRECT_URI || `${origin}/api/quran/auth/callback`;
+        /**
+         * Use NEXT_PUBLIC_URL from centralized CONFIG.
+         * This avoids dynamic origin issues on Netlify while keeping it configurable.
+         */
+        const redirectUri = CONFIG.QURAN_FOUNDATION_REDIRECT_URI || `${CONFIG.NEXT_PUBLIC_URL}/api/quran/auth/callback`;
 
         console.log(`[QF Auth] Initiating login with redirect_uri: ${redirectUri}`);
 
