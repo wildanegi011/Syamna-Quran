@@ -42,14 +42,6 @@ export async function GET(req: NextRequest) {
     const codeVerifier = req.cookies.get(verifierKey)?.value;
     const savedRedirectUri = req.cookies.get(redirectKey)?.value;
 
-    // Debugging: Log received cookies and expected keys
-    console.log(`[QF Auth Debug] Expected State Key: ${stateKey}`);
-    console.log(`[QF Auth Debug] URL State: ${state}`);
-    console.log(`[QF Auth Debug] Cookie State: ${savedState}`);
-    console.log(`[QF Auth Debug] Received State: ${savedState ? "FOUND" : "MISSING"}`);
-    console.log(`[QF Auth Debug] Received Verifier: ${codeVerifier ? "FOUND" : "MISSING"}`);
-    console.log(`[QF Auth Debug] All Cookie Names:`, req.cookies.getAll().map(c => c.name));
-
     // 3. Security Validation
     if (!savedState || state !== savedState) {
         // Double-check: If state is missing but we already have an access token,

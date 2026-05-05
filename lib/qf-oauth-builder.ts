@@ -47,6 +47,7 @@ export async function buildAuthorizationUrl({
   url.searchParams.set("nonce", nonce);
   url.searchParams.set("code_challenge", codeChallenge);
   url.searchParams.set("code_challenge_method", "S256");
+  url.searchParams.set("prompt", "login");
 
   // Persist the sensitive values in secure, httpOnly cookies server-side
   // We use environment-prefixed cookie names to ensure token isolation.
