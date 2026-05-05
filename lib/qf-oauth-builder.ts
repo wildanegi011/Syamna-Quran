@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { getQfOAuthConfig, getQfCookieName } from "./qf-oauth-config";
 import { generatePkcePair, randomString } from "./pkce";
+import { CONFIG as NEWCONFIG } from "./api-config";
 
 /**
  * Builds the authorization URL for Quran Foundation OAuth2 and persists
@@ -13,24 +14,24 @@ import { generatePkcePair, randomString } from "./pkce";
  * @param scopes - Optional array of scopes to request.
  * @returns An object containing the generated URL, state, and nonce.
  */
-export async function buildAuthorizationUrl({ 
-  redirectUri, 
+export async function buildAuthorizationUrl({
+  redirectUri,
   scopes = [
-    "openid", 
-    "offline_access", 
-    "content", 
-    "bookmark", 
-    "collection", 
-    "activity_day", 
-    "streak", 
+    "openid",
+    "offline_access",
+    "content",
+    "bookmark",
+    "collection",
+    "activity_day",
+    "streak",
     "user"
-  ] 
-}: { 
-  redirectUri: string; 
-  scopes?: string[]; 
+  ]
+}: {
+  redirectUri: string;
+  scopes?: string[];
 }) {
   const config = getQfOAuthConfig();
-  
+
   // Generate PKCE and security values
   const { codeVerifier, codeChallenge } = generatePkcePair();
   const state = randomString(16);
@@ -52,7 +53,7 @@ export async function buildAuthorizationUrl({
   const cookieStore = await cookies();
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: NEWCONFIG.NODE_ENV === "production",
     path: "/",
     maxAge: 600, // 10 minutes
     sameSite: "lax" as const,
@@ -63,9 +64,9 @@ export async function buildAuthorizationUrl({
   cookieStore.set(getQfCookieName("oauth_nonce"), nonce, cookieOptions);
   cookieStore.set(getQfCookieName("oauth_redirect_uri"), redirectUri, cookieOptions);
 
-  return { 
-    url: url.toString(), 
-    state, 
-    nonce 
+  return {
+    url: url.toString(),
+    state,
+    nonce
   };
 }

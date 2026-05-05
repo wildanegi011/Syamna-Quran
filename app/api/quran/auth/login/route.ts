@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildAuthorizationUrl } from "@/lib/qf-oauth-builder";
 import { getQfOAuthConfig } from "@/lib/qf-oauth-config";
+import { CONFIG } from "@/lib/api-config";
 
 /**
  * GET handler for initiating the Quran Foundation OAuth2 login flow.
@@ -10,12 +11,11 @@ export async function GET() {
     try {
         // Ensure configuration is valid
         getQfOAuthConfig();
-        
-        const redirectUri = process.env.QURAN_FOUNDATION_REDIRECT_URI || "";
-        
+        const redirectUri = CONFIG.QURAN_FOUNDATION_REDIRECT_URI || "";
+
         // Build the URL and persist PKCE/state/nonce in secure cookies
-        const { url } = await buildAuthorizationUrl({ 
-            redirectUri 
+        const { url } = await buildAuthorizationUrl({
+            redirectUri
         });
 
         // Redirect to the authorization endpoint
@@ -23,7 +23,7 @@ export async function GET() {
     } catch (error: any) {
         console.error("QF OAuth Login Error:", error.message);
         return NextResponse.json(
-            { error: error.message || "Failed to initiate login flow" }, 
+            { error: error.message || "Failed to initiate login flow" },
             { status: 500 }
         );
     }

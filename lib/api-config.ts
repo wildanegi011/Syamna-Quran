@@ -46,4 +46,14 @@ export const CONFIG = {
   QURAN_FOUNDATION_CLIENT_SECRET: process.env.QURAN_FOUNDATION_CLIENT_SECRET || "",
   QURAN_FOUNDATION_REDIRECT_URI: process.env.QURAN_FOUNDATION_REDIRECT_URI || `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/quran/auth/callback`,
   QURAN_FOUNDATION_MUSHAF_ID: Number(process.env.NEXT_PUBLIC_QF_MUSHAF_ID) || 4,
+
+  /**
+   * New QF Environment Variables
+   */
+  QF_CLIENT_ID: process.env.QF_CLIENT_ID || "",
+  QF_CLIENT_SECRET: process.env.QF_CLIENT_SECRET || "",
+  QF_ENV: process.env.QF_ENV || "prelive",
+  NODE_ENV: process.env.NODE_ENV || "development",
+  SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
 };

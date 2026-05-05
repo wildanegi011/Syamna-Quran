@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { exchangeAuthorizationCode } from "@/lib/qf-oauth-exchanger";
 import { getQfOAuthConfig, getQfCookieName } from "@/lib/qf-oauth-config";
 import { mapOAuthError } from "@/lib/qf-error-utils";
+import { CONFIG } from "@/lib/api-config";
 
 /**
  * OAuth2 Callback Handler for Quran Foundation.
@@ -68,7 +69,7 @@ export async function GET(req: NextRequest) {
         
         const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: CONFIG.NODE_ENV === "production",
             path: "/",
             sameSite: "lax" as const,
         };

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { getQfOAuthConfig, getQfCookieName } from "./qf-oauth-config";
 import { refreshAccessToken, QfTokenResponse } from "./qf-oauth-exchanger";
 import { logDiagnostic } from "./qf-error-utils";
+import { CONFIG as NEWCONFIG } from "./api-config";
 
 /**
  * Global Map to track active refresh promises per refresh token.
@@ -12,12 +13,12 @@ const refreshPromises = new Map<string, Promise<QfTokenResponse>>();
  * Authenticated API client helper for Quran Foundation User APIs.
  */
 export async function qfFetch(
-  path: string, 
+  path: string,
   options: RequestInit & { baseUrl?: string } = {}
 ): Promise<Response> {
   const config = getQfOAuthConfig();
   const cookieStore = await cookies();
-  
+
   const accessTokenKey = getQfCookieName("access_token");
   const refreshTokenKey = getQfCookieName("refresh_token");
 
@@ -47,11 +48,11 @@ export async function qfFetch(
   // Step 2: Handle 401 Unauthorized with automatic refresh and retry
   if (res.status === 401 && refreshToken) {
     console.log(`QF API [${config.env}]: Access token expired (401). Attempting refresh...`);
-    
+
     try {
       if (!refreshPromises.has(refreshToken)) {
         refreshPromises.set(
-          refreshToken, 
+          refreshToken,
           refreshAccessToken({ refreshToken }).finally(() => {
             refreshPromises.delete(refreshToken);
           })
@@ -60,10 +61,10 @@ export async function qfFetch(
 
       const tokenData = await refreshPromises.get(refreshToken)!;
       accessToken = tokenData.access_token;
-      
+
       const secureCookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: NEWCONFIG.NODE_ENV === "production",
         path: "/",
         sameSite: "lax" as const,
       };

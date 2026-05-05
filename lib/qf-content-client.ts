@@ -1,5 +1,6 @@
 import { getQfOAuthConfig } from "./qf-oauth-config";
 import { exchangeClientCredentials, QfTokenResponse } from "./qf-oauth-exchanger";
+import { CONFIG } from "./api-config";
 
 /**
  * Internal manager for machine-level (Client Credentials) tokens.
@@ -87,7 +88,7 @@ export async function qfContentFetch(
   headers.set("x-auth-token", accessToken);
   headers.set("x-client-id", clientId);
 
-  const defaultBaseUrl = process.env.QURAN_FOUNDATION_API || "https://api.quranfoundation.org";
+  const defaultBaseUrl = CONFIG.QURAN_FOUNDATION_API || "https://api.quranfoundation.org";
   const baseUrl = options.baseUrl || defaultBaseUrl;
   
   const url = `${baseUrl}${path.startsWith("/") || !path ? path : `/${path}`}`;
