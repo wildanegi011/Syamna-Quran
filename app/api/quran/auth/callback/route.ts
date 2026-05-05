@@ -44,6 +44,8 @@ export async function GET(req: NextRequest) {
 
     // Debugging: Log received cookies and expected keys
     console.log(`[QF Auth Debug] Expected State Key: ${stateKey}`);
+    console.log(`[QF Auth Debug] URL State: ${state}`);
+    console.log(`[QF Auth Debug] Cookie State: ${savedState}`);
     console.log(`[QF Auth Debug] Received State: ${savedState ? "FOUND" : "MISSING"}`);
     console.log(`[QF Auth Debug] Received Verifier: ${codeVerifier ? "FOUND" : "MISSING"}`);
     console.log(`[QF Auth Debug] All Cookie Names:`, req.cookies.getAll().map(c => c.name));
