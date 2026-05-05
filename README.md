@@ -6,7 +6,9 @@
 
 ## 📺 Demo Video
 
-[![Syamna Quran Demo](https://res.cloudinary.com/dc9jxqbqj/video/upload/v1714950000/syamna_quran_onsg0k.jpg)](https://player.cloudinary.com/embed/?cloud_name=dc9jxqbqj&public_id=syamna_quran_onsg0k)
+<a href="https://player.cloudinary.com/embed/?cloud_name=dc9jxqbqj&public_id=syamna_quran_onsg0k" target="_blank">
+  <img src="https://res.cloudinary.com/dc9jxqbqj/video/upload/v1714950000/syamna_quran_onsg0k.jpg" alt="Syamna Quran Demo" style="width: 100%; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);" />
+</a>
 
 > [!TIP]
 > Click the image above to watch the demo video.
