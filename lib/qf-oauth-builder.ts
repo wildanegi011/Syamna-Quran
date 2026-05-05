@@ -57,7 +57,7 @@ export async function buildAuthorizationUrl({
     secure: isProd, // Must be true for sameSite: "none"
     path: "/",
     maxAge: 600, // 10 minutes
-    sameSite: "none" as const,
+    sameSite: (isProd ? "none" : "lax") as "none" | "lax",
   };
 
   cookieStore.set(getQfCookieName("pkce_verifier"), codeVerifier, cookieOptions);
