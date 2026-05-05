@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getQfCookieName } from "@/lib/qf-oauth-config";
 
 /**
- * GET /api/quran/status
+ * GET /api/quran/auth/status
  * Cek apakah user sudah terkoneksi ke Quran Foundation.
  * Mengembalikan status connected dan user info dari id_token.
  */
 export async function GET(req: NextRequest) {
-    const accessToken = req.cookies.get("qf_access_token")?.value;
-    const idToken = req.cookies.get("qf_id_token")?.value;
-    const connected = req.cookies.get("qf_connected")?.value === "true";
+    // Use environment-isolated cookie names
+    const accessToken = req.cookies.get(getQfCookieName("access_token"))?.value;
+    const idToken = req.cookies.get(getQfCookieName("id_token"))?.value;
+    
+    // Fallback: if we have an access token, we are effectively connected
+    const connectedCookie = req.cookies.get(getQfCookieName("connected"))?.value;
+    const connected = connectedCookie === "true" || !!accessToken;
 
     if (!connected || !accessToken) {
         return NextResponse.json({
@@ -18,7 +23,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Decode id_token (JWT) tanpa verify signature
-    // (signature sudah diverifikasi oleh Hydra saat token exchange)
     let user = null;
     if (idToken) {
         try {
@@ -38,7 +42,7 @@ export async function GET(req: NextRequest) {
         }
     }
 
-    const scopeStr = req.cookies.get("qf_scope")?.value || "";
+    const scopeStr = req.cookies.get(getQfCookieName("scope"))?.value || "";
     const scopes = scopeStr ? scopeStr.split(" ") : [];
 
     return NextResponse.json({

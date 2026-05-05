@@ -96,6 +96,27 @@ export async function GET(req: NextRequest) {
             });
         }
 
+        if (tokenResponse.id_token) {
+            response.cookies.set(getQfCookieName("id_token"), tokenResponse.id_token, {
+                ...cookieOptions,
+                maxAge: tokenResponse.expires_in || 3600,
+            });
+        }
+
+        // Set connected status and scopes for UI
+        response.cookies.set(getQfCookieName("connected"), "true", {
+            ...cookieOptions,
+            httpOnly: false, // Allow client to read connection status if needed
+            maxAge: 30 * 24 * 60 * 60,
+        });
+
+        if (tokenResponse.scope) {
+            response.cookies.set(getQfCookieName("scope"), tokenResponse.scope, {
+                ...cookieOptions,
+                maxAge: 30 * 24 * 60 * 60,
+            });
+        }
+
         // 5. Cleanup security cookies
         response.cookies.delete(stateKey);
         response.cookies.delete(verifierKey);
