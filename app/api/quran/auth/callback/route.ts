@@ -52,6 +52,14 @@ export async function GET(req: NextRequest) {
 
     // 3. Security Validation
     if (!savedState || state !== savedState) {
+        // Double-check: If state is missing but we already have an access token,
+        // it might be a double-callback. Just redirect to the destination.
+        const existingToken = req.cookies.get(getQfCookieName("access_token"))?.value;
+        if (existingToken) {
+            console.log("[QF Auth] State missing but access token found. Likely a double-callback. Redirecting to destination.");
+            return NextResponse.redirect(new URL("/quran", CONFIG.NEXT_PUBLIC_URL));
+        }
+
         console.error(`[QF Auth Error] State Mismatch! URL: ${state}, Cookie: ${savedState}`);
         return NextResponse.json(
             { error: "Invalid state (CSRF protected). Please try logging in again." },
