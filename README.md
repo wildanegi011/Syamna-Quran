@@ -7,11 +7,16 @@
 ## 📺 Demo Video
 
 <div align="center">
-  <video src="https://res.cloudinary.com/dc9jxqbqj/video/upload/f_auto,q_auto/syamna_quran_onsg0k" autoplay muted loop playsinline width="100%" style="border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);"></video>
+  <iframe
+    src="https://player.cloudinary.com/embed/?cloud_name=dc9jxqbqj&public_id=syamna_quran_onsg0k&autoplay=true&muted=true"
+    width="640"
+    height="360" 
+    style="height: auto; width: 100%; aspect-ratio: 640 / 360; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);"
+    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+    allowfullscreen
+    frameborder="0"
+  ></iframe>
 </div>
-
-> [!NOTE]
-> Modern browsers require videos to be **muted** to allow autoplay.
 
 ---
 
