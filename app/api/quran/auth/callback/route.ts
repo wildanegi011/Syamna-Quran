@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
             httpOnly: true,
             secure: CONFIG.NODE_ENV === "production",
             path: "/",
-            sameSite: "lax" as const,
+            sameSite: "none" as const,
         };
 
         response.cookies.set(getQfCookieName("access_token"), tokenResponse.access_token, {
