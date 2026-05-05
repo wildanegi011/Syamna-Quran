@@ -51,9 +51,10 @@ export async function buildAuthorizationUrl({
   // Persist the sensitive values in secure, httpOnly cookies server-side
   // We use environment-prefixed cookie names to ensure token isolation.
   const cookieStore = await cookies();
+  const isProd = CONFIG.NODE_ENV === "production";
   const cookieOptions = {
     httpOnly: true,
-    secure: true, // Required for sameSite: "none"
+    secure: isProd, // Must be true for sameSite: "none"
     path: "/",
     maxAge: 600, // 10 minutes
     sameSite: "none" as const,
