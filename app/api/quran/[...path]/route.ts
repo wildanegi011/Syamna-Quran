@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
-import tokenManager from '@/lib/utils/tokenManager';
-import { CONFIG } from '@/lib/api-config';
+import { qfContentFetch } from '@/lib/qf-content-client';
 
+/**
+ * Proxy for Quran Foundation Content APIs
+ * Route: /api/quran/[...path]
+ * 
+ * This route proxies requests for public Quran data (chapters, verses, etc.)
+ * using machine-level authentication (Client Credentials).
+ */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ path: string[] }> }
@@ -10,38 +16,20 @@ export async function GET(
     const { path } = await params;
     const { searchParams } = new URL(request.url);
 
-    // Get valid OAuth2 token from manager (server-side)
-    let token;
-    try {
-      token = await tokenManager.getToken();
-    } catch (tokenError) {
-      console.error('Failed to get OAuth token for Quran Foundation:', tokenError);
-      return NextResponse.json(
-        { 
-          error: 'Authentication Failure', 
-          message: 'Failed to acquire access token for Quran Foundation',
-          details: tokenError instanceof Error ? tokenError.message : String(tokenError)
-        },
-        { status: 502 } // Bad Gateway - upstream auth failed
-      );
-    }
-
-    // Map internal path to external QF path
+    // Construct the external path from the catch-all parameters
     const externalPath = path.join('/');
-    const targetUrl = `${CONFIG.QURAN_FOUNDATION_API}/${externalPath}?${searchParams.toString()}`;
+    const queryStr = searchParams.toString();
+    const targetPath = queryStr ? `${externalPath}?${queryStr}` : externalPath;
 
-    const response = await fetch(targetUrl, {
-      headers: {
-        'x-client-id': CONFIG.QURAN_FOUNDATION_CLIENT_ID,
-        'x-auth-token': token,
-      },
-      // Set a reasonable timeout for the target API as well
-      signal: AbortSignal.timeout(30000), 
+    // Use qfContentFetch which handles token management automatically
+    const response = await qfContentFetch(targetPath, {
+      method: 'GET',
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error(`Quran Foundation API Error [${externalPath}]:`, errorData);
+      console.error(`Quran Foundation Content API Error [${externalPath}]:`, errorData);
+      
       return NextResponse.json(
         { 
           error: `Failed to fetch ${externalPath} from Quran Foundation`,
@@ -53,8 +41,8 @@ export async function GET(
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error) {
-    console.error('API Proxy Error:', error);
+  } catch (error: any) {
+    console.error('Quran Content API Proxy Error:', error.message);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

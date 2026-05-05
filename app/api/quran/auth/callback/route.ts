@@ -1,131 +1,103 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CONFIG } from "@/lib/api-config";
+import { exchangeAuthorizationCode } from "@/lib/qf-oauth-exchanger";
+import { getQfOAuthConfig, getQfCookieName } from "@/lib/qf-oauth-config";
+import { mapOAuthError } from "@/lib/qf-error-utils";
 
+/**
+ * OAuth2 Callback Handler for Quran Foundation.
+ */
 export async function GET(req: NextRequest) {
+    const config = getQfOAuthConfig();
     const { searchParams } = new URL(req.url);
+    
     const code = searchParams.get("code");
-    const returnedState = searchParams.get("state");
-    const providerError = searchParams.get("error");
-    const providerErrorDesc = searchParams.get("error_description");
+    const state = searchParams.get("state");
+    const error = searchParams.get("error");
+    const errorDescription = searchParams.get("error_description");
 
-    const baseUrl = `${CONFIG.NEXT_PUBLIC_URL}/quran`;
-
-    // Handle provider errors
-    if (providerError) {
-        console.error("QF OAuth Provider Error:", providerError, providerErrorDesc);
-        return NextResponse.redirect(`${baseUrl}?error=provider_error&detail=${encodeURIComponent(providerError)}`);
+    // 1. Handle explicit OAuth2 errors from the provider with actionable hints
+    if (error) {
+        console.error(`QF OAuth [${config.env}] Provider Error:`, { error, errorDescription });
+        const hint = mapOAuthError(error, errorDescription || undefined);
+        return NextResponse.json(
+            { error: hint },
+            { status: 400 }
+        );
     }
 
-    const storedState = req.cookies.get("qf_oauth_state")?.value;
-    const verifier = req.cookies.get("qf_pkce_verifier")?.value;
-
-    // 1. Handle double-redirects (already connected)
-    const alreadyConnected = req.cookies.get("qf_connected")?.value === "true";
-    if (alreadyConnected && (!returnedState || !storedState)) {
-        return NextResponse.redirect(baseUrl);
+    if (!code || !state) {
+        return NextResponse.json(
+            { error: "Missing required callback parameters. Please try again." },
+            { status: 400 }
+        );
     }
 
-    // 2. Validate state (CSRF protection)
-    if (!returnedState || !storedState || returnedState !== storedState) {
-        console.error("QF OAuth: State mismatch");
-        return NextResponse.redirect(`${baseUrl}?error=oauth_state_mismatch`);
+    // 2. Retrieve security values from cookies
+    const stateKey = getQfCookieName("oauth_state");
+    const verifierKey = getQfCookieName("pkce_verifier");
+    const redirectKey = getQfCookieName("oauth_redirect_uri");
+
+    const savedState = req.cookies.get(stateKey)?.value;
+    const codeVerifier = req.cookies.get(verifierKey)?.value;
+    const savedRedirectUri = req.cookies.get(redirectKey)?.value;
+
+    // 3. Security Validation
+    if (!savedState || state !== savedState) {
+        return NextResponse.json(
+            { error: "Invalid state (CSRF protected). Please try logging in again." },
+            { status: 400 }
+        );
     }
 
-    // 3. Validate code and PKCE verifier
-    if (!code || !verifier) {
-        console.error("QF OAuth: Missing code or verifier");
-        return NextResponse.redirect(`${baseUrl}?error=oauth_invalid_request`);
+    if (!codeVerifier || !savedRedirectUri) {
+        return NextResponse.json(
+            { error: "Session expired. Please try logging in again." },
+            { status: 400 }
+        );
     }
-
-    // --- Token Exchange ---
-    const credentials = Buffer.from(
-        `${CONFIG.QURAN_FOUNDATION_CLIENT_ID}:${CONFIG.QURAN_FOUNDATION_CLIENT_SECRET}`
-    ).toString("base64");
 
     try {
-        const tokenRes = await fetch(
-            `${CONFIG.QURAN_FOUNDATION_OAUTH}/oauth2/token`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    Authorization: `Basic ${credentials}`,
-                },
-                body: new URLSearchParams({
-                    grant_type: "authorization_code",
-                    code,
-                    redirect_uri: CONFIG.QURAN_FOUNDATION_REDIRECT_URI,
-                    code_verifier: verifier,
-                }),
-            }
-        );
+        // 4. Exchange Authorization Code for Tokens
+        const tokenResponse = await exchangeAuthorizationCode({
+            code,
+            codeVerifier,
+            redirectUri: savedRedirectUri
+        });
 
-        if (!tokenRes.ok) {
-            const errorData = await tokenRes.json().catch(() => ({}));
-            console.error("QF OAuth: Token exchange failed:", errorData);
-            return NextResponse.redirect(`${baseUrl}?error=oauth_token_exchange_failed`);
-        }
-
-        const data = await tokenRes.json();
-        const res = NextResponse.redirect(baseUrl);
-        const secureCookieOptions = {
+        const response = NextResponse.redirect(new URL("/profile", req.url));
+        
+        const cookieOptions = {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === "production",
             path: "/",
-            sameSite: "none" as const,
+            sameSite: "lax" as const,
         };
 
-        // Persist tokens in secure httpOnly cookies
-        res.cookies.set("qf_access_token", data.access_token, {
-            ...secureCookieOptions,
-            maxAge: data.expires_in || 3600,
+        response.cookies.set(getQfCookieName("access_token"), tokenResponse.access_token, {
+            ...cookieOptions,
+            maxAge: tokenResponse.expires_in || 3600,
         });
 
-        if (data.refresh_token) {
-            res.cookies.set("qf_refresh_token", data.refresh_token, {
-                ...secureCookieOptions,
-                maxAge: 30 * 24 * 60 * 60, // 30 days
-            });
-        }
-
-        if (data.id_token) {
-            res.cookies.set("qf_id_token", data.id_token, {
-                ...secureCookieOptions,
-                maxAge: data.expires_in || 3600,
-            });
-        }
-
-        // Expose connection state and expiry to the frontend
-        const expiresAt = Date.now() + (data.expires_in || 3600) * 1000;
-        res.cookies.set("qf_expires_at", expiresAt.toString(), {
-            ...secureCookieOptions,
-            httpOnly: false,
-            maxAge: data.expires_in || 3600,
-        });
-
-        res.cookies.set("qf_connected", "true", {
-            ...secureCookieOptions,
-            httpOnly: false,
-            maxAge: 30 * 24 * 60 * 60,
-        });
-
-        // Simpan daftar scope yang aktif
-        if (data.scope) {
-            res.cookies.set("qf_scope", data.scope, {
-                ...secureCookieOptions,
-                httpOnly: false, // Biar bisa dibaca frontend/user
+        if (tokenResponse.refresh_token) {
+            response.cookies.set(getQfCookieName("refresh_token"), tokenResponse.refresh_token, {
+                ...cookieOptions,
                 maxAge: 30 * 24 * 60 * 60,
             });
         }
 
-        // Cleanup temporary auth cookies
-        res.cookies.delete("qf_pkce_verifier");
-        res.cookies.delete("qf_oauth_state");
-        res.cookies.delete("qf_oauth_nonce");
+        // 5. Cleanup security cookies
+        response.cookies.delete(stateKey);
+        response.cookies.delete(verifierKey);
+        response.cookies.delete(redirectKey);
+        response.cookies.delete(getQfCookieName("oauth_nonce"));
 
-        return res;
-    } catch (error) {
-        console.error("QF OAuth: Unexpected error:", error);
-        return NextResponse.redirect(`${baseUrl}?error=oauth_unexpected_error`);
+        return response;
+
+    } catch (err: any) {
+        // Catch mapped actionable errors from the exchanger
+        return NextResponse.json(
+            { error: err.message },
+            { status: 500 }
+        );
     }
 }
