@@ -4,6 +4,15 @@
 
 ---
 
+## 📺 Demo Video
+
+[![Syamna Quran Demo](https://res.cloudinary.com/dc9jxqbqj/video/upload/v1714950000/syamna_quran_onsg0k.jpg)](https://player.cloudinary.com/embed/?cloud_name=dc9jxqbqj&public_id=syamna_quran_onsg0k)
+
+> [!TIP]
+> Click the image above to watch the demo video.
+
+---
+
 ## 🚀 Key Features
 
 - **🕋 Al-Quran**: High-fidelity reading experience with Tafsir and multi-language translations.
