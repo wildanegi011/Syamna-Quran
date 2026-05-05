@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { getQfOAuthConfig, getQfCookieName } from "./qf-oauth-config";
 import { generatePkcePair, randomString } from "./pkce";
-import { CONFIG as NEWCONFIG } from "./api-config";
+import { CONFIG } from "./api-config";
 
 /**
  * Builds the authorization URL for Quran Foundation OAuth2 and persists
@@ -53,7 +53,7 @@ export async function buildAuthorizationUrl({
   const cookieStore = await cookies();
   const cookieOptions = {
     httpOnly: true,
-    secure: NEWCONFIG.NODE_ENV === "production",
+    secure: CONFIG.NODE_ENV === "production",
     path: "/",
     maxAge: 600, // 10 minutes
     sameSite: "lax" as const,

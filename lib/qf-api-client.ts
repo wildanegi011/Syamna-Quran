@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { getQfOAuthConfig, getQfCookieName } from "./qf-oauth-config";
 import { refreshAccessToken, QfTokenResponse } from "./qf-oauth-exchanger";
 import { logDiagnostic } from "./qf-error-utils";
-import { CONFIG as NEWCONFIG } from "./api-config";
+import { CONFIG } from "./api-config";
 
 /**
  * Global Map to track active refresh promises per refresh token.
@@ -64,7 +64,7 @@ export async function qfFetch(
 
       const secureCookieOptions = {
         httpOnly: true,
-        secure: NEWCONFIG.NODE_ENV === "production",
+        secure: CONFIG.NODE_ENV === "production",
         path: "/",
         sameSite: "lax" as const,
       };
