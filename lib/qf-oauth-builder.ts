@@ -53,10 +53,10 @@ export async function buildAuthorizationUrl({
   const cookieStore = await cookies();
   const cookieOptions = {
     httpOnly: true,
-    secure: CONFIG.NODE_ENV === "production",
+    secure: true, // Required for sameSite: "none"
     path: "/",
     maxAge: 600, // 10 minutes
-    sameSite: "lax" as const,
+    sameSite: "none" as const,
   };
 
   cookieStore.set(getQfCookieName("pkce_verifier"), codeVerifier, cookieOptions);
